@@ -1,0 +1,185 @@
+set w 32
+set h 32
+set nsqrs [expr $w * $h]
+
+set hline0 [kufhex 0033]
+set hline1 [kufhex 00CC]
+set hline2 [kufhex 3300]
+set hline3 [kufhex CC00]
+
+set vline0 [kufhex 0505]
+set vline1 [kufhex 0A0A]
+set vline2 [kufhex 5050]
+set vline3 [kufhex A0A0]
+
+set hpar0 [expr $hline0 | $hline2]
+set hpar1 [expr $hline1 | $hline3]
+
+set vpar0 [expr $vline0 | $vline2]
+set vpar1 [expr $vline1 | $vline3]
+
+set diag0 [kufhex 0660]
+
+set hlinehe2 [kufhex 3000]
+set hlinehw2 [kufhex 0300]
+set hlinehe1 [kufhex 00C0]
+set hlinehw1 [kufhex 000C]
+
+set vlinehs2 [kufhex 5000]
+set vlinehs1 [kufhex 0A00]
+set vlinehn2 [kufhex 0050]
+set vlinehn1 [kufhex 000A]
+
+set cornernw [expr $hline0 | $vline0 | $hlinehe2 | $vlinehs2]
+set cornerne [expr $hline0 | $vline3 | $hlinehw2 | $vlinehs1]
+set cornersw [expr $hline3 | $vline0 | $hlinehe1 | $vlinehn2]
+set cornerse [expr $hline3 | $vline3 | $hlinehw1 | $vlinehn1]
+
+set crosshatch0 [kufhex 4664]
+
+set rng 88888
+
+func getsqrs {} {
+    grab sqrs
+}
+
+func boxit {w h off} {
+    local startx
+    local starty
+    local endx
+    local endy
+    local i
+
+    set startx $off
+    set endx [expr $w - $off - 1]
+
+    set starty $off
+    set endy [expr $h - $off - 1]
+
+    kufsetsqr $w [getsqrs] $startx $starty $cornernw
+    kufsetsqr $w [getsqrs] $endx $starty $cornerne
+    kufsetsqr $w [getsqrs] $startx $endy $cornersw
+    kufsetsqr $w [getsqrs] $endx $endy $cornerse
+
+    for {set i [expr $startx + 1]} {$i < $endx} {inc i} {
+        kufsetsqr $w [getsqrs] $i $starty $hpar0
+        kufsetsqr $w [getsqrs] $i $endy $hpar1
+    }
+
+    for {set i [expr $starty + 1]} {$i < $endy} {inc i} {
+        kufsetsqr $w [getsqrs] $startx $i $vpar0
+        kufsetsqr $w [getsqrs] $endx $i $vpar1
+    }
+}
+
+kufnew sqrs $nsqrs
+
+for {set i 0} {$i < $nsqrs} {inc i} {
+    if {$i < 512} {
+        if {[expr ($i % 2) == 1]} {
+            kufset [getsqrs] $i $hpar0
+        } {
+            kufset [getsqrs] $i $crosshatch0
+        }
+    } {
+        kufset [getsqrs] $i $diag0
+    }
+}
+
+for {set yp [expr $h / 2]} {$yp < $h} {inc yp} {
+    for {set xp [expr $w / 2]} {$xp < $w} {inc xp} {
+        kufsetsqr $w [getsqrs] $xp $yp $vpar1
+    }
+}
+
+# set tmp [kufgenblk $nrg]
+# print $rng
+# set $rng [index $tmp 1]
+
+for {set yp 0} {$yp < [expr $h / 4]} {inc yp} {
+    for {set xp 0} {$xp < [expr $w / 4]} {inc xp} {
+        set run 0
+
+        if {[expr ($yp % 2) == 0)} {
+            set run [expr ($xp % 2) == 0]
+        }
+
+        if {[expr $run > 0]} {
+            for {set k 0} {$k < 3} {inc k} {
+                set tmp [kufgenblk $rng]
+                set rng [index $tmp 1]
+                kufsetblk $w [getsqrs] \
+                    [expr $xp * 4] \
+                    [expr $yp * 4 + 2*$k] \
+                    [index $tmp 0]
+
+                set tmp [kufgenblk $rng]
+                set rng [index $tmp 1]
+                kufsetblk $w [getsqrs] \
+                    [expr $xp * 4 + 2] \
+                    [expr $yp * 4 + 2*$k] \
+                    [index $tmp 0]
+
+                set tmp [kufgenblk $rng]
+                set rng [index $tmp 1]
+                kufsetblk $w [getsqrs] \
+                    [expr $xp * 4 + 4] \
+                    [expr $yp * 4 + 2*$k] \
+                    [index $tmp 0]
+
+            }
+        }
+    }
+}
+
+boxit $w $h 1
+boxit $w $h 3
+boxit $w $h 5
+
+kufcor $w $h [getsqrs]
+
+kufpbm "big.pbm" $w $h [getsqrs]
+
+# btprnt transfer stuff
+
+set bpw [expr $w * 8]
+set bph [expr $h * 8]
+
+bpnew bp $bpw $bph
+
+bpset [grab bp] 0 0 0 $bpw $bph
+
+kufbp [bpget [grab bp] 0] [getsqrs] 0 0 $w $h 2
+
+bppbm [grab bp] "bigger.pbm"
+
+# btprnt gfxbuf transfer stuff
+
+gfxnew gfx $bpw $bph
+
+grab gfx
+dup
+gfxclrrgb 0 135 206 250
+dup
+gfxclrrgb 1 75 0 130
+dup
+gfxclrrgb 2 255 0 255
+dup
+gfxfill 0
+
+for {set x 0} {$x < $bph} {inc x 32} {
+    for {set y 0} {$y < $bph} {inc y 16} {
+        dup
+        bptr [grab bp] $x $y 16 16 $x $y 2
+    }
+}
+
+for {set x 16} {$x < $bph} {inc x 32} {
+    for {set y 0} {$y < $bph} {inc y 16} {
+        dup
+        bptr [grab bp] $x $y 16 16 $x $y 1
+    }
+}
+dup
+gfxppm "bigcolor.ppm"
+

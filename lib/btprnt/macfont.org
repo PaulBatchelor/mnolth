@@ -1,0 +1,603 @@
+#+TITLE: Macintosh Font Reader
+* Top
+This interface parses and renders classic Macintosh font
+Files.
+
+This document tangles out to two files, =macfont.h= and
+=macfont.c=.
+
+#+NAME: macfont.h
+#+BEGIN_SRC c :tangle macfont.h
+#ifndef MACFONT_H
+#define MACFONT_H
+<<typedefs>>
+<<symbols>>
+<<funcdefs>>
+#endif
+#+END_SRC
+
+#+NAME: macfont.c
+#+BEGIN_SRC c :tangle macfont.c
+#include <stdint.h>
+#include <string.h>
+#include "btprnt/btprnt.h"
+#include "macfont.h"
+<<macros>>
+<<funcs>>
+#+END_SRC
+* Helper Macros
+This interface expects the entire font to be loaded into
+a chunk memory somehow. From there, the interface will read
+the block.
+
+The font record interface is mostly stored as a series of
+words, or 16-bit values that take up two bytes, stored in
+big-endian. To convert these big-endian values to native,
+a macro called =BIG2INT= is used.
+
+#+NAME: macro_utils
+#+BEGIN_SRC c
+#define BIGINT(n) (((n & 0xFF) << 8) | n >> 8)
+#+END_SRC
+
+To read integers, a macro called =MKINT= is used. Does the
+same thing, only it expects to read from a buffer of bytes.
+
+#+NAME: macro_utils
+#+BEGIN_SRC c
+#define MKINT(d, pos) ((d[pos] << 8) + d[pos + 1])
+#+END_SRC
+
+Most of the other macros are just "getters" for particular
+values in the font record that use the =MKINT= macro.
+
+#+NAME: macro_getters
+#+BEGIN_SRC c
+#define FONTTYPE(d) (MKINT(d, 0))
+#define FIRSTCHAR(d) (MKINT(d, 2))
+#define LASTCHAR(d) (MKINT(d, 4))
+#define WIDTHMAX(d) ((int16_t)MKINT(d, 6))
+#define KERNMAX(d) ((int16_t)MKINT(d, 8))
+#define NDESCENT(d) ((int16_t)MKINT(d, 10))
+#define RECTWIDTH(d) ((int16_t)MKINT(d, 12))
+#define RECTHEIGHT(d) ((int16_t)MKINT(d, 14))
+#define OWTLOC(d) ((int16_t)MKINT(d, 16))
+#define ASCENT(d) ((int16_t)MKINT(d, 18))
+#define DESCENT(d) ((int16_t)MKINT(d, 20))
+#define LEADING(d) ((int16_t)MKINT(d, 22))
+#define ROWWORDS(d) ((int16_t)MKINT(d, 24))
+#define BITMAPS(d) (&d[26])
+#+END_SRC
+
+#+NAME: macros
+#+BEGIN_SRC c
+<<macro_utils>>
+<<macro_getters>>
+#+END_SRC
+* Janet Loader
+* Macfont Janet Loader
+A macintosh font is loaded and managed by Janet using
+the function =macfont-load=.
+
+Things are loaded into a special struct for janet called
+=janet_macfont_d=. This contains an instance of
+=macfont_info= and the buffer.
+
+This struct is stored as a Janet abstract type, and will be
+automatically freed by Janet.
+* Lowlevel Glyph
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_glyph_lowlevel(btprnt_region *r,
+                           uint8_t *font,
+                           int xpos,
+                           int ypos,
+                           char c);
+#+END_SRC
+
+I want more words to explain this eventually. For now,
+just a mad scramble to place pixels.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_glyph_lowlevel(btprnt_region *r,
+                           uint8_t *font,
+                           int xpos,
+                           int ypos,
+                           char c)
+{
+    uint8_t *bitmaps;
+    uint16_t *loctable;
+    uint16_t *owtable;
+    uint16_t off;
+    uint16_t nchars;
+    uint16_t ow;
+    uint16_t width;
+    uint16_t offset;
+    uint16_t pos;
+    uint16_t nextloc;
+    uint16_t loc;
+    uint16_t stride;
+    uint16_t x, y;
+    uint16_t w, h;
+    uint16_t kern;
+
+    bitmaps = BITMAPS(font);
+    off = ROWWORDS(font) * RECTHEIGHT(font);
+
+    loctable = (uint16_t *) (bitmaps + (2 * off));
+
+    nchars = LASTCHAR(font) - FIRSTCHAR(font) + 1;
+
+    owtable = loctable + (nchars + 2);
+
+    pos = c - FIRSTCHAR(font);
+    ow = owtable[pos];
+    ow = ((ow & 0xFF) << 8) | ow >> 8;
+
+    if (ow == 0xFFFF) return 0;
+
+    offset = (ow >> 8) & 0x00FF;
+    width = ow & 0x00FF;
+
+    loc = BIGINT(loctable[pos]);
+    nextloc = BIGINT(loctable[pos + 1]);
+
+    stride = ROWWORDS(font) * 2;
+
+    w = nextloc - loc;
+    h = RECTHEIGHT(font);
+    kern = offset + KERNMAX(font);
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            int pos = loc + x;
+            uint8_t byte = bitmaps[(stride * y) + (pos / 8)];
+            uint8_t val = (byte >> (7 - (pos % 8))) & 1;
+            btprnt_region_draw(r, xpos + x + kern, ypos + y, val);
+        }
+    }
+
+    return width;
+}
+#+END_SRC
+* Non-ascii symbols
+Some extra symbols.
+
+#+NAME: symbols
+#+BEGIN_SRC c
+#define MF_CHAR_COMMAND 0x11
+#define MF_CHAR_DOT 0x12
+#define MF_CHAR_CHECK 0x13
+#define MF_CHAR_APPLE 0x14
+#+END_SRC
+* Macfont Info
+To reduce the amount of overhead required to print a glyph,
+variables are read and stored in a struct called
+=macfont_info=.
+** typedef
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct {
+    <<macfont_info>>
+} macfont_info;
+#+END_SRC
+** init
+The =macfont_info= struct is populated with
+=macfont_info_init=. It does this by reading the buffer
+where the font is located.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void macfont_info_init(macfont_info *info, uint8_t *font);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void macfont_info_init(macfont_info *info, uint8_t *font)
+{
+    <<macfont_info_init>>
+}
+#+END_SRC
+** contents
+*** Bitmaps
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint8_t *bitmaps;
+#+END_SRC
+*** Off
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t off;
+#+END_SRC
+
+#+NAME: read_bitmap_and_off
+#+BEGIN_SRC c
+info->off = ROWWORDS(font) * RECTHEIGHT(font);
+#+END_SRC
+
+#+NAME: read_bitmap_and_off
+#+BEGIN_SRC c
+info->bitmaps = BITMAPS(font);
+#+END_SRC
+*** Loctable
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t *loctable;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+<<read_bitmap_and_off>>
+info->loctable =
+    (uint16_t *) (info->bitmaps + (2 * info->off));
+<<owtable>>
+#+END_SRC
+*** owtable
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t *owtable;
+#+END_SRC
+
+#+NAME: owtable
+#+BEGIN_SRC c
+<<read_nchars>>
+info->owtable = info->loctable + (info->nchars + 2);
+#+END_SRC
+*** nchars
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t nchars;
+#+END_SRC
+
+#+NAME: read_nchars
+#+BEGIN_SRC c
+info->nchars = LASTCHAR(font) - FIRSTCHAR(font) + 1;
+#+END_SRC
+
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t stride;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->stride = ROWWORDS(font) * 2;
+#+END_SRC
+*** rectheight
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t rectheight;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->rectheight = RECTHEIGHT(font);
+#+END_SRC
+*** kernmax
+#+NAME: macfont_info
+#+BEGIN_SRC c
+int16_t kernmax;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->kernmax = KERNMAX(font);
+#+END_SRC
+*** firstchar
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t firstchar;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->firstchar = FIRSTCHAR(font);
+#+END_SRC
+*** font height
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t fontheight;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->fontheight = ASCENT(font) - DESCENT(font);
+#+END_SRC
+*** ascent + descent
+#+NAME: macfont_info
+#+BEGIN_SRC c
+uint16_t descent;
+uint16_t ascent;
+#+END_SRC
+
+#+NAME: macfont_info_init
+#+BEGIN_SRC c
+info->ascent = ASCENT(font);
+info->descent = DESCENT(font);
+#+END_SRC
+** helper functions
+*** macinfo_fontheight
+=macinfo_fontheight= returns the font height.
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_info_fontheight(macfont_info *info);
+#+END_SRC
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_info_fontheight(macfont_info *info)
+{
+    return info->fontheight;
+}
+#+END_SRC
+
+In janet, this is =macfont-height=.
+*** macinfo_rectheight
+=macinfo_rectheight= returns the font height.
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_info_rectheight(macfont_info *info);
+#+END_SRC
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_info_rectheight(macfont_info *info)
+{
+    return info->rectheight;
+}
+#+END_SRC
+
+In janet, this is =macfont-height=.
+*** macinfo_descent
+think it could be needed to dynamically draw
+symbols in a text string.
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_info_descent(macfont_info *info);
+#+END_SRC
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_info_descent(macfont_info *info)
+{
+    return info->descent;
+}
+#+END_SRC
+
+In janet, this is =macfont-height=.
+* Macfont Glyph
+The main way to write a glyph (using macfont info).
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_glyph(btprnt_region *r,
+                  macfont_info *info,
+                  int xpos,
+                  int ypos,
+                  char c,
+                  int color);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_glyph(btprnt_region *r,
+                  macfont_info *info,
+                  int xpos,
+                  int ypos,
+                  char c,
+                  int color)
+{
+    uint16_t ow;
+    uint16_t width;
+    uint16_t offset;
+    uint16_t pos;
+    uint16_t nextloc;
+    uint16_t loc;
+    uint16_t x, y;
+    uint16_t w, h;
+    uint16_t kern;
+
+    pos = c - info->firstchar;
+    ow = info->owtable[pos];
+    ow = ((ow & 0xFF) << 8) | ow >> 8;
+
+    if (ow == 0xFFFF) return 0;
+
+    offset = (ow >> 8) & 0x00FF;
+    width = ow & 0x00FF;
+
+    loc = BIGINT(info->loctable[pos]);
+    nextloc = BIGINT(info->loctable[pos + 1]);
+
+    w = nextloc - loc;
+    h = info->rectheight;
+    kern = offset + info->kernmax;
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            int pos = loc + x;
+            uint8_t byte =
+                info->bitmaps[(info->stride * y) + (pos / 8)];
+            uint8_t val = (byte >> (7 - (pos % 8))) & 1;
+            if (val) {
+                btprnt_region_draw(r,
+                                   xpos + x + kern,
+                                   ypos + y,
+                                   color);
+            }
+        }
+    }
+
+    return width;
+}
+#+END_SRC
+* Macfont Textbox
+Based on =btprnt_draw_textbox=, only with macfont.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void macfont_textbox(btprnt_region *reg,
+                     macfont_info *fnt,
+                     int offx, int offy,
+                     const char *str,
+                     int color,
+                     int *nx, int *ny);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<textbox_helpers>>
+void macfont_textbox(btprnt_region *reg,
+                     macfont_info *fnt,
+                     int offx, int offy,
+                     const char *str,
+                     int color,
+                     int *nx, int *ny)
+{
+    int len;
+    int n;
+    int start;
+    int nchars;
+    int xpos;
+    int ypos;
+
+    len = strlen(str);
+    start = 0;
+    nchars = 0;
+    xpos = offx;
+    ypos = offy;
+    for (n = 0; n < len; n++) {
+        nchars++;
+        if (str[n] == ' ' || str[n] == '\n') {
+            write_word(reg, fnt,
+                       &str[start], nchars,
+                       &xpos, &ypos,
+                       color);
+            start = n + 1;
+            nchars = 0;
+        }
+    }
+
+    if (nchars >= 0) {
+        write_word(reg, fnt,
+                    &str[start], nchars,
+                    &xpos, &ypos,
+                    color);
+    }
+
+    if (nx != NULL) *nx = xpos;
+    if (ny != NULL) *ny = ypos;
+}
+#+END_SRC
+
+# #+NAME: static_funcdefs
+# #+BEGIN_SRC c
+# static uint16_t get_charwidth(macfont_info *fnt, char c);
+# static int get_wordlen(macfont_info *fnt, const char *str, int sz);
+# #+END_SRC
+
+#+NAME: textbox_helpers
+#+BEGIN_SRC c
+static int get_charwidth(macfont_info *fnt, char c)
+{
+    uint16_t pos;
+    uint16_t width;
+    uint16_t ow;
+
+    pos = c - fnt->firstchar;
+    ow = fnt->owtable[pos];
+    ow = ((ow & 0xFF) << 8) | ow >> 8;
+    width = ow & 0x00FF;
+
+    return (int)width;
+}
+
+static int get_wordlen(macfont_info *fnt, const char *str, int sz)
+{
+    int wordlen;
+    int n;
+
+    wordlen = 0;
+
+    for (n = 0; n < sz; n++) {
+        wordlen += get_charwidth(fnt, str[n]);
+    }
+
+    return wordlen;
+}
+
+static void write_word(btprnt_region *reg,
+                       macfont_info *fnt,
+                       const char *str,
+                       int nchars,
+                       int *xp,
+                       int *yp,
+                       int color)
+{
+    int wordlen;
+    int i;
+    int xpos, ypos;
+
+    xpos = *xp;
+    ypos = *yp;
+
+    wordlen = get_wordlen(fnt, str, nchars);
+
+    if ((xpos + wordlen) > reg->w) {
+        if (wordlen < reg->w) {
+            xpos = 0;
+            ypos += fnt->fontheight * 1.5;
+        }
+    }
+
+    for (i = 0; i < nchars; i++) {
+        char c;
+        int cw;
+
+        c = str[i];
+        cw = get_charwidth(fnt, c);
+
+        if ((xpos + cw) > reg->w || c == '\n') {
+            xpos = 0;
+            ypos += fnt->fontheight * 1.5;
+        }
+
+        if (c != '\n') {
+            xpos +=
+                macfont_glyph(reg, fnt,
+                            xpos,
+                            ypos,
+                            c,
+                            color);
+        }
+    }
+
+    *xp = xpos;
+    *yp = ypos;
+}
+#+END_SRC
+
+The janet function for this is called =macfont-textbox=.
+* Line Width
+Given a line of text, calculate the pixel width.
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int macfont_line_width(macfont_info *fnt,
+                       const char *str,
+                       int nchars);
+#+END_SRC
+#+NAME: funcs
+#+BEGIN_SRC c
+int macfont_line_width(macfont_info *fnt,
+                       const char *str,
+                       int nchars)
+{
+    int lw;
+    int n;
+
+    lw = 0;
+
+    for (n = 0; n < nchars; n++) {
+        lw += get_charwidth(fnt, str[n]);
+    }
+
+    return lw;
+}
+#+END_SRC

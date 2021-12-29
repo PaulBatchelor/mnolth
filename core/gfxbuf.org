@@ -1,0 +1,945 @@
+#+TITLE: GFXBUF
+* Overview
+GFXBUF is an abstraction for a high-precision
+graphics buffer that works as an interface for x264
+to generate raw h264 video.
+
+A buffer for graphics is represented in memory as
+an array of pixels of size WxH.
+
+A pixel is made of of RGB components, each represented
+as 3 double-precision values, normalized to be 0-1.
+
+Pixels can be written to explicitely in XY coordinates.
+
+Rectangular regions of pixels can be written to in one go
+using a supplied drawing callback. This is done using a
+thread pool. The interface here is designed to simulate
+shader code on a GPU, and to make it possible to port
+shader code algorithms to work on the CPU (slower, but
+more portable).
+
+A drawn buffer can then be converted to a buffer with a
+YUV444 colorspace.
+
+The YUV buffer can then be used with x264 to produce raw
+h264 video.
+* Tangled Files
+=gfxbuf.c= and =gfxbuf.h=.
+
+#+NAME: gfxbuf.c
+#+BEGIN_SRC c :tangle gfxbuf.c
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <x264.h>
+#include <pthread.h>
+
+#define GFXBUF_PRIV
+#include "gfxbuf.h"
+<<static_funcdefs>>
+<<funcs>>
+#+END_SRC
+
+#+NAME: gfxbuf.h
+#+BEGIN_SRC c :tangle gfxbuf.h
+#ifndef GFXBUF_H
+#define GFXBUF_H
+<<typedefs>>
+<<funcdefs>>
+
+#ifdef GFXBUF_PRIV
+<<structs>>
+#endif
+#endif
+#+END_SRC
+* Top Struct
+The top-level =gfxbuf= struct will contain the following:
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct gfxbuf gfxbuf;
+#+END_SRC
+
+A allocated instance of the pixel buffer, with the width
+and height.
+
+A allocated instance of the YUV buffer, with the same
+width and height.
+
+An instance of the h264 video writer.
+
+An array of =gfxbux_pixels= to make a color palette.
+
+#+NAME: structs
+#+BEGIN_SRC c
+#define GFXBUF_MAXWORKERS 8
+<<worker_struct>>
+struct gfxbuf {
+    gfxbuf_pixbuf *pix;
+    gfxbuf_yuvbuf *yuv;
+    gfxbuf_vidwrt *vid;
+    gfxbuf_worker wrk[GFXBUF_MAXWORKERS];
+    gfxbuf_pixel clr[16];
+};
+#+END_SRC
+
+Allocate a new instance of gfxbuf with =gfxbuf_new=,
+and free with =gfxbuf_del=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf *gfxbuf_new(int w, int h);
+void gfxbuf_del(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf *gfxbuf_new(int w, int h)
+{
+    gfxbuf *gfx;
+    int i;
+    gfxbuf_pixel black;
+
+    gfx = malloc(sizeof(gfxbuf));
+
+    gfx->pix = gfxbuf_pixbuf_new(w, h);
+    gfx->vid = gfxbuf_vidwrt_new();
+    gfx->yuv = gfxbuf_yuvbuf_new();
+
+    for (i = 0; i < GFXBUF_MAXWORKERS; i++) {
+        gfx->wrk[i].id = i;
+        gfx->wrk[i].th = 0;
+        gfx->wrk[i].state.x = 0;
+        gfx->wrk[i].state.y = 0;
+        gfx->wrk[i].state.out = NULL;
+        gfx->wrk[i].state.info = NULL;
+        gfx->wrk[i].draw = NULL;
+    }
+
+    black = gfxbuf_rgb(0, 0, 0);
+
+    for (i = 0; i < 16; i++) {
+        gfxbuf_clrset(gfx, i, black);
+    }
+
+    return gfx;
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_del(gfxbuf *gfx)
+{
+    gfxbuf_vidwrt_del(gfx->vid);
+    gfxbuf_yuvbuf_del(gfx->yuv);
+    gfxbuf_pixbuf_del(gfx->pix);
+    free(gfx);
+}
+#+END_SRC
+* Pixel
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct {
+    double r, g, b;
+} gfxbuf_pixel;
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_rgb(double r, double g, double b);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_rgb(double r, double g, double b)
+{
+    gfxbuf_pixel p;
+    p.r = r;
+    p.g = g;
+    p.b = b;
+    return p;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_rgb24(int r, int g, int b);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_rgb24(int r, int g, int b)
+{
+    double scale;
+    scale = 1.0 / 255.0;
+    return gfxbuf_rgb(r * scale, g * scale, b * scale);
+}
+#+END_SRC
+
+* Pixel Buffer
+=gfxbuf_pixbuf= is the struct. An array of pixels with
+the width and height.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct gfxbuf_pixbuf gfxbuf_pixbuf;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct gfxbuf_pixbuf {
+    gfxbuf_pixel *buf;
+    int w, h;
+};
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_pixbuf* gfxbuf_pixbuf_new(int w, int h);
+void gfxbuf_pixbuf_del(gfxbuf_pixbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_pixbuf* gfxbuf_pixbuf_new(int w, int h)
+{
+    gfxbuf_pixbuf *pix;
+    int x, y;
+
+    pix = malloc(sizeof(gfxbuf_pixbuf));
+
+    pix->buf = malloc(sizeof(gfxbuf_pixel) * w * h);
+    pix->w = w;
+    pix->h = h;
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            pixbuf_set(pix, x, y, gfxbuf_rgb(0, 0, 0));
+        }
+    }
+
+    return pix;
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_pixbuf_del(gfxbuf_pixbuf *gfx)
+{
+    free(gfx->buf);
+    free(gfx);
+}
+#+END_SRC
+
+=gfxbuf_set= sets a pixel at a specific spot.
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void pixbuf_set(gfxbuf_pixbuf *pix,
+                       int x, int y,
+                       gfxbuf_pixel clr);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void pixbuf_set(gfxbuf_pixbuf *pix,
+                       int x, int y,
+                       gfxbuf_pixel clr)
+{
+    if (x >= pix->w || x < 0) return;
+    if (y >= pix->h || y < 0) return;
+
+    pix->buf[y * pix->w + x] = clr;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_set(gfxbuf *gfx, int x, int y, gfxbuf_pixel clr);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_set(gfxbuf *gfx, int x, int y, gfxbuf_pixel clr)
+{
+    pixbuf_set(gfx->pix, x, y, clr);
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int gfxbuf_width(gfxbuf *gfx);
+int gfxbuf_height(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int gfxbuf_width(gfxbuf *gfx)
+{
+    return gfx->pix->w;
+}
+
+int gfxbuf_height(gfxbuf *gfx)
+{
+    return gfx->pix->h;
+}
+#+END_SRC
+* Drawing Regions
+=gfxbuf_draw= is the drawing function. It expects...
+
+...a pixel buffer...
+
+...the top-left XY coordinate of the region...
+
+...the width and height of the region...
+
+...the drawing function callback...
+
+...an array of thread workers...
+
+and any user data.
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void draw(gfxbuf_pixbuf *pix,
+                 int rx, int ry,
+                 int rw, int rh,
+                 void (*f)(gfxbuf_state *),
+                 gfxbuf_worker *workers,
+                 int nworkers,
+                 void *ud);
+#+END_SRC
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct {
+    int rx, ry;
+    int rw, rh;
+    void *ud;
+    gfxbuf_pixbuf *buf;
+    int nworkers;
+} gfxbuf_shared_info;
+
+typedef struct {
+    int x, y;
+    gfxbuf_pixel *out;
+    gfxbuf_shared_info *info;
+} gfxbuf_state;
+#+END_SRC
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct gfxbuf_worker gfxbuf_worker;
+#+END_SRC
+
+#+NAME: worker_struct
+#+BEGIN_SRC c
+struct gfxbuf_worker {
+    int id;
+    pthread_t th;
+    gfxbuf_state state;
+    void (*draw)(gfxbuf_state *);
+};
+#+END_SRC
+
+Drawing works by dividing up the the region into chunks
+that the thread workers can use.
+
+(Nice to have eventually: If no thread workers
+are provided, it will work linearly without threads.)
+
+Workers each have their own working state, which includes
+things like XY position, and region width/height, they also
+have a pointer to the pixel being written to.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void *draw_thread(void *arg)
+{
+    gfxbuf_worker *wrk;
+    int x, y;
+    int rw, rh;
+    int ystart;
+    int xstart;
+    gfxbuf_pixbuf *buf;
+    int max;
+    gfxbuf_shared_info *info;
+    int nworkers;
+
+    wrk = arg;
+
+    info = wrk->state.info;
+
+    rw = info->rw;
+    rh = info->rh;
+
+    nworkers = info->nworkers;
+
+    ystart = wrk->id + info->ry;
+    xstart = info->rx;
+
+    /* apply offsets */
+    rw += info->rx;
+    rh += info->ry;
+
+    buf = info->buf;
+
+    max = buf->w * buf->h;
+
+    for (y = ystart; y < rh; y+=nworkers) {
+        for (x = xstart; x < rw; x++) {
+            int pos;
+            pos = y * buf->w + x;
+
+            if (pos >= max) continue;
+
+            wrk->state.x = x - info->rx;
+            wrk->state.y = y - info->ry;
+            wrk->state.out = &buf->buf[pos];
+            wrk->draw(&wrk->state);
+        }
+    }
+
+    return NULL;
+}
+
+static void draw(gfxbuf_pixbuf *pix,
+                 int rx, int ry,
+                 int rw, int rh,
+                 void (*f)(gfxbuf_state *),
+                 gfxbuf_worker *workers,
+                 int nworkers,
+                 void *ud)
+{
+    gfxbuf_shared_info info;
+    int w;
+
+    info.rw = rw;
+    info.rh = rh;
+    info.rx = rx;
+    info.ry = ry;
+    info.buf = pix;
+    info.nworkers = nworkers;
+    info.ud = ud;
+
+    for (w = 0; w < nworkers; w++) {
+        workers[w].id = w;
+        workers[w].draw = f;
+        workers[w].state.info = &info;
+        pthread_create(&workers[w].th,
+                       NULL,
+                       draw_thread,
+                       &workers[w]);
+    }
+
+
+    for (w = 0; w < nworkers; w++) {
+        pthread_join(workers[w].th, NULL);
+    }
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_draw(gfxbuf *gfx,
+                 int rx, int ry,
+                 int rw, int rh,
+                 void (*f)(gfxbuf_state *),
+                 void *ud);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_draw(gfxbuf *gfx,
+                 int rx, int ry,
+                 int rw, int rh,
+                 void (*f)(gfxbuf_state *),
+                 void *ud)
+{
+    draw(gfx->pix,
+         rx, ry, rw, rh,
+         f, gfx->wrk, GFXBUF_MAXWORKERS, ud);
+}
+#+END_SRC
+* YUV Buffer
+The YUV buffer is also a WxH array of pixels, except the
+pixels here are encoded YUV color spaces, where each
+component is an 8-bit value.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_yuvbuf* gfxbuf_yuvbuf_new(void);
+void gfxbuf_yuvbuf_del(gfxbuf_yuvbuf *yuv);
+void gfxbuf_yuvbuf_link(gfxbuf_yuvbuf *yuv, gfxbuf_vidwrt *vid);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_yuvbuf* gfxbuf_yuvbuf_new(void)
+{
+    gfxbuf_yuvbuf *yuv;
+    yuv = malloc(sizeof(gfxbuf_yuvbuf));
+    yuv->y = NULL;
+    yuv->u = NULL;
+    yuv->v = NULL;
+    yuv->w = 0;
+    yuv->h = 0;
+
+    return yuv;
+}
+
+void gfxbuf_yuvbuf_del(gfxbuf_yuvbuf *yuv)
+{
+    free(yuv);
+}
+
+void gfxbuf_yuvbuf_link(gfxbuf_yuvbuf *yuv, gfxbuf_vidwrt *vid)
+{
+    int x, y;
+    yuv->y = vid->pic.img.plane[0];
+    yuv->u = vid->pic.img.plane[1];
+    yuv->v = vid->pic.img.plane[2];
+
+    yuv->w = vid->param.i_width;
+    yuv->h = vid->param.i_height;
+
+    for (y = 0; y < yuv->h; y++) {
+        for (x = 0; x < yuv->w; x++) {
+            int pos;
+            pos = y * yuv->w + x;
+            yuv->y[pos] = 0;
+            yuv->u[pos] = 0;
+            yuv->v[pos] = 0;
+        }
+    }
+}
+#+END_SRC
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct gfxbuf_yuvbuf gfxbuf_yuvbuf;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct gfxbuf_yuvbuf {
+    uint8_t *y;
+    uint8_t *u;
+    uint8_t *v;
+    int w, h;
+};
+#+END_SRC
+
+The =transfer= operation will convert the double-precision
+RGB pixels into 8-bit YUV444 pixels.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_transfer(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void transfer(gfxbuf_pixbuf *pix, gfxbuf_yuvbuf *yuv);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void transfer(gfxbuf_pixbuf *pix, gfxbuf_yuvbuf *yuv)
+{
+    int w, h;
+    int x, y;
+
+    if (pix == NULL || yuv == NULL) return;
+    if (pix->w != yuv->w || pix->h != yuv->h) return;
+
+    w = pix->w;
+    h = pix->h;
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            gfxbuf_pixel *rgb;
+            int pos;
+
+            pos = y * w + x;
+
+            rgb = &pix->buf[pos];
+
+            rgb2yuv(rgb->r, rgb->g, rgb->b,
+                    &yuv->y[pos], &yuv->u[pos], &yuv->v[pos]);
+        }
+    }
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_transfer(gfxbuf *gfx)
+{
+    transfer(gfx->pix, gfx->yuv);
+}
+#+END_SRC
+
+The process of converting between RGB to YUV colorspaces is
+"magic", in the sense that the author doesn't really know
+anything beyond following instructions on a website. There
+are different coefficients, but the ones chosen here seem
+to best match the BT709 profile.
+
+A big note: YUV444 encodes values to be between 16
+and 235 for Y, and 16 and 239 for Y and V. YUVJ444
+encoding supports full-scale, but is not as common
+as YUV444.
+
+Reference websites:
+
+http://avisynth.nl/index.php/Color_conversions
+
+https://www.eoshd.com/comments/topic/20799-what-is-the-difference-between-yuvj420p-and-yuv420p/
+
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void rgb2yuv(double r, double g, double b,
+                    uint8_t *y, uint8_t *u, uint8_t *v);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void rgb2yuv(double r, double g, double b,
+                    uint8_t *y, uint8_t *u, uint8_t *v)
+{
+    double Ey;
+    double Ecr;
+    double Ecb;
+
+    Ey = (0.2126*r + 0.7152*g + 0.0722*b);
+    Ecr = (r - Ey) / (1 - 0.2126);
+    Ecb = (b - Ey) / (1 - 0.0722);
+
+    /* scale between 16 and 235 */
+    (*y) = Ey * 219 + 16;
+
+    /* clamp between 16 and 239 */
+    (*u) = Ecb * 111.5 + 112 + 16;
+    (*v) = Ecr * 111.5 + 112 + 16;
+}
+#+END_SRC
+* H264 Video Writer
+This component creates an abstraction on top of x264,
+and allows YUV buffers to be sent as frames.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct gfxbuf_vidwrt gfxbuf_vidwrt;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct gfxbuf_vidwrt {
+    x264_param_t param;
+    x264_picture_t pic;
+    x264_picture_t pic_out;
+    x264_t *h;
+    int i_frame;
+    x264_nal_t *nal;
+    int i_nal;
+    FILE *fp;
+};
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_vidwrt* gfxbuf_vidwrt_new(void);
+void gfxbuf_vidwrt_del(gfxbuf_vidwrt *vid);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_vidwrt* gfxbuf_vidwrt_new(void)
+{
+    gfxbuf_vidwrt *vid;
+    vid = calloc(1, sizeof(gfxbuf_vidwrt));
+    return vid;
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_vidwrt_del(gfxbuf_vidwrt *vid)
+{
+    if (vid->h != NULL) {
+        closevid(vid);
+    }
+    free(vid);
+}
+#+END_SRC
+** Open
+=gfxbuf_open=. Opens the video.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int gfxbuf_open(gfxbuf *gfx, const char *filename);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int gfxbuf_open(gfxbuf *gfx, const char *filename)
+{
+    int rc;
+    rc = openvid(gfx->vid, filename,
+                 gfx->pix->w, gfx->pix->h, 60);
+
+    if (rc) return rc;
+
+    gfxbuf_yuvbuf_link(gfx->yuv, gfx->vid);
+
+    return rc;
+}
+#+END_SRC
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static int openvid(gfxbuf_vidwrt *vid,
+                   const char *filename,
+                   int w, int h,
+                   int fps);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static int openvid(gfxbuf_vidwrt *vid,
+                   const char *filename,
+                   int w, int h,
+                   int fps)
+{
+    x264_param_t *p;
+
+    p = &vid->param;
+    vid->fp = fopen(filename, "w");
+
+    if (vid->fp == NULL) return 0;
+
+    vid->i_frame = 0;
+
+    if(x264_param_default_preset(p, "slow", NULL) < 0)
+        return 1;
+
+    p->i_csp = X264_CSP_I444;
+    p->i_width  = w;
+    p->i_height = h;
+    p->b_vfr_input = 0;
+    p->b_repeat_headers = 1;
+    p->b_annexb = 1;
+    p->i_fps_num = fps;
+    p->rc.f_aq_strength = 0.1;
+    p->rc.i_aq_mode= 1;
+    p->i_log_level = X264_LOG_NONE;
+
+    p->vui.i_colmatrix = 1;
+    p->vui.i_transfer = 1;
+    p->vui.i_colorprim = 1;
+
+    /* yuv444p is 16-235, yuvj444p doesn't work with mplayer */
+    p->vui.b_fullrange = 0;
+
+    if (x264_param_apply_profile(p, "high444") < 0 ) {
+        return 1;
+    }
+
+    if (x264_picture_alloc(&vid->pic,
+                          p->i_csp,
+                          p->i_width,
+                          p->i_height) < 0 ) {
+        return 1;
+    }
+
+    vid->h = x264_encoder_open(p);
+    if (!vid->h) return 1;
+
+    return 0;
+}
+#+END_SRC
+** Append
+=gfxbuf_append=. Will append a YUV buffer as a frame.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_append(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_append(gfxbuf *gfx)
+{
+    append(gfx->vid);
+}
+#+END_SRC
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void append(gfxbuf_vidwrt *vid);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void append(gfxbuf_vidwrt *vid)
+{
+    int i_frame_size;
+
+    if(vid->fp == NULL) return;
+    if(vid->h == NULL) return;
+
+/*
+    mkyuv(fb,
+          vid->pic.img.plane[0],
+          vid->pic.img.plane[1],
+          vid->pic.img.plane[2]);
+*/
+
+    vid->pic.i_pts = vid->i_frame;
+
+    vid->i_frame++;
+
+    i_frame_size = x264_encoder_encode(vid->h,
+                                       &vid->nal,
+                                       &vid->i_nal,
+                                       &vid->pic,
+                                       &vid->pic_out);
+
+    if(i_frame_size < 0) return;
+    else if(i_frame_size) {
+        fwrite(vid->nal->p_payload,
+               i_frame_size,
+               1,
+               vid->fp);
+    }
+}
+#+END_SRC
+** Close
+=gfxbuf_close=. Cleanly closes the video.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_close(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_close(gfxbuf *gfx)
+{
+    closevid(gfx->vid);
+}
+#+END_SRC
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static void closevid(gfxbuf_vidwrt *vid);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void closevid(gfxbuf_vidwrt *vid)
+{
+    int i_frame_size;
+    if (vid->h == NULL) return;
+    while (x264_encoder_delayed_frames(vid->h)) {
+        i_frame_size = x264_encoder_encode(vid->h,
+                                           &vid->nal,
+                                           &vid->i_nal,
+                                           NULL,
+                                           &vid->pic_out );
+        if (i_frame_size) {
+            fwrite(vid->nal->p_payload,
+                   i_frame_size,
+                   1,
+                   vid->fp);
+        }
+    }
+
+    x264_encoder_close(vid->h);
+    x264_picture_clean(&vid->pic);
+    fclose(vid->fp);
+    vid->fp = NULL;
+    vid->h = NULL;
+}
+#+END_SRC
+* PPM writer
+=gfxbuf_ppm= will generate a P6 (binary) PPM file from the
+current framebuffer.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_ppm(gfxbuf *gfx, const char *filename);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_ppm(gfxbuf *gfx, const char *filename)
+{
+    FILE *fp;
+    int x, y;
+    char *line;
+    gfxbuf_pixbuf *pix;
+
+    fp = fopen(filename, "w");
+
+    if (fp == NULL) return;
+
+    pix = gfx->pix;
+    fprintf(fp, "P6\n#gfxbuf\n%d %d\n255\n", pix->w, pix->h);
+    line = calloc(1, gfx->pix->w * 3);
+
+    for (y = 0; y < pix->h; y++) {
+        for (x = 0; x < pix->w; x++) {
+            int pos = y * pix->w + x;
+            line[3 * x] = floor(pix->buf[pos].r * 255);
+            line[3 * x + 1] = floor(pix->buf[pos].g * 255);
+            line[3 * x + 2] = floor(pix->buf[pos].b * 255);
+        }
+
+        fwrite(line, 1, pix->w*3, fp);
+    }
+
+    free(line);
+    fclose(fp);
+}
+#+END_SRC
+* Color Cache
+It is a typical thing in drawing environments
+(cairo, nanovg, etc) to separate what color something is
+from the drawing routine. These colors are stored in
+a so-called color cache. One can set a palette of up
+to 16 colors.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_clrset(gfxbuf *gfx, int pos, gfxbuf_pixel clr);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_clrset(gfxbuf *gfx, int pos, gfxbuf_pixel clr)
+{
+    if (pos < 0 || pos >= 16) return;
+
+    gfx->clr[pos] = clr;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_clrget(gfxbuf *gfx, int pos);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gfxbuf_pixel gfxbuf_clrget(gfxbuf *gfx, int pos)
+{
+    if (pos < 0 || pos >= 16) return gfxbuf_rgb(0, 0, 0);
+
+    return gfx->clr[pos];
+}
+#+END_SRC

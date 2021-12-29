@@ -1,0 +1,263 @@
+#+TITLE: Region Pool
+* Overview and Motivations
+This implements a very simple pool of pre-allocated
+=btprnt_region=.
+
+The most commonly used structure in btprnt is
+the region, aka =btprnt_region=. Regions represent
+subslices of bitmap array used as a canvas, and is the
+primary way drawing happens.
+
+The problem with regions is that they must by allocated
+and managed externally, which can be difficult in certain
+situations. Also, the =btprnt_region= is a C struct. And
+while parts of it can be abstracted into higher-level
+components (as it works in Janet), it is fundamentally
+a C struct full of data that cannot be ported.
+
+Recently, these issues came up trying to get
+LIL bindings working for btprnt. Unlike Janet, LIL doesn't
+have a GC interface, nor a great means for throwing around
+C data (let alone manually managing it). LIL does have an
+array type where it would be possible build an abstraction
+similar to what Janet has, but it is unclear how efficient
+that would be.
+
+So, the solution working solution right now is to implement
+a very simple fixed-size region pool, with 16 pre-allocated
+instances =btprnt_region=, addressable by id, and an
+interface to manage when they are being used, freed, and
+an automated way to select the next available id.
+* Tangled Files
+#+NAME: regpool.c
+#+BEGIN_SRC c :tangle regpool.c
+#include <stddef.h>
+#include "btprnt/btprnt.h"
+#define BP_REGPOOL_PRIV
+#include "regpool.h"
+<<funcs>>
+#+END_SRC
+
+#+NAME: regpool.h
+#+BEGIN_SRC c :tangle regpool.h
+#ifndef BP_REGPOOL_H
+#define BP_REGPOOL_H
+<<typedefs>>
+
+#ifdef BP_REGPOOL_PRIV
+<<structs>>
+#endif
+
+<<funcdefs>>
+#endif
+#+END_SRC
+* The Top Level Struct
+...is called =btprnt_regpool=.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct btprnt_regpool btprnt_regpool;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct btprnt_regpool {
+    <<regpool>>
+};
+#+END_SRC
+
+Most importantly, it contains an array of btprnt_regions,
+hard coded to be 16.
+
+#+NAME: regpool
+#+BEGIN_SRC c
+btprnt_region reg[16];
+#+END_SRC
+
+#+NAME: init
+#+BEGIN_SRC c
+{
+    int i;
+    btprnt_canvas *c;
+
+    c = btprnt_canvas_get(bp);
+    for (i = 0; i < 16; i++) {
+        btprnt_region_init(c, &pool->reg[i], 0, 0, 0, 0);
+    }
+}
+#+END_SRC
+
+Following that is a =unsigned short= value storing
+the usage state, which has 16 bits corresponding index in
+the array of regions.
+
+#+NAME: regpool
+#+BEGIN_SRC c
+unsigned short usage;
+#+END_SRC
+
+#+NAME: init
+#+BEGIN_SRC c
+pool->usage = 0;
+#+END_SRC
+
+*NOTE:* it is erroneously assumed that short will be at
+least 16 bits. For all computers this is expected to run on,
+this is true. But if you, dear reader, find yourself needing
+to run this code on a machine where a short is less than
+16 bits, you gotta tell me, because it sounds like a really
+cool project!
+* Initialization
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void btprnt_regpool_init(btprnt *bp, btprnt_regpool *pool);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void btprnt_regpool_init(btprnt *bp, btprnt_regpool *pool)
+{
+    <<init>>
+}
+#+END_SRC
+* Retrieving a Region From an ID
+Function =btprnt_repool_get=.
+
+If within range, will return the element in the array,
+otherwise NULL.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+btprnt_region* btprnt_regpool_get(btprnt_regpool *pool, int id);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+btprnt_region* btprnt_regpool_get(btprnt_regpool *pool, int id)
+{
+    if (id < 0 || id >= 16) return NULL;
+
+    return &pool->reg[id];
+}
+#+END_SRC
+* Setting Bounds of a Region
+Function =btprnt_regpool_set= will set the bounds
+of a region at the region =id=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void btprnt_regpool_set(btprnt_regpool *pool, int id,
+                        int x, int y, int w, int h);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void btprnt_regpool_set(btprnt_regpool *pool, int id,
+                        int x, int y, int w, int h)
+{
+    btprnt_region *reg;
+
+    reg = btprnt_regpool_get(pool, id);
+
+    if (reg == NULL) return;
+
+    reg->x = x;
+    reg->y = y;
+    reg->w = w;
+    reg->h = h;
+}
+#+END_SRC
+* Marking a region as being used
+Function =btprnt_regpool_used=.
+
+Marking region as being used means setting a bit relative
+to ID position.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void btprnt_regpool_mark(btprnt_regpool *pool, int pos);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void btprnt_regpool_mark(btprnt_regpool *pool, int pos)
+{
+    if (pos < 0 || pos >= 16) return;
+    pool->usage |= 1 << pos;
+}
+#+END_SRC
+* Marking a region as being free
+=btprnt_regpool_clear=.
+
+Marking a region as free means clearing a bit relative
+to ID position.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void btprnt_regpool_clear(btprnt_regpool *pool, int pos);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void btprnt_regpool_clear(btprnt_regpool *pool, int pos)
+{
+    if (pos < 0 || pos >= 16) return;
+    pool->usage &= ~(1 << pos);
+}
+#+END_SRC
+* Getting the next available region.
+Function =btprnt_regpool_next=.
+
+Find the next available region, and return
+the corresponding id in the pool.
+
+The sensible way to approach this would be
+to do it the naive way: iterate through all 16
+bits until an unused item is found. This has
+a worst-case performance of O(N), or 16 steps.
+
+Just for fun, we will use some bitwise magic. That
+will allow the process to work with a worst-case
+performance of O(log(N)), or 4 steps.
+
+This works by finding the rightmost 0-bit in
+the state (Warren, pg 11), which will then give
+us a single bit in a sea of 16 0. Then, it's divide
+and conquer to find the needle in the haystack, if
+there is one.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int btprnt_regpool_next(btprnt_regpool *pool);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static int needle(unsigned short x)
+{
+    int top;
+    int off;
+    int n;
+
+    top = 15;
+    off = 0;
+
+    if (x == 0) return -1;
+
+    for (n = 8; n >= 0; n >>= 1) {
+        if (1<<top & x) return top + off;
+        top -= n;
+        if ((x & ((1<<(top + 1)) - 1)) == 0) {
+            off += n;
+            x >>= n;
+        }
+    }
+
+    return -1;
+}
+
+int btprnt_regpool_next(btprnt_regpool *pool)
+{
+    return needle(~pool->usage & (pool->usage + 1));
+}
+#+END_SRC
