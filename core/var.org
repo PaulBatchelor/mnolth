@@ -1,0 +1,214 @@
+#+TITLE: var
+A simple interface for storing floating
+point variables in the sndkit core dictionary.
+
+#+NAME: var.h
+#+BEGIN_SRC c :tangle var.h
+#ifndef M_VAR_H
+#define M_VAR_H
+<<funcdefs>>
+#endif
+#+END_SRC
+
+#+NAME: var.c
+#+BEGIN_SRC c :tangle var.c
+#include <stdlib.h>
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#include "var.h"
+<<funcs>>
+#+END_SRC
+* New
+=sk_var_new= will create a new variable and store it in
+the dictionary.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int sk_var_new(sk_core *core, const char *key, int sz);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void delval(void *ptr)
+{
+    free(ptr);
+}
+
+int sk_var_new(sk_core *core, const char *key, int sz)
+{
+    SKFLT *val;
+
+    val = malloc(sizeof(SKFLT));
+    *val = 0;
+    return sk_core_append(core, key, sz, val, delval);
+}
+#+END_SRC
+* Set/Get
+These function set/get values once a variable has been made.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int sk_var_set(sk_core *core,
+               const char *key, int sz,
+               SKFLT val);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int sk_var_set(sk_core *core,
+               const char *key, int sz,
+               SKFLT val)
+{
+    void *ud;
+    SKFLT *pval;
+    int rc;
+
+    rc = sk_core_lookup(core, key, sz, &ud);
+
+    if (rc) return rc;
+
+    pval = (SKFLT *)ud;
+
+    *pval = val;
+
+    return 0;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int sk_var_get(sk_core *core,
+               const char *key, int sz,
+               SKFLT *val);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int sk_var_get(sk_core *core,
+               const char *key, int sz,
+               SKFLT *val)
+{
+
+    void *ud;
+    SKFLT *pval;
+    int rc;
+
+    rc = sk_core_lookup(core, key, sz, &ud);
+
+    if (rc) return rc;
+
+    pval = (SKFLT *)ud;
+
+    *val = *pval;
+    return 0;
+}
+#+END_SRC
+* Node
+=varcpy= will efficiently set a variable to be a particular
+input signal at control rate.
+
+=varsig= will efficiently get a variable and make it a signal.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int sk_node_varcpy(sk_core *core, const char *key, int sz);
+int sk_node_varsig(sk_core *core, const char *key, int sz);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void cpy_compute(gf_node *node)
+{
+    SKFLT *val;
+
+    gf_cable *cab;
+
+    gf_node_get_cable(node, 0, &cab);
+
+    val = gf_node_get_data(node);
+
+    *val = gf_cable_get(cab, 0);
+}
+
+int sk_node_varcpy(sk_core *core, const char *key, int sz)
+{
+    int rc;
+    gf_patch *patch;
+    sk_param in;
+    gf_node *node;
+    void *ud;
+    SKFLT *val;
+
+    rc = sk_core_lookup(core, key, sz, &ud);
+
+    if (rc) return rc;
+
+    val = (SKFLT *)ud;
+
+    patch = sk_core_patch(core);
+
+    rc = sk_param_get(core, &in);
+
+    SK_ERROR_CHECK(rc);
+
+    rc = gf_patch_new_node(patch, &node);
+    SK_GF_ERROR_CHECK(rc);
+    rc = gf_node_cables_alloc(node, 1);
+
+
+    gf_node_set_compute(node, cpy_compute);
+    gf_node_set_data(node, val);
+
+    sk_param_set(core, node, &in, 0);
+    return 0;
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void sig_compute(gf_node *node)
+{
+    SKFLT *val;
+    gf_cable *cab;
+    int n, blksize;
+
+    gf_node_get_cable(node, 0, &cab);
+
+    val = gf_node_get_data(node);
+    blksize = gf_node_blksize(node);
+
+    for (n = 0; n < blksize; n++) {
+        gf_cable_set(cab, n, *val);
+    }
+}
+
+int sk_node_varsig(sk_core *core, const char *key, int sz)
+{
+    int rc;
+    gf_patch *patch;
+    gf_node *node;
+    void *ud;
+    SKFLT *val;
+
+    rc = sk_core_lookup(core, key, sz, &ud);
+
+    if (rc) return rc;
+
+    val = (SKFLT *)ud;
+
+    patch = sk_core_patch(core);
+
+    rc = gf_patch_new_node(patch, &node);
+    SK_GF_ERROR_CHECK(rc);
+    rc = gf_node_cables_alloc(node, 1);
+    SK_GF_ERROR_CHECK(rc);
+
+    gf_node_set_block(node, 0);
+
+    gf_node_set_compute(node, sig_compute);
+    gf_node_set_data(node, val);
+
+    sk_param_out(core, node, 0);
+    return 0;
+}
+#+END_SRC

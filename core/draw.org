@@ -1,0 +1,52 @@
+#+TITLE: Draw
+Some basic drawing primitives, using =gfxbuf=.
+
+WIP.
+
+#+NAME: draw.c
+#+BEGIN_SRC c :tangle draw.c
+#include "gfxbuf.h"
+#include "draw.h"
+<<funcs>>
+#+END_SRC
+
+#+NAME: draw.h
+#+BEGIN_SRC c :tangle draw.h
+#ifndef MNO_DRAW_H
+#define MNO_DRAW_H
+<<funcdefs>>
+#endif
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxdrw_rect_filled(gfxbuf *buf,
+                        int x, int y,
+                        int w, int h,
+                        int clr);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxdrw_rect_filled(gfxbuf *buf,
+                        int xpos, int ypos,
+                        int w, int h,
+                        int clr)
+{
+    gfxbuf_pixel pix;
+    int xe, ye;
+    int x, y;
+
+    xe = xpos + w;
+    ye = ypos + h;
+
+    pix = gfxbuf_clrget(buf, clr);
+
+    for (y = ypos; y < ye; y++) {
+        for (x = xpos; x < xe; x++) {
+            gfxbuf_set(buf, x, y, pix);
+        }
+    }
+
+}
+#+END_SRC

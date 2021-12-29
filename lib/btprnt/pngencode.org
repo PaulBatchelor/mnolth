@@ -1,0 +1,68 @@
+#+TITLE: PNG encode
+Takes a btprnt buffer, and creates a PNG file encoded as
+a base64 string.
+
+#+NAME: pngencode.c
+#+BEGIN_SRC c :tangle pngencode.c
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "btprnt/btprnt.h"
+#include "lodepng/lodepng.h"
+
+char *base64_encode(const unsigned char *data,
+                    size_t input_length,
+                    size_t *output_length);
+char * btprnt_buf_pngencode(btprnt_buf *buf, size_t *sz);
+<<funcs>>
+#+END_SRC
+
+This allocates a string with =malloc=. One must ensure
+that is is freed after it is used.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+char * btprnt_buf_pngencode(btprnt_buf *buf, size_t *b64_sz)
+{
+    int w, h;
+    unsigned char *img;
+    unsigned char *out;
+    size_t sz;
+    int x, y;
+    char *b64;
+
+    w = btprnt_buf_width(buf);
+    h = btprnt_buf_height(buf);
+
+    img = malloc(w*h*4);
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            unsigned char s;
+            unsigned char *p;
+            s = btprnt_buf_read(buf, x, y);
+            p = &img[4 * ((y * w) + x)];
+
+            p[3] = 255;
+
+            if (s) {
+                p[0] = 0;
+                p[1] = 0;
+                p[2] = 0;
+            } else {
+                p[0] = 255;
+                p[1] = 255;
+                p[2] = 255;
+            }
+        }
+    }
+
+    lodepng_encode32(&out, &sz, img, w, h);
+    b64 = NULL;
+    b64 = base64_encode(out, sz, b64_sz);
+
+    free(img);
+    free(out);
+    return b64;
+}
+#+END_SRC

@@ -1,0 +1,552 @@
+#+TITLE: Hotswap
+* Overview
+This documents a hotswapping cable interface with crossfade.
+A useful primtiive for creating live coding environments.
+* Tangled Files
+#+NAME: hotswap.h
+#+BEGIN_SRC c :tangle hotswap.h
+#ifndef MNO_HOTSWAP_H
+#define MNO_HOTSWAP_H
+<<typedefs>>
+#ifdef MNO_HOTSWAP_PRIV
+<<structs>>
+#endif
+<<funcdefs>>
+#endif
+#+END_SRC
+
+#+NAME: hotswap.c
+#+BEGIN_SRC c :tangle hotswap.c
+#include <stdlib.h>
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#define MNO_HOTSWAP_PRIV
+#include "hotswap.h"
+<<crossfade_enum>>
+<<funcs>>
+#+END_SRC
+* The Cable
+In order for hotswapping to work, patches need to be able to
+write a signal to something persistent.
+
+A cable contains a pointer to the input signal cable, the
+subpatch that cable belongs to, and an internal floating
+point block.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct mno_cable mno_cable;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct mno_cable {
+    gf_cable *in;
+    gf_subpatch subpatch;
+    float blk[64];
+};
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_cable_init(mno_cable *c);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_cable_init(mno_cable *c)
+{
+    int n;
+    gf_subpatch_init(&c->subpatch);
+    for (n = 0; n < 64; n++) c->blk[n] = 0;
+    c->in = NULL;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_cable_del(mno_cable *c);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_cable_del(mno_cable *c)
+{
+    gf_subpatch_destroy(&c->subpatch);
+    gf_subpatch_free(&c->subpatch);
+}
+#+END_SRC
+* The Hotswapper
+Rolls up 2 cables together, and two pointers: one for
+reading (the one you hear), one for writing
+(the one on deck). Also, a pleaseswap flag.
+
+Later, I'll add in the ability to do crossfading.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct mno_hotswap mno_hotswap;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct mno_hotswap {
+    mno_cable cab[2];
+    mno_cable *read;
+    mno_cable *write;
+    int count;
+    gf_patch *patch;
+    int please_swap;
+    int play;
+    int cfsz;
+    int cfstate;
+    int cfcnt;
+    int pcfstate;
+    int pcfcnt;
+};
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+size_t mno_hotswap_sizeof(void);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+size_t mno_hotswap_sizeof(void)
+{
+    return sizeof(mno_hotswap);
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_init(mno_hotswap *hs, gf_patch *patch);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_init(mno_hotswap *hs, gf_patch *patch)
+{
+    mno_cable_init(&hs->cab[0]);
+    mno_cable_init(&hs->cab[1]);
+    hs->read = &hs->cab[0];
+    hs->write = &hs->cab[1];
+    hs->count = 0;
+    hs->patch = patch;
+    hs->please_swap = 0;
+    hs->play = 1;
+    hs->cfstate = CROSSFADE_NONE;
+    mno_hotswap_crossfade(hs, 1);
+    mno_hotswap_cfsize(hs, 16384);
+    hs->cfcnt = 0;
+    hs->pcfcnt = hs->cfcnt;
+    hs->pcfstate = hs->cfstate;
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_del(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_del(mno_hotswap *hs)
+{
+    mno_cable_del(&hs->cab[0]);
+    mno_cable_del(&hs->cab[1]);
+}
+#+END_SRC
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gf_patch* mno_hotswap_patch(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gf_patch* mno_hotswap_patch(mno_hotswap *hs)
+{
+    return hs->patch;
+}
+#+END_SRC
+* Output Node
+Signals are written to a hotswapper signal via a node.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_hotswap_out(gf_node *node, mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void out_compute(gf_node *node)
+{
+    mno_cable *out;
+    int s;
+    int blksize;
+
+    out = gf_node_get_data(node);
+    blksize = gf_node_blksize(node);
+
+    for(s = 0; s < blksize; s++) {
+        out->blk[s] = gf_cable_get(out->in, s);
+    }
+}
+
+static void out_destroy(gf_node *node)
+{
+    gf_node_cables_free(node);
+}
+
+int mno_hotswap_out(gf_node *node, mno_hotswap *hs)
+{
+    gf_patch *patch;
+    int rc;
+    mno_cable *out;
+
+    rc = gf_node_get_patch(node, &patch);
+
+    if (rc != GF_OK) return rc;
+
+    out = hs->write;
+
+    gf_node_cables_alloc(node, 1);
+    gf_node_get_cable(node, 0, &out->in);
+
+    gf_node_set_destroy(node, out_destroy);
+    gf_node_set_compute(node, out_compute);
+    gf_node_set_data(node, out);
+
+    return GF_OK;
+}
+#+END_SRC
+* Render Node
+A hotswap cable, once created, can be rendered as a node
+to an output cable using =mno_hotswap_node=. This should
+allow for portions of a patch to be re-rendered and
+crossfaded.
+
+*Note:* this should be called only once per hotswap
+instance inside of a patch.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_hotswap_node(gf_node *node, mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<hs_compute>>
+int mno_hotswap_node(gf_node *node, mno_hotswap *hs)
+{
+    gf_node_set_data(node, hs);
+    gf_node_set_compute(node, hs_compute);
+
+    return GF_OK;
+}
+#+END_SRC
+
+#+NAME: hs_compute
+#+BEGIN_SRC c
+static void hs_compute(gf_node *node)
+{
+    mno_hotswap *hs;
+
+    hs = gf_node_get_data(node);
+
+    if (hs->play) {
+        int blksize;
+
+        blksize = gf_node_blksize(node);
+        mno_hotswap_compute(hs);
+        hs->pcfstate = hs->cfstate;
+        hs->pcfcnt = hs->cfcnt;
+
+        if (hs->cfstate == CROSSFADE_COMPUTE) {
+            hs->cfcnt += blksize;
+
+            if (hs->cfcnt >= hs->cfsz) {
+                hs->cfstate = CROSSFADE_DONE;
+            }
+        }
+    }
+}
+#+END_SRC
+* Getter Node
+This can be called multiple times, after render.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_hotswap_get(gf_node *node, mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<hs_get_compute>>
+int mno_hotswap_get(gf_node *node, mno_hotswap *hs)
+{
+    int rc;
+    rc = gf_node_cables_alloc(node, 1);
+
+    if (rc != GF_OK) return rc;
+
+    rc = gf_node_set_block(node, 0);
+
+    gf_node_set_data(node, hs);
+    gf_node_set_compute(node, hs_get_compute);
+
+    if (rc) return rc;
+    return GF_OK;
+}
+#+END_SRC
+
+#+NAME: hs_get_compute
+#+BEGIN_SRC c
+static void hs_get_compute(gf_node *node)
+{
+    int blksize;
+    mno_hotswap *hs;
+    int n;
+    gf_cable *out;
+    int cnt;
+    int cfstate;
+
+    hs = gf_node_get_data(node);
+
+    blksize = gf_node_blksize(node);
+
+    gf_node_get_cable(node, 0, &out);
+
+    cnt = hs->pcfcnt;
+    cfstate = hs->pcfstate;
+
+    if (hs->play) {
+        for (n = 0; n < blksize; n++) {
+            GFFLT tmp;
+
+            tmp = hs->read->blk[n];
+
+            if (cfstate == CROSSFADE_COMPUTE) {
+                GFFLT write;
+                GFFLT a;
+
+                a = (GFFLT)cnt / hs->cfsz;
+                write = hs->write->blk[n];
+
+                tmp = a*tmp + (1 - a)*write;
+
+                cnt++;
+
+                if (cnt >= hs->cfsz) {
+                    cfstate = CROSSFADE_DONE;
+                }
+            }
+
+            gf_cable_set(out, n, tmp);
+        }
+    } else {
+        for (n = 0; n < blksize; n++) {
+            gf_cable_set(out, n, 0);
+        }
+    }
+}
+#+END_SRC
+* Please Swap
+After a patch has been built, there needs to be a request
+to please swap.
+
+Saving will happen here too? This is necessary for
+having many instances of hotswappers in a patch.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_please(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_please(mno_hotswap *hs)
+{
+    int nuserbuf;
+    nuserbuf = gf_bufferpool_nactive(gf_patch_pool(hs->patch));
+
+    if (nuserbuf != 0) {
+        fprintf(stderr,
+                "WARNING: there are %d userbuffers left, when there should be 0",
+                nuserbuf);
+    }
+
+    gf_subpatch_save(hs->patch, &hs->write->subpatch);
+    gf_patch_clear(hs->patch);
+
+    hs->please_swap = 1;
+}
+#+END_SRC
+* Compute a Block
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_compute(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_compute(mno_hotswap *hs)
+{
+    if (hs->cfstate == CROSSFADE_DONE) {
+        gf_subpatch_destroy(&hs->write->subpatch);
+        gf_subpatch_free(&hs->write->subpatch);
+        hs->cfstate = CROSSFADE_STANDBY;
+    }
+
+    if (hs->please_swap) {
+        mno_cable *tmp;
+        /* int nuserbuf; */
+
+        tmp = hs->read;
+        hs->read = hs->write;
+        hs->write = tmp;
+
+        if (hs->cfstate == CROSSFADE_NONE) {
+            gf_subpatch_destroy(&hs->write->subpatch);
+            gf_subpatch_free(&hs->write->subpatch);
+        }
+
+        if (hs->cfstate == CROSSFADE_STANDBY) {
+            hs->cfstate = CROSSFADE_COMPUTE;
+            hs->cfcnt = 0;
+        }
+
+        hs->please_swap = 0;
+    }
+
+    gf_subpatch_compute(&hs->read->subpatch);
+
+    if (hs->cfstate == CROSSFADE_COMPUTE) {
+        gf_subpatch_compute(&hs->write->subpatch);
+    }
+}
+#+END_SRC
+* Rendering a Hotswapper to a Stereo Buffer
+A simple and useful way to utilize a single
+Hotswapper instance. This intends to be called by
+something like JACK.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_render(mno_hotswap *hs, int nframes, GFFLT **out);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_render(mno_hotswap *hs, int nframes, GFFLT **out)
+{
+    GFFLT *outL;
+    GFFLT *outR;
+    int n;
+    int blksize;
+
+    outL = out[0];
+    outR = out[1];
+
+    blksize = gf_patch_blksize(hs->patch);
+
+    if (hs->play) {
+        for (n = 0; n < nframes; n++) {
+            GFFLT tmp;
+
+            tmp = 0;
+
+            if (hs->count == 0) {
+                mno_hotswap_compute(hs);
+            }
+
+            tmp = hs->read->blk[hs->count];
+
+            if (hs->cfstate == CROSSFADE_COMPUTE) {
+                GFFLT write;
+                GFFLT a;
+
+                a = (GFFLT)hs->cfcnt / hs->cfsz;
+                write = hs->write->blk[hs->count];
+                tmp = a*tmp + (1 - a)*write;
+
+                hs->cfcnt++;
+
+                if (hs->cfcnt >= hs->cfsz) {
+                    hs->cfstate = CROSSFADE_DONE;
+                }
+            }
+
+            outL[n] = tmp;
+            outR[n] = tmp;
+
+            hs->count = (hs->count + 1) % blksize;
+        }
+    } else {
+        for (n = 0; n < nframes; n++) {
+            outL[n] = outR[n] = 0;
+        }
+    }
+}
+#+END_SRC
+* Toggle Playback
+Useful for "pausing" things.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_playtog(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_playtog(mno_hotswap *hs)
+{
+    hs->play = hs->play ? 0 : 1;
+}
+#+END_SRC
+* Crossfade
+#+NAME: crossfade_enum
+#+BEGIN_SRC c
+enum {
+    CROSSFADE_NONE,
+    CROSSFADE_STANDBY,
+    CROSSFADE_COMPUTE,
+    CROSSFADE_DONE
+};
+#+END_SRC
+** Enable/Disable crossfade
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_crossfade(mno_hotswap *hs, int mode);
+#+END_SRC
+
+Crossfades can be disabled by setting the crossfade state
+to =CROSSFADE_NONE=.
+
+The state will need to be in =CROSSFADE_STANDBY=, in order
+to safely disable it.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_crossfade(mno_hotswap *hs, int mode)
+{
+    if (mode) hs->cfstate = CROSSFADE_STANDBY;
+    else if (hs->cfstate == CROSSFADE_STANDBY)
+        hs->cfstate = CROSSFADE_NONE;
+}
+#+END_SRC
+** Crossfade Size
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_hotswap_cfsize(mno_hotswap *hs, int sz);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_hotswap_cfsize(mno_hotswap *hs, int sz)
+{
+    hs->cfsz = sz;
+}
+#+END_SRC
