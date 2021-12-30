@@ -9,11 +9,11 @@
 static void parse_word(gestlang_d *glang, gest_d *gest);
 #line 362 "gestlang.org"
 static int hash(const char *str, int sz);
-#line 787 "gestlang.org"
+#line 1179 "gestlang.org"
 static int f_comment(gest_d *g, int argc, char *argv[], void *ud);
-#line 829 "gestlang.org"
+#line 1221 "gestlang.org"
 static int pch2nn(const char *pch);
-#line 884 "gestlang.org"
+#line 1276 "gestlang.org"
 static int f_nt(gest_d *g, int argc, char *argv[], void *ud);
 #line 41 "gestlang.org"
 #line 81 "gestlang.org"
@@ -52,7 +52,7 @@ void gestlang_init(gestlang_d *glang)
 
     for (i = 0; i < 16; i++) glang->ent[i] = NULL;
 }
-#line 779 "gestlang.org"
+#line 1171 "gestlang.org"
 glang->comment = 0;
 #line 99 "gestlang.org"
 }
@@ -107,7 +107,7 @@ int i;
 
 for (i = 0; i < sz; i++) {
     if (glang->err) return glang->err;
-#line 814 "gestlang.org"
+#line 1206 "gestlang.org"
 if (glang->comment) {
     if (buf[i] == '\n') {
         glang->comment = 0;
@@ -373,10 +373,139 @@ static int f_gl(gest_d *g, int argc, char *argv[], void *ud)
     gest_behavior_gliss(g);
     return 0;
 }
-#line 754 "gestlang.org"
+#line 738 "gestlang.org"
+static int f_in(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_inertia(g, strtod(argv[0], 0));
+    return 0;
+}
+#line 759 "gestlang.org"
+static int f_ma(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_mass(g, strtod(argv[0], 0));
+    return 0;
+}
+#line 778 "gestlang.org"
+static int f_exp(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_behavior_exponential(g, strtod(argv[0], 0));
+    return 0;
+}
+#line 797 "gestlang.org"
+static int f_bez(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_behavior_bezier(g,
+                         strtod(argv[0], 0),
+                         strtod(argv[1], 0));
+    return 0;
+}
+#line 817 "gestlang.org"
+static int f_met(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_addmetatarget(g, atoi(argv[0]));
+    return 0;
+}
+#line 835 "gestlang.org"
+static int f_mb(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_addmetabehavior(g, atoi(argv[0]));
+    return 0;
+}
+#line 854 "gestlang.org"
+static int f_rndt(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_randtarget(g);
+    return 0;
+}
+#line 873 "gestlang.org"
+static int f_rndb(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_randbehavior(g);
+    return 0;
+}
+#line 892 "gestlang.org"
+static int f_rndn(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_randnode(g);
+    return 0;
+}
+#line 911 "gestlang.org"
+static int f_rndp(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_randphrase(g);
+    return 0;
+}
+#line 929 "gestlang.org"
+static int f_rpt(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_repeat(g, atoi(argv[0]));
+    return 0;
+}
+#line 947 "gestlang.org"
+static int f_mrk(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_mark(g);
+    return 0;
+}
+#line 966 "gestlang.org"
+static int f_ret(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_return(g, atoi(argv[0]));
+    return 0;
+}
+#line 985 "gestlang.org"
+static int f_skq(gest_d *g, int argc, char *argv[], void *ud)
+{
+    return gest_skewquad(g, atoi(argv[0]));
+}
+#line 1003 "gestlang.org"
+static int f_skx(gest_d *g, int argc, char *argv[], void *ud)
+{
+    return gest_skewexp(g, atoi(argv[0]));
+}
+#line 1021 "gestlang.org"
+static int f_skf(gest_d *g, int argc, char *argv[], void *ud)
+{
+    return gest_skewshuf(g);
+}
+#line 1039 "gestlang.org"
+static int f_shr(gest_d *g, int argc, char *argv[], void *ud)
+{
+    return gest_shrink(g, strtod(argv[0], 0));
+}
+#line 1057 "gestlang.org"
+static int f_grw(gest_d *g, int argc, char *argv[], void *ud)
+{
+    return gest_grow(g, strtod(argv[0], 0));
+}
+#line 1075 "gestlang.org"
+static int f_smo(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_behavior_smoothstep(g);
+    return 0;
+}
+#line 1094 "gestlang.org"
 static int f_rmp(gest_d *g, int argc, char *argv[], void *ud)
 {
     gest_ramp(g);
+    return 0;
+}
+#line 1112 "gestlang.org"
+static int f_irmp(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_invramp(g);
+    return 0;
+}
+#line 1131 "gestlang.org"
+static int f_br(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_behavior_biramp(g, strtod(argv[0], 0));
+    return 0;
+}
+#line 1149 "gestlang.org"
+static int f_gt(gest_d *g, int argc, char *argv[], void *ud)
+{
+    gest_behavior_gate(g, strtod(argv[0], 0));
     return 0;
 }
 #line 504 "gestlang.org"
@@ -406,15 +535,59 @@ gestlang_add(glang, "sg", 2, 0, f_sg, NULL, NULL);
 gestlang_add(glang, "mg", 2, 0, f_mg, NULL, NULL);
 #line 725 "gestlang.org"
 gestlang_add(glang, "gl", 2, 0, f_gl, NULL, NULL);
-#line 763 "gestlang.org"
+#line 747 "gestlang.org"
+gestlang_add(glang, "in", 2, 1, f_in, NULL, NULL);
+#line 768 "gestlang.org"
+gestlang_add(glang, "ma", 2, 1, f_ma, NULL, NULL);
+#line 787 "gestlang.org"
+gestlang_add(glang, "exp", 3, 1, f_exp, NULL, NULL);
+#line 808 "gestlang.org"
+gestlang_add(glang, "bez", 3, 2, f_bez, NULL, NULL);
+#line 826 "gestlang.org"
+gestlang_add(glang, "mt", 2, 1, f_met, NULL, NULL);
+#line 844 "gestlang.org"
+gestlang_add(glang, "mb", 2, 1, f_mb, NULL, NULL);
+#line 863 "gestlang.org"
+gestlang_add(glang, "rt", 2, 0, f_rndt, NULL, NULL);
+#line 882 "gestlang.org"
+gestlang_add(glang, "rb", 2, 0, f_rndb, NULL, NULL);
+#line 901 "gestlang.org"
+gestlang_add(glang, "rn", 2, 0, f_rndn, NULL, NULL);
+#line 920 "gestlang.org"
+gestlang_add(glang, "rp", 2, 0, f_rndp, NULL, NULL);
+#line 938 "gestlang.org"
+gestlang_add(glang, "rpt", 3, 1, f_rpt, NULL, NULL);
+#line 956 "gestlang.org"
+gestlang_add(glang, "mrk", 3, 0, f_mrk, NULL, NULL);
+#line 975 "gestlang.org"
+gestlang_add(glang, "ret", 3, 1, f_ret, NULL, NULL);
+#line 993 "gestlang.org"
+gestlang_add(glang, "skq", 3, 1, f_skq, NULL, NULL);
+#line 1011 "gestlang.org"
+gestlang_add(glang, "skx", 3, 1, f_skx, NULL, NULL);
+#line 1029 "gestlang.org"
+gestlang_add(glang, "skf", 3, 0, f_skf, NULL, NULL);
+#line 1047 "gestlang.org"
+gestlang_add(glang, "shr", 3, 1, f_shr, NULL, NULL);
+#line 1065 "gestlang.org"
+gestlang_add(glang, "grw", 3, 1, f_grw, NULL, NULL);
+#line 1084 "gestlang.org"
+gestlang_add(glang, "smo", 3, 0, f_smo, NULL, NULL);
+#line 1103 "gestlang.org"
 gestlang_add(glang, "rmp", 3, 0, f_rmp, NULL, NULL);
-#line 806 "gestlang.org"
+#line 1121 "gestlang.org"
+gestlang_add(glang, "irmp", 4, 0, f_irmp, NULL, NULL);
+#line 1140 "gestlang.org"
+gestlang_add(glang, "br", 2, 1, f_br, NULL, NULL);
+#line 1158 "gestlang.org"
+gestlang_add(glang, "gt", 2, 1, f_gt, NULL, NULL);
+#line 1198 "gestlang.org"
 gestlang_add(glang, "#", 1, 0, f_comment, glang, NULL);
-#line 897 "gestlang.org"
+#line 1289 "gestlang.org"
 gestlang_add(glang, "nt", 2, 1, f_nt, NULL, NULL);
 #line 507 "gestlang.org"
 }
-#line 792 "gestlang.org"
+#line 1184 "gestlang.org"
 static int f_comment(gest_d *g, int argc, char *argv[], void *ud)
 {
     gestlang_d *glang;
@@ -425,7 +598,7 @@ static int f_comment(gest_d *g, int argc, char *argv[], void *ud)
 
     return 0;
 }
-#line 834 "gestlang.org"
+#line 1226 "gestlang.org"
 static int pch2nn(const char *pch)
 {
     int nn;
@@ -472,7 +645,7 @@ static int pch2nn(const char *pch)
 
     return nn;
 }
-#line 889 "gestlang.org"
+#line 1281 "gestlang.org"
 static int f_nt(gest_d *g, int argc, char *argv[], void *ud)
 {
     return gest_addtarget(g, pch2nn(argv[0]));

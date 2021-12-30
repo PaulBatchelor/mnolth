@@ -23,7 +23,7 @@ struct gestlang_d {
 #line 348 "gestlang.org"
 gestlang_entry *ent[16];
 #line 58 "gestlang.org"
-#line 774 "gestlang.org"
+#line 1166 "gestlang.org"
 int comment;
 #line 71 "gestlang.org"
 };
