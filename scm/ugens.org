@@ -22,7 +22,7 @@ note number 69 is A440.
 #+BEGIN_SRC scheme
 (define (mtof x)
   (param x)
-  (lvl "mtof z"))
+  (lvl "mtof zz"))
 #+END_SRC
 * arithmetic
 ** add
