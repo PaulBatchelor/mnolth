@@ -1,0 +1,1124 @@
+#+PROPERTY: header-args:scheme :results silent :noweb yes
+#+TITLE: UGens
+#+NAME: ugens-scm
+#+BEGIN_SRC scheme :tangle ugens.scm
+<<ugens-top>>
+#+END_SRC
+* sine
+=sine= is a table-lookup sine wave oscillator. =freq= is the
+frequency, =amp= is amplitude. Note that each instance of
+=sine= allocates an ftable.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (sine freq amp)
+  (param freq)
+  (param amp)
+  (lvl "sine zz zz"))
+#+END_SRC
+* mtof
+=mtof= converts a midi note number =x= to frequency. MIDI
+note number 69 is A440.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (mtof x)
+  (param x)
+  (lvl "mtof z"))
+#+END_SRC
+* arithmetic
+** add
+=add= adds two numbers together.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (add x1 x2)
+  (param x1)
+  (param x2)
+  (lvl "add zz zz"))
+#+END_SRC
+** sub
+=sub= subtracts two signals =x1 - x2=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (sub x1 x2)
+  (param x1)
+  (param x2)
+  (lvl "sub zz zz"))
+#+END_SRC
+** div
+=div= divides two signals =x1 / x2=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (div x1 x2)
+  (param x1)
+  (param x2)
+  (lvl "div zz zz"))
+#+END_SRC
+** mul
+=mul= multiplies two signals.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (mul x1 x2)
+  (param x1)
+  (param x2)
+  (lvl "mul zz zz"))
+#+END_SRC
+* randh
+=randh= is a random sample-and-hold generator. It generates
+step values values between =min= and =max= at a =rate=,
+specified in Hz.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (randh min max rate)
+  (param min)
+  (param max)
+  (param rate)
+  (lvl "randh zz zz"))
+#+END_SRC
+* scale
+=scale= takes a normalized input signal between 0 and 1, and
+scales it to be between =min= and =max=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (scale in min max)
+  (param in)
+  (param min)
+  (param max)
+  (lvl "scale zz zz zz"))
+#+END_SRC
+* biscale
+=biscale= is a bidirectional scale takes a normalized input
+signal between -1 and 1, and scales it to be between =min=
+and =max=.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (biscale in min max)
+  (param in)
+  (param min)
+  (param max)
+  (lvl "biscale zz zz zz"))
+#+END_SRC
+* gt
+=gt= is a greater-than test operation =a > b=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (gt a b)
+  (param a)
+  (param b)
+  (lvl "gt zz zz"))
+#+END_SRC
+* blsaw
+=blsaw= is a bandlimited sawtooth oscillator, with frequency
+=freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (blsaw freq)
+  (param freq)
+  (lvl "blsaw zz"))
+#+END_SRC
+* blsquare
+=blsquare= creates a bandlimited square oscillator =freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (blsquare freq)
+  (param freq)
+  (lvl "blsquare zz"))
+#+END_SRC
+* bltriangle
+=bltriangle= creates a bandlimited triangle with frequency
+=freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (bltriangle freq)
+  (param freq)
+  (lvl "bltriangle zz"))
+#+END_SRC
+* butlp
+=butlp= is a 2nd order butterworth lowpass filter, which
+filters an input frequency =in= at cutoff frequency =freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (butlp in freq)
+  (param in)
+  (param freq)
+  (lvl "butlp zz zz"))
+#+END_SRC
+* butbp
+=butbp= is a 2nd-order butterworth bandpass filter. The
+input signal is =in=. =freq= is the center frequency, and
+=bw= is the bandwidth, in units of Hz.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (butbp in freq bw)
+  (param in)
+  (param freq)
+  (param bw)
+  (lvl "butbp zz zz zz"))
+#+END_SRC
+* buthp
+=buthp= is a second order butterworth highpass filter, with
+an input signal =in= and cutoff frequency =freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (buthp in freq)
+  (param in)
+  (param freq)
+  (lvl "buthp zz zz"))
+#+END_SRC
+* thresh
+=thresh= is a threshold generator. It will output a tick
+when an input signal =in= goes past a threshold =thr=.
+The type flag =type= determines the threshold behavior.
+
+type flags:
+
+0: from below, 1: from above, 2: from above/below
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (thresh in thr type)
+  (param in)
+  (param thr)
+  (param type)
+  (lvl "thresh zz zz zz"))
+#+END_SRC
+* tenvx
+=tenvx= is a triggerable envelope generator with exponential
+slope. =in= is expected to be a trigger signal. =atk=,
+=hold=, and =rel= are attack, hold, and release times, in
+units of seconds.
+
+Because of how the internal algorithm works, hold >= atk.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tenvx in atk hold rel)
+  (param in)
+  (param atk)
+  (param hold)
+  (param rel)
+  (lvl "tenvx zz zz zz zz"))
+#+END_SRC
+* tenv
+=tenv= is a triggerable envelope generator (with linear
+slope). It expects a trigger signal as input =in=, with
+=atk=, =hold=, and =rel= being the attack, hold and release
+times, in units of seconds.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tenv in atk hold rel)
+  (param in)
+  (param atk)
+  (param hold)
+  (param rel)
+  (lvl "tenv zz zz zz zz"))
+#+END_SRC
+* clock
+=clock= creates a clock signal at a specified =tempo= in
+BPM, and a subdivision amount =subdiv= (a value of
+4 is 16th notes, 2 eigth notes, etc). The =tk= paramter
+is used to reset the clock.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (clock tk tempo subdiv)
+  (param tk)
+  (param tempo)
+  (param subdiv)
+  (lvl "clock zz zz zz"))
+#+END_SRC
+* wavout
+=wavout= will take in a signal =in= and write it to disk
+with filename =name= as a mono wav file. a copy of the
+the signal is pushed back onto the stack, so be sure to
+use =bdrop= if that signal is not needed.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (wavout in name)
+  (param in)
+  (param name)
+  (lvl (list "wavout" "zz" name)))
+#+END_SRC
+* wavouts
+Like =wavout=, only stereo. takes in left and right
+signals as input.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (wavouts inL inR name)
+  (param inL)
+  (param inR)
+  (param name)
+  (lvl (list "wavouts" "zz" "zz" name)))
+#+END_SRC
+* tgate
+=tgate= is a triggerable gate signal. Everytime the trigger
+signal =in= is non-zero, it will produce a gate signal that
+is =dur= seconds long.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tgate in dur)
+  (param in)
+  (param dur)
+  (lvl "tgate zz zz"))
+#+END_SRC
+* tog
+=tog= is a toggle node. When =in= is a non-zero value, it
+will change its state from 0 to 1, or 1 to 0. tog is
+initialized to start with an initial state of 0.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tog in)
+  (param in)
+  (lvl "tog zz"))
+#+END_SRC
+* phasor
+=phasor= creates a phasor signal, which is a linar ramp that
+goes from 0 to 1 at a frequency specified in =freq=. A
+phasor has many useful purposes, but it is most often used
+when constructing table-lookup oscillators. =iphs= is the
+initial phase.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (phasor freq iphs)
+  (param freq)
+  (lvl (list "phasor" "zz" iphs)))
+#+END_SRC
+* phasewarp
+=phasewarp= applies a classic phase distortion to an incoming
+phasor signal =in= using some distortion amount =amt=, which
+is in range -1,1. Warping works by adjusting the midpoint.
+Positive values shift it in the upwards direction, negative
+values shift it in the downwards direction. 0 keeps it in
+the middle (no change).
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (phasewarp in amt)
+  (param in)
+  (param amt)
+  (lvl "phasewarp zz zz"))
+#+END_SRC
+* noise
+=noise= is white noise generator.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (noise)
+  (lvl "noise"))
+#+END_SRC
+* brown
+=brown= is a brownian noise generator.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (brown)
+  (lvl "brown"))
+#+END_SRC
+* adsr
+Produces an ADSR envelope, given a gate signal.
+=atk=, =dec=, and =rel= are all units in seconds.
+
+=sus= is a scaler unit in range 0-1.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (adsr gt atk dec sus rel)
+  (param gt)
+  (param atk)
+  (param dec)
+  (param sus)
+  (param rel)
+  (lvl "adsr zz zz zz zz"))
+#+END_SRC
+* metro
+Produces a series of ticks at a regular rate =rate=. Usually
+used as a clock signal.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (metro rate)
+  (param rate)
+  (lvl "metro zz"))
+#+END_SRC
+* trand
+A triggerable random number generator. Everytime a trigger
+happens, a new value is produced between =min= and =max=.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (trand trig min max)
+  (param trig)
+  (param min)
+  (param max)
+  (lvl "trand zz zz zz"))
+#+END_SRC
+* ampdb
+=ampdb= converts a value in decibels to linear amplitude.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (ampdb in)
+  (param in)
+  (lvl "ampdb zz"))
+#+END_SRC
+* crossfade
+=crossfade= performs a crossfade operation between signals
+=sig1= and =sig2= with a crossfade value =pos=. When =pos=
+is 0, it is all =sig1=, and when it is 1 it is all =sig2=.
+0.5 is an equal mix.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (crossfade sig1 sig2 pos)
+  (param sig1)
+  (param sig2)
+  (param pos)
+  (lvl "crossfade zz zz zz"))
+#+END_SRC
+* samphold
+=samphold= is a sample-and-hold generator. It takes in an incoming
+signal =sig= and a trigger value =trig=. When =trig=
+triggers, it will hold onto the current value of =in= until
+the next trigger.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (samphold trig in)
+  (param trig)
+  (param in)
+  (lvl "samphold zz zz"))
+#+END_SRC
+* expmap
+Applies an exponential mapping to a linear ramp with
+slope =slope=. =slope= can be negative or positive, the
+larger in either direction it goes, the steeper the slope.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (expmap in slope)
+  (param in)
+  (param slope)
+  (lvl "expmap zz zz"))
+#+END_SRC
+* const
+=const= is a node that upsamples a constant value so it
+is audio-rate. This is used for certain nodes (such as
+some FAUST generated ones) that require audio-rate cables.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (const c)
+  (param c)
+  (lvl "const zz"))
+#+END_SRC
+* dcblocker
+=dcblocker= applies a dc blocking filter onto signal =in=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (dcblocker in)
+  (param in)
+  (lvl "dcblocker zz"))
+#+END_SRC
+* vardelay
+=vardelay= is a variable delay line with feedback. It will
+take in a signal =in=, and delay it by =delay= seconds with
+some feedback amount =feedback= (should be >1). =delay= is
+an adjustable that should not exceeed =maxdelay= seconds.
+=maxdelay= *must* be a constant, and not a cable.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (vardelay in feedback delay maxdelay)
+  (param in)
+  (param feedback)
+  (param delay)
+  (param maxdelay)
+  (lvl "vardelay"))
+#+END_SRC
+* rline
+=rline= is an interplated random number generator. It draws
+random line segments between values in range =min= and
+=max=, at a rate in Hz defined in =rate=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (rline min max rate)
+  (param min)
+  (param max)
+  (param rate)
+  (lvl "randi zz zz zz"))
+#+END_SRC
+* tdiv
+=tdiv= is a trigger divider. Given an incoming trigger
+signal =in=, it will tick every =num= ticks. =offset=
+is a value between 0 and =num - 1= that can be used
+to shift when the tick happens (this can be used to
+create syncopation for things like backbeats).
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (tdiv in num offset)
+  (param in)
+  (param num)
+  (param offset)
+  (lvl "tdiv zz zz zz"))
+#+END_SRC
+* maygate
+=maygate= is a maybe gate. given a signal =trig=, it will
+have have a probability of outputing a gate signal with
+probability =prob=.
+
+If =type= is nonzero, it will output triggers instead of a
+gate. (making this a Sporth =maytrig=).
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (maygate trig prob type)
+  (param trig)
+  (param prob)
+  (param type)
+  (lvl "maygate zz zz zz"))
+#+END_SRC
+* switch
+=switch= is a signal switch. it will switch between signals
+=in1= and =in2= every time a trigger signal =trig= happens.
+
+*Note*: the unchosen signal still gets computed.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (switch trig in1 in2)
+  (param trig)
+  (param in1)
+  (param in2)
+  (lvl "switch zz zz zz"))
+#+END_SRC
+* peakeq
+=peakeq= applies a equalizing peak filter to a signal =in=.
+The center frequency is =freq=, with a bandwidth =bw= and
+gain =gain=. A =gain= value greater than 1 is a boost,
+less than 1 is a cut.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (peakeq in freq bw gain)
+  (param in)
+  (param freq)
+  (param bw)
+  (param gain)
+  (lvl "peakeq"))
+#+END_SRC
+* tabnew
+=tabnew= creates a new ftable of size =size=.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (tabnew size)
+  (lvl (list "ftnew" (num2str size))))
+#+END_SRC
+* gensine
+=gensine= produces a sine wave from an ftable =ft=.
+Note that =ft= is *not* a lambda here.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (gen_sine ft)
+  (param ft)
+  (lvl "gen_sine zz"))
+#+END_SRC
+* diode
+=diode= applies a diode ladder filter to a signal =in= with
+cutoff frequency =freq= and resonance =res=. =res= should
+probably be a normalized value between 0 and 1.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (diode in freq res)
+  (param in)
+  (param freq)
+  (param res)
+  (lvl "diode zz zz zz"))
+#+END_SRC
+* count
+=count= is a counter mechanism that is clocked by
+a trigger signal =clock=. It will count from 0
+to =max=, with different counting modes set by
+the =mode= parameter.
+
+mode 0 is wraparound
+mode 1 will count up to max, then spit out -1
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (count clock max mode)
+  (param clock)
+  (param max)
+  (param mode)
+  (lvl "count zz zz zz"))
+#+END_SRC
+* osc
+=osc= is a classic table lookup oscillator. It has a
+frequency =freq= with amplitude =amp=. The initial phase
+(normalized) is set with =phs=, and should be a *constant*
+value and *not* a cable. =ft= is a lambda value that
+produces the ftable used by =osc=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (osc ft freq amp phs)
+  (ft)
+  (param freq)
+  (param amp)
+  (param phs)
+  (lvl "osc zz zz zz zz"))
+#+END_SRC
+* tseq
+=tseq= is a triggerable sequencer. It is clocked by a
+trigger signal =trig= and has modes controlled via
+=mode=. =ft= is a lambda which produces the table
+that =tseq= sequences from.
+
+mode 0 is linear sequencing. mode 1 is random.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tseq ft trig mode)
+  (ft)
+  (param trig)
+  (param mode)
+  (lvl "tseq zz zz zz"))
+#+END_SRC
+* gen_vals
+=gen_vals= produces parses a string of values separated by
+spaces and places them into ftable =ft=. The ftable will be
+automatically re-allocated to fit the number of values in
+the string. =ft= is *NOT* a lambda.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (genvals ft str)
+  (param ft)
+  (param str)
+  (lvl "genvals zz zz"))
+#+END_SRC
+* loadwav
+=loadwav= creates an ftable and loads a wavfile =filename=
+into it.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (loadwav filename)
+  (lvl (string "loadwav" filename)))
+#+END_SRC
+* bigverb
+=bigverb= applies a stereo FDN reverb algorithm by Sean
+Costello to a stero input signal supplied by =in1= and
+=in2=. =fdbk= controls the feedback amount (should be
+between 0 and 1). =cutoff= is the timbre control in
+range of Hz.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (bigverb in1 in2 fdbk cutoff)
+  (param in1)
+  (param in2)
+  (param fdbk)
+  (param cutoff)
+  (lvl "bigverb zz zz zz zz"))
+#+END_SRC
+* gensinesum
+=gen_sinesum= creates a sumation of harmonically sinusoids
+with supplied amplitudes in a string =str=.
+
+#+NAME:ugens-top
+#+BEGIN_SRC scheme
+(define (gensinesum ft str)
+  (param ft)
+  (lvl (list "gen_sinesum" "zz" str)))
+#+END_SRC
+* tick
+=tick= produces a single impulse signal at the beginning of
+the patch. Useful for kicking things off that only need to
+be turned on once (=line=, for example, is frequently used
+this way).
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tick)
+  (lvl "tick"))
+#+END_SRC
+* et
+Equal temperament node. Use this to compute equal
+temperament scales of arbitrary divisions. The output
+unit of this is in frequency units of Hertz (Cycles/Second).
+
+=note= is a relative numerical note value, equivalent to
+a MIDI note number.
+
+=basefreq= is the base frequency. In 12ET,
+this would be set to be =440=.
+
+=bias= is the note number bias to set. In 12ET, this
+would be 69, which would make it so that when =note= is
+69, the frequency would be 440Hz.
+
+=div= is how to divide up the octave. in 12ET, this would
+be 12.
+
+=base= refers to the exponent base. For 12ET or any
+division of the octave, the base would be 2. For something
+like bohlen pierce, the base would be 3.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (et note basefreq bias div base)
+  (param note)
+  (param basefreq)
+  (param bias)
+  (param div)
+  (param base)
+  (lvl "et zz zz zz zz zz"))
+#+END_SRC
+* line
+=line= is retriggerable line generator that
+goes from =a= to =b= in =dur= seconds. =in= is expected to
+be a trigger signal.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (line trig a dur b)
+  (param in)
+  (param a)
+  (param dur)
+  (param b)
+  (lvl "line zz zz zz zz"))
+#+END_SRC
+* expon
+=expon= is retriggerable exponential line generator that
+goes from =a= to =b= in =dur= seconds. =in= is expected to
+be a trigger signal.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (expon in a dur b)
+  (param in)
+  (param a)
+  (param dur)
+  (param b)
+  (lvl "expon zz zz zz zz"))
+#+END_SRC
+* modalres
+=modalres= is a modal resonator filter with an input signal
+=in=, frequency =freq=, and Q-value =q=. =mode= is typically
+used in series + parallel configurations in modal synthesis.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (modalres in freq q)
+  (param in)
+  (param freq)
+  (param q)
+  (lvl "mode zz zz zz"))
+#+END_SRC
+* limit
+=limit= will place a hard limit and clamp an input value
+=in= to be between min/max values =mn= and =mx=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (limit in mn mx)
+  (param in)
+  (param mn)
+  (param mx)
+  (lvl "limit"))
+#+END_SRC
+* smoothdelay
+=smoothdelay= is a adjustable delay line that does not
+introduce pitch shifting artififacts. Instead, it implements
+a double buffer that it dynamically interpolates between at
+interpolation time =interp= (in units of sampels).
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (smoothdelay in fdbk del maxdel interp)
+  (param in)
+  (param fdbk)
+  (param del)
+  (param maxdel)
+  (param interp)
+  (lvl "smoothdelay zz zz zz zz zz"))
+#+END_SRC
+* tsmp
+=tsmp= is a triggerable in-memory sample player with
+playback varispeed control.
+
+=in= is a trigger signal.
+
+=play= is the playback speed amount (1=normal,
+0.5=halfspeed, 2=doublespeed, etc).
+
+=ft= is a lambda that returns the ftable containing
+the sample.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (tsmp in play ft)
+  (ft)
+  (param in)
+  (param play)
+  (lvl "tsmp zz zz zz"))
+#+END_SRC
+* fmpair/fmpair2
+=fmpair= creates a classic FM operator pair.
+
+The =fmpair= is similar to =fosc=, except it exposes the
+feedback parameter =fdbk=, which should be a value between 0
+and 1. anything outside that range will cause instabilities.
+
+=fmpair2= is the same algorithm as =fmpair=, but it allows
+separate wavetables to be specified for the carrier and the
+modulator.
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (fmpair ft freq c m i fdbk)
+  (ft)
+  (param freq)
+  (param c)
+  (param m)
+  (param i)
+  (param fdbk)
+  (lvl "fmpair zz zz zz zz zz"))
+
+(define (fmpair2 ftc ftm freq c m i fdbk)
+  (ftc)
+  (ftm)
+  (param freq)
+  (param c)
+  (param m)
+  (param i)
+  (param fdbk)
+  (lvl "fmpair2 zz zz zz zz zz zz zz"))
+#+END_SRC
+* chaosnoise
+=chaosnoise= is a noise generator based on a unstable
+chaos equation. The =chaos= parameter determines the level
+of chaos (usually should be between 1 and 2). Rate
+determines the rate at which to compute the noise in units
+of Hz.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (chaosnoise chaos rate)
+  (param chaos)
+  (param rate)
+  (lvl "chaosnoise zz zz"))
+#+END_SRC
+* oscf
+oscillator with floating-point precision. Supply the
+frequency =freq= and the ftable =ft= as a lambda.
+=iphs=, the initial phase, should be a value between 0 and
+1.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (oscf ft freq iphs)
+  (ft)
+  (param freq)
+  (param iphs)
+  (lvl "oscf zz zz zz"))
+#+END_SRC
+* oscfext
+Like =oscf=, only clocked with an external phasor signal
+=phs=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (oscfext ft phs)
+  (ft)
+  (param phs)
+  (lvl "oscfext zz zz"))
+#+END_SRC
+* voc
+physical modelling vocal synthesizer.
+
+=freq= is the fundamental frequency of the voice.
+
+=pos= and =diameter= are high-level shaping controls of the
+vocal tract. Should be unit values.
+
+=tenseness= adds tenseness. The closer this approaches 0,
+the more whisper there will be.
+
+=velum= is typically treated as a toggle value, and it is
+used to get nasal frequencies.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (voc freq pos diameter tenseness velum)
+    (param freq)
+    (param pos)
+    (param diameter)
+    (param tenseness)
+    (param velum)
+    (lvl "voc zz zz zz zz zz"))
+#+END_SRC
+* bitnoise
+A 1-bit noise generator, inspired by the NES APU.
+
+
+This generator takes in two arguments: a =mode=
+flag and a =rate= variable. =mode= changes the
+behavior of the inteneral LFSR. Rate changes the
+speed of the noise generator (therefore the tone quality).
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (bitnoise rate mode)
+  (param rate)
+  (param mode)
+  (lvl "bitnoise zz zz"))
+#+END_SRC
+* bezier
+=bezier= maps a bezier curve from an normalized linear ramp.
+
+The control points =cx= and =cy= are assumed to be in
+the 0-1 range.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (bezier in cx cy)
+  (param in)
+  (param cx)
+  (param cy)
+  (lvl "bezier zz zz zz"))
+#+END_SRC
+* wpkorg35
+=wpkorg35= is a korg lowpass filter design based off an
+implementaton by will pirkle.
+
+It takes in an input signal =in=, a filter cutoff
+=cutoff= in Hz, a resonance =res=, which is a value
+between 0 and 2, and saturation amount =sat=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (wpkorg35 in cutoff res sat)
+  (param in)
+  (param cutoff)
+  (param res)
+  (param sat)
+  (lvl "wpkorg35 zz zz zz zz"))
+#+END_SRC
+* fftcut
+=fftcut= performs a hard lowpass filter cut on an ftable
+in the frequency domain. =cut= is the bin position for
+the cutoff point. This is inteded to be used to process
+waveforms with a light of high frequency aliasing content.
+It sort of works?
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (fftcut ft cut)
+  (ft)
+  (param cut)
+  (lvl "fftcut zz zz"))
+#+END_SRC
+* swell
+=swell= is a special kind of smoothing filter that changes
+it's smoothing amount based on what direction the input
+signal =in= is going in. Upwards direction smooths at =a=,
+downwards direction smooths at =b=. The change from a
+to b is determined by the =inertia= amount.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (swell in a b inertia)
+  (param in)
+  (param a)
+  (param b)
+  (param inertia)
+  (lvl "swell zz zz zz zz"))
+#+END_SRC
+* biramp
+Takes a phasor signal =in=, and splits it in half at some
+position =pos= to make it a ramp that goes up then down.
+
+Note that position only gets updated when the phasor
+resets back to 0.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (biramp in pos)
+  (param in)
+  (param pos)
+  (lvl "biramp zz zz"))
+#+END_SRC
+* flipper
+The =flipper= node takes in a phasor and turns it into a
+phasor that flips direction.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (flipper in)
+  (param in)
+  (lvl "flipper zz"))
+#+END_SRC
+* phsclk
+=phsclk= converts a phasor signal into a series of clock
+=nticks= equally spaced ticks.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (phsclk phs nticks)
+  (param phs)
+  (param nticks)
+  (lvl "phsclk zz zz"))
+#+END_SRC
+* wavin
+=wavin= reads a mono WAV file.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (wavin name)
+  (lvl (list "wavin" name)))
+#+END_SRC
+* talkbox
+Talkbox implements a high-resolution vocoder. Instead of
+using a filterbank, it uses an LPC filter. This is highly
+tuned for human speech.
+
+=src= is the source signal, which should be speech.
+
+=exc= is the excitation or carrier signal, which should be
+harmonically rich sound source.
+
+=q= is the qualiy of the talkbox. 0 is lowest fidelity,
+1 is highest fidelity.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (talkbox src exc q)
+  (param src)
+  (param exc)
+  (param q)
+  (lvl "talkbox zz zz zz"))
+#+END_SRC
+* verbity
+This is a reverb based on the airwindows plugin with the
+same name.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (verbity inL inR bigness longness darkness)
+  (param inL)
+  (param inR)
+  (param bigness)
+  (param longness)
+  (param darkness)
+  (lvl "verbity zz zz zz zz zz"))
+#+END_SRC
+* glottis
+A glottal excitation signal, to be used with a vowel
+filter or vocal tract waveguide.
+
+=freq= is the frequency of the signal, in Hz.
+
+=tenseness= is a 0-1 value. Basically, 0 adds a lot
+of aspiration noise, 1 is all glottal sound. 0.7-0.9
+is a good range.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (glottis freq tenseness)
+  (param freq)
+  (param tenseness)
+  (lvl "glottis zz zz"))
+#+END_SRC
+* clkphs
+A utility that attempts to convert a clock signal into
+a phasor signal. This should be a usable signal for a system
+like gest.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (clkphs clk)
+  (param clk)
+  (lvl "clkphs zz"))
+#+END_SRC
+* chorus
+A pretty standard chorus effect.
+
+=in= is the input signal.
+
+=rate= is the LFO in Hz, (1.6 seems to work pretty well).
+
+=depth= refers to the amount of modulation (0-1). small depth
+values (~0.01 or less) are ideal.
+
+=mix= is wet/dry balance of the output (0 is 100% dry,
+1 is 100% wet)
+
+=delay= is the size of the buffer, in seconds. 0.1 seconds
+ought to be enough? This needs to be a constant. The longer
+the delay, the greater pitch variance there can be
+with the depth control.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (chorus in rate depth mix delay)
+  (param in)
+  (param rate)
+  (param depth)
+  (param mix)
+  (param delay)
+  (lvl "chorus zz zz zz zz zz"))
+#+END_SRC
+* sparse
+Produces sparse noise at some frequence =freq=.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (sparse freq)
+  (param freq)
+  (lvl "sparse zz"))
+#+END_SRC
+* genpadsynth
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (genpadsynth ft freq bw amps)
+  (param ft)
+  (amps)
+  (param freq)
+  (param bw)
+  (lvl "genpadsynth zz zz zz zz"))
+#+END_SRC
+* softclip
+Applies soft clipping (tanh-ish) to an incoming signal =in=.
+=drive= is the scaling amount. 1 has no effect.
+
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (softclip in drive)
+  (param in)
+  (param drive)
+  (lvl "softclip zz zz"))
+#+END_SRC
+* mags
+#+NAME: ugens-top
+#+BEGIN_SRC scheme
+(define (mags ft)
+  (ft)
+  (lvl "mags zz"))
+#+END_SRC

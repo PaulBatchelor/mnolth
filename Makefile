@@ -25,6 +25,7 @@ TANGLED += core/draw.c
 TANGLED += core/draw.h
 TANGLED += core/var.c
 TANGLED += core/var.h
+TANGLED += scm/ugens.scm
 
 include lib/sndkit/config.mk
 include lib/mathc/config.mk
@@ -62,6 +63,11 @@ C99?=$(CC) -std=c99
 .org.c:
 	@echo "WORGLE $<"
 	@cd $(dir $<); $(WORGLE) $(WORGLE_FLAGS) $(notdir $<)
+
+.SUFFIXES: .org .scm
+.org.scm:
+	@echo "WORGLE $<"
+	@cd $(dir $<); $(WORGLE) -Werror $(notdir $<)
 
 util/worgle/worglite: util/worgle/worgle.c util/worgle/parg.c
 	$(CC) -std=c89 -Wall -pedantic -O3 -DWORGLITE $^ -o $@
