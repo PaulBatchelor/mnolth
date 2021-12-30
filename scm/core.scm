@@ -38,8 +38,8 @@
   (if (number? x) (lvl (list "param" (number->string x)))))
 
 (define (dup) (lvl "dup"))
-
 (define (drop) (lvl "drop"))
+(define (swap) (lvl "swap"))
 
 (define (grab name) (lvl (list "grab" name)))
 (define (lgrab name) (lambda () (grab name)))
@@ -68,3 +68,11 @@
   (lvl (list "regset" "zz" (num2str r))))
 
 (define (lregget r) (lambda () (regget r)))
+
+(define (hold c)
+  (param c)
+  (lvl "hold zz"))
+
+(define (unhold c)
+  (param c)
+  (lvl "unhold zz"))
