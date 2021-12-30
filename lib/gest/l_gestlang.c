@@ -109,9 +109,51 @@ static lil_value_t glang_load(lil_t lil,
     return NULL;
 }
 
+static int f_scalar(gest_d *g,
+                    int argc, char *argv[],
+                    void *ud)
+{
+    gest_scalar *s;
+    s = ud;
+
+    gest_setscalar(g, s, strtod(argv[0], 0));
+    return 0;
+}
+
+static lil_value_t glang_scalar(lil_t lil,
+                                size_t argc,
+                                lil_value_t *argv)
+{
+    sk_core *core;
+    int rc;
+    gestlang_d *gl;
+    gest_scalar *s;
+    void *ud;
+    const char *key;
+
+    SKLIL_ARITY_CHECK(lil, "glang_scalar", argc, 3);
+
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get scalar");
+    s = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gestlang");
+    gl = ud;
+
+    key = lil_to_string(argv[2]);
+
+    gestlang_add(gl, key, strlen(key), 1, f_scalar, s, NULL);
+
+    return NULL;
+}
+
 void sklil_load_gestlang(lil_t lil)
 {
     lil_register(lil, "glang_new", glang_new);
     lil_register(lil, "glang_eval", glang_eval);
     lil_register(lil, "glang_load", glang_load);
+    lil_register(lil, "glang_scalar", glang_scalar);
 }
