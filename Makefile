@@ -15,6 +15,7 @@ OBJ += core/l_sqlar.o
 OBJ += core/l_tract.o
 OBJ += core/draw.o core/l_draw.o
 OBJ += core/hotswap.o core/l_hotswap.o
+OBJ += util/txt2cdb.o
 
 TANGLED += lib/btprnt/regpool.c
 TANGLED += core/hotswap.c
