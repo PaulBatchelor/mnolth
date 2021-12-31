@@ -34,6 +34,7 @@ include lib/gest/config.mk
 include lib/btprnt/config.mk
 include lib/lodepng/config.mk
 include lib/kuf/config.mk
+include lib/cdb/config.mk
 
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
