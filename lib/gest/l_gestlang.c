@@ -145,7 +145,7 @@ static lil_value_t glang_scalar(lil_t lil,
 
     key = lil_to_string(argv[2]);
 
-    gestlang_add(gl, key, strlen(key), 1, f_scalar, s, NULL);
+    gestlang_update(gl, key, strlen(key), 1, f_scalar, s, NULL);
 
     return NULL;
 }

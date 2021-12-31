@@ -23,7 +23,7 @@ struct gestlang_d {
 #line 348 "gestlang.org"
 gestlang_entry *ent[16];
 #line 58 "gestlang.org"
-#line 1166 "gestlang.org"
+#line 1234 "gestlang.org"
 int comment;
 #line 71 "gestlang.org"
 };
@@ -73,7 +73,15 @@ int gestlang_find(gestlang_d *glang,
                   const char *key,
                   int sz,
                   gestlang_entry **pent);
-#line 498 "gestlang.org"
+#line 499 "gestlang.org"
+void gestlang_update(gestlang_d *glang,
+                     const char *key,
+                     int sz,
+                     int nargs,
+                     int (*fun)(gest_d *,int,char **,void*),
+                     void *ud,
+                     void (*del)(void *));
+#line 566 "gestlang.org"
 void gestlang_loader(gestlang_d *g);
 #line 36 "gestlang.org"
 #endif
