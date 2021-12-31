@@ -4,6 +4,7 @@
 /* mnolth + util = mnotil */
 
 int cdb_main(int argc, char *argv[]);
+int txt2cdb_main(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +15,10 @@ int main(int argc, char *argv[])
         argc--;
         argv++;
         return cdb_main(argc, argv);
+    } else if (!strcmp(argv[1], "txt2cdb")) {
+        argc--;
+        argv++;
+        return txt2cdb_main(argc, argv);
     }
 
     fprintf(stderr,
