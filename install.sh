@@ -5,6 +5,7 @@ LIBPATH=lib
 cp $MNOLTH_PATH/libmnolth.a $INSTALL_PATH/lib
 cp $MNOLTH_PATH/mnoscm $INSTALL_PATH/bin
 cp $MNOLTH_PATH/mnolth $INSTALL_PATH/bin
+cp $MNOLTH_PATH/mnotil $INSTALL_PATH/bin
 
 mkdir -p $INSTALL_PATH/include/mnolth/mathc
 cp $LIBPATH/mathc/mathc.h $INSTALL_PATH/include/mnolth/mathc
