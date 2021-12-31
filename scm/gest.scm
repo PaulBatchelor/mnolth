@@ -22,3 +22,15 @@
   (param gst)
   (param cnd)
   (lvl "gesticulate zz zz"))
+
+(define (gest:scalarnew)
+  (lvl "gest_scalarnew"))
+
+(define (glang:scalar gl scl name)
+  (gl)
+  (scl)
+  (lvl (list "glang_scalar" "zz" "zz" name)))
+
+(define (gest:scalar scl)
+  (scl)
+  (lvl "gescalar zz"))

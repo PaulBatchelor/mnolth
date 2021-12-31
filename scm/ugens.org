@@ -342,7 +342,7 @@ Produces an ADSR envelope, given a gate signal.
   (param dec)
   (param sus)
   (param rel)
-  (lvl "adsr zz zz zz zz"))
+  (lvl "adsr zz zz zz zz zz"))
 #+END_SRC
 * metro
 Produces a series of ticks at a regular rate =rate=. Usually
@@ -446,7 +446,7 @@ an adjustable that should not exceeed =maxdelay= seconds.
   (param feedback)
   (param delay)
   (param maxdelay)
-  (lvl "vardelay"))
+  (lvl "vardelay zz zz zz zz"))
 #+END_SRC
 * rline
 =rline= is an interplated random number generator. It draws
@@ -459,7 +459,7 @@ random line segments between values in range =min= and
   (param min)
   (param max)
   (param rate)
-  (lvl "randi zz zz zz"))
+  (lvl "rline zz zz zz"))
 #+END_SRC
 * tdiv
 =tdiv= is a trigger divider. Given an incoming trigger

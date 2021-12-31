@@ -76,3 +76,10 @@
 (define (unhold c)
   (param c)
   (lvl "unhold zz"))
+
+(define (unholdall)
+  (lvl "unholdall"))
+
+(define (unbork)
+  ;; TODO
+  '())
