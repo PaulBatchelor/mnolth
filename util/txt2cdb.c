@@ -60,7 +60,7 @@ static void finish(struct parser *p)
     if (p->mode == 3 || p->mode == 2) {
         p->pos--;
         if (p->pos < 0) return;
-        p->valsz = p->pos - p->keysz;
+        p->valsz = p->pos - p->keysz - 1;
         p->buf[p->pos] = 0;
         print_keyval(p, p->buf, &p->buf[p->keysz + 1]);
     }
@@ -117,6 +117,10 @@ static int parse(struct parser *p, const char *buf, int sz)
                     p->pos = 0;
                     p->keysz = 0;
                     p->valsz = 0;
+                } else if (c == '\n') {/* newline, try again */
+                    p->buf[p->pos] = c;
+                    p->pos++;
+                    mode = 2;
                 } else {
                     p->buf[p->pos] = c;
                     p->pos++;
@@ -178,7 +182,6 @@ int txt2cdb_main(int argc, char *argv[])
             fprintf(stderr, "error: %d\n", rc);
             break;
         }
-        /* fwrite(buf, 1, 256, stdout); */
     }
 
     finish(p);
