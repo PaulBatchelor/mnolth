@@ -16,6 +16,7 @@ OBJ += core/l_tract.o
 OBJ += core/draw.o core/l_draw.o
 OBJ += core/hotswap.o core/l_hotswap.o
 OBJ += util/txt2cdb.o
+OBJ += core/misc.o
 
 TANGLED += lib/btprnt/regpool.c
 TANGLED += core/hotswap.c
@@ -27,6 +28,7 @@ TANGLED += core/draw.h
 TANGLED += core/var.c
 TANGLED += core/var.h
 TANGLED += scm/ugens.scm
+TANGLED += core/misc.c
 
 include lib/sndkit/config.mk
 include lib/mathc/config.mk

@@ -90,7 +90,7 @@ static lil_value_t glang_load(lil_t lil,
 
     core = lil_get_data(lil);
 
-    SKLIL_ARITY_CHECK(lil, "glang_new", argc, 3);
+    SKLIL_ARITY_CHECK(lil, "glang_load", argc, 3);
 
     rc = sk_core_generic_pop(core, &ud);
     SKLIL_ERROR_CHECK(lil, rc, "could not get gestlang");

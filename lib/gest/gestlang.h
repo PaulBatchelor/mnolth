@@ -3,7 +3,7 @@
 #define GESTLANG_H
 #line 53 "gestlang.org"
 typedef struct gestlang_d gestlang_d;
-#line 328 "gestlang.org"
+#line 335 "gestlang.org"
 typedef struct gestlang_entry gestlang_entry;
 #line 30 "gestlang.org"
 
@@ -20,14 +20,14 @@ struct gestlang_d {
     int (*fun)(gest_d *,int,char **,void*);
     void *ud;
     int err;
-#line 348 "gestlang.org"
+#line 355 "gestlang.org"
 gestlang_entry *ent[16];
 #line 58 "gestlang.org"
-#line 1234 "gestlang.org"
+#line 1241 "gestlang.org"
 int comment;
 #line 71 "gestlang.org"
 };
-#line 333 "gestlang.org"
+#line 340 "gestlang.org"
 struct gestlang_entry {
     char word[16];
     int sz;
@@ -56,11 +56,11 @@ int gestlang_parse_buffer(gestlang_d *glang,
                           gest_d *gest,
                           const char *buf,
                           int sz);
-#line 284 "gestlang.org"
+#line 291 "gestlang.org"
 int gestlang_load(gestlang_d *glang,
                   gest_d *gest,
                   const char *filename);
-#line 386 "gestlang.org"
+#line 393 "gestlang.org"
 void gestlang_add(gestlang_d *glang,
                   const char *key,
                   int sz,
@@ -68,12 +68,12 @@ void gestlang_add(gestlang_d *glang,
                   int (*fun)(gest_d *,int,char **,void*),
                   void *ud,
                   void (*del)(void *));
-#line 463 "gestlang.org"
+#line 470 "gestlang.org"
 int gestlang_find(gestlang_d *glang,
                   const char *key,
                   int sz,
                   gestlang_entry **pent);
-#line 499 "gestlang.org"
+#line 506 "gestlang.org"
 void gestlang_update(gestlang_d *glang,
                      const char *key,
                      int sz,
@@ -81,7 +81,7 @@ void gestlang_update(gestlang_d *glang,
                      int (*fun)(gest_d *,int,char **,void*),
                      void *ud,
                      void (*del)(void *));
-#line 566 "gestlang.org"
+#line 573 "gestlang.org"
 void gestlang_loader(gestlang_d *g);
 #line 36 "gestlang.org"
 #endif
