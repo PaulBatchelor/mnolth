@@ -41,7 +41,7 @@ WORGLE_FLAGS=-Werror -g
 
 LIBS= -lm -lx264 -lsqlite3 -lz
 
-ALL = mnoscm mnolth libmnolth.a
+ALL = mnoscm mnolth libmnolth.a mnotil
 
 default: $(TANGLED) $(ALL)
 
@@ -79,6 +79,10 @@ mnoscm: $(OBJ) core/scm_main.o
 
 mnolth: $(OBJ) core/lil_main.o
 	@echo "building mnolth"
+	@$(CC) $^ -o $@ $(LIBS)
+
+mnotil: $(OBJ) util/mnotil.o
+	@echo "building mnotil"
 	@$(CC) $^ -o $@ $(LIBS)
 
 libmnolth.a: $(OBJ)

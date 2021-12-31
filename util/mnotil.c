@@ -1,0 +1,24 @@
+#include <string.h>
+#include <stdio.h>
+
+/* mnolth + util = mnotil */
+
+int cdb_main(int argc, char *argv[]);
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2) {
+        fprintf(stderr, "enter a command\n");
+        return 1;
+    } else if (!strcmp(argv[1], "cdb")) {
+        argc--;
+        argv++;
+        return cdb_main(argc, argv);
+    }
+
+    fprintf(stderr,
+            "not sure what '%s' is supposed to be\n",
+            argv[1]);
+
+    return 1;
+}
