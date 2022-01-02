@@ -1,0 +1,97 @@
+#+TITLE: Miscellaneous
+* What is this?
+This file is where I put things that don't really have
+a home anywhere else.
+* Tangled File (misc.c)
+#+NAME: misc.c
+#+BEGIN_SRC c :tangle misc.c
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "sndkit/lil/lil.h"
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#include "sndkit/nodes/sklil.h"
+#include "gest/gest.h"
+#include "gest/gestlang.h"
+#include "cdb/cdb.h"
+
+<<lilfuncs>>
+
+void lil_load_misc(lil_t lil)
+{
+    lil_register(lil, "glang_cdb", l_glang_cdb);
+}
+#+END_SRC
+* glang_cdb
+Usage: glang_cdb gestlang cdbfile key
+
+=glang_cdb= will evaluate a string from a cdb file
+inside of an instance of gestlang.
+
+#+NAME: lilfuncs
+#+BEGIN_SRC c
+static lil_value_t l_glang_cdb(lil_t lil,
+                               size_t argc,
+                               lil_value_t *argv)
+{
+    int rc;
+    sk_core *core;
+    const char *filename;
+    const char *key;
+    gestlang_d *gl;
+    gest_d *gest;
+    void *ud;
+    int fd;
+    struct cdb cdb;
+
+    core = lil_get_data(lil);
+
+    SKLIL_ARITY_CHECK(lil, "glang_new", argc, 3);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gestlang");
+    gl = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gest");
+    gest = ud;
+
+    filename = lil_to_string(argv[2]);
+    key = lil_to_string(argv[3]);
+
+    /* rc = gestlang_load(gl, gest, filename); */
+
+    fd = open(filename, O_RDONLY);
+
+    SKLIL_ERROR_CHECK(lil, fd == -1, "could not open cdb file");
+
+    cdb_init(&cdb, fd);
+
+    rc = cdb_find(&cdb, key, strlen(key));
+
+    if (!rc) {
+        close(fd);
+        SKLIL_ERROR_CHECK(lil, 1, "cdb key not there");
+    } else {
+        unsigned int vlen, vpos;
+        char *val;
+        vpos = cdb_datapos(&cdb);
+        vlen = cdb_datalen(&cdb);
+        val = calloc(1, vlen);
+        cdb_read(&cdb, val, vlen, vpos);
+
+        rc = gestlang_parse(gl, gest, val, vlen);
+        free(val);
+    }
+
+    close(fd);
+
+    SKLIL_ERROR_CHECK(lil, rc, "gestlang parser failed");
+    return NULL;
+}
+#+END_SRC
