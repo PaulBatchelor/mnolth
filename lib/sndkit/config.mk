@@ -163,6 +163,9 @@ lib/sndkit/extra/verify/md5.o \
 lib/sndkit/dsp/tgate.o \
 lib/sndkit/nodes/tgate/tgate.o \
 lib/sndkit/nodes/tgate/l_tgate.o \
+lib/sndkit/dsp/dblin.o \
+lib/sndkit/nodes/dblin/dblin.o \
+lib/sndkit/nodes/dblin/l_dblin.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o
