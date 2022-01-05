@@ -706,8 +706,7 @@ int sk_core_table_pop(sk_core *core, sk_table **tab)
     SK_ERROR_CHECK(rc);
 
     if (s->type != SK_TYPE_TABLE) {
-        printf("uh oh type is %d, %g\n", s->type, s->f);
-        printf("%d items on stack\n", core->stack.pos);
+        fprintf(stderr, "uh oh type is %d\n", s->type);
         return 1;
     }
 
@@ -715,7 +714,7 @@ int sk_core_table_pop(sk_core *core, sk_table **tab)
 
     return rc;
 }
-#line 1499 "core.org"
+#line 1498 "core.org"
 int sk_table_dump(sk_table *tab, const char *filename)
 {
     FILE *fp;
@@ -730,7 +729,7 @@ int sk_table_dump(sk_table *tab, const char *filename)
 
     return 0;
 }
-#line 1517 "core.org"
+#line 1516 "core.org"
 int sk_core_tabdump(sk_core *core, const char *filename)
 {
     int rc;
@@ -741,18 +740,18 @@ int sk_core_tabdump(sk_core *core, const char *filename)
 
     return sk_table_dump(tab, filename);
 }
-#line 1558 "core.org"
+#line 1557 "core.org"
 void sk_core_srand(sk_core *core, unsigned long val)
 {
     core->rng = val;
 }
-#line 1580 "core.org"
+#line 1579 "core.org"
 unsigned long sk_core_rand(sk_core *core)
 {
     core->rng = (1103515245 * core->rng + 12345) % SK_CORE_RANDMAX;
     return core->rng;
 }
-#line 1596 "core.org"
+#line 1595 "core.org"
 SKFLT sk_core_randf(sk_core *core)
 {
     return (SKFLT)sk_core_rand(core) / SK_CORE_RANDMAX;
@@ -800,7 +799,7 @@ int sk_dict_clean(sk_dict *d)
 
         while (ent != NULL) {
             nxt = ent->nxt;
-            if (ent->del != NULL) ent->del(ent->val);
+            if (ent->del != NULL) ent->del(ent->s.ptr);
             free(ent->key);
             free(ent);
             ent = nxt;
@@ -809,12 +808,13 @@ int sk_dict_clean(sk_dict *d)
 
     return 0;
 }
-#line 1736 "core.org"
-int sk_dict_append(sk_dict *d,
-                   const char *key,
-                   int sz,
-                   void *val,
-                   void (*del)(void*))
+#line 1751 "core.org"
+int sk_dict_sappend(sk_dict *d,
+                    const char *key,
+                    int sz,
+                    void *p,
+                    void (*del)(void*),
+                    sk_stacklet **s)
 {
     int pos;
     struct dict_entry *ent;
@@ -838,13 +838,27 @@ int sk_dict_append(sk_dict *d,
     for (i = 0; i < sz; i++) ent->key[i] = key[i];
     ent->key[sz] = '\0';
 
-    ent->val = val;
+    sk_stacklet_init(&ent->s);
+    ent->s.type = SK_TYPE_GENERIC;
+    ent->s.ptr = p;
     ent->del = del;
     ent->nxt = d->ent[pos];
     d->ent[pos] = ent;
+
+    if (s != NULL) *s = &ent->s;
+
     return 0;
 }
-#line 1785 "core.org"
+#line 1795 "core.org"
+int sk_dict_append(sk_dict *d,
+                   const char *key,
+                   int sz,
+                   void *p,
+                   void (*del)(void*))
+{
+    return sk_dict_sappend(d, key, sz, p, del, NULL);
+}
+#line 1818 "core.org"
 int sk_core_append(sk_core *core,
                    const char *key,
                    int sz,
@@ -853,11 +867,11 @@ int sk_core_append(sk_core *core,
 {
     return sk_dict_append(&core->dict, key, sz, p, del);
 }
-#line 1805 "core.org"
-int sk_dict_lookup(sk_dict *d,
-                   const char *key,
-                   int sz,
-                   void **p)
+#line 1843 "core.org"
+int sk_dict_lookup_stacklet(sk_dict *d,
+                            const char *key,
+                            int sz,
+                            sk_stacklet **s)
 {
     int pos;
     struct dict_entry *ent;
@@ -868,7 +882,7 @@ int sk_dict_lookup(sk_dict *d,
 
     while (ent != NULL) {
         if (ent->sz == sz && !strncmp(key, ent->key, sz)) {
-            *p = ent->val;
+            *s = &ent->s;
             return 0;
         }
         ent = ent->nxt;
@@ -876,7 +890,23 @@ int sk_dict_lookup(sk_dict *d,
 
     return 1;
 }
-#line 1842 "core.org"
+#line 1869 "core.org"
+int sk_dict_lookup(sk_dict *d,
+                   const char *key,
+                   int sz,
+                   void **p)
+{
+    int rc;
+    sk_stacklet *s;
+
+    rc = sk_dict_lookup_stacklet(d, key, sz, &s);
+
+    if (rc) return rc;
+
+    *p = s->ptr;
+    return 0;
+}
+#line 1899 "core.org"
 int sk_core_lookup(sk_core *core,
                    const char *key,
                    int sz,
@@ -884,7 +914,7 @@ int sk_core_lookup(sk_core *core,
 {
     return sk_dict_lookup(&core->dict, key, sz, p);
 }
-#line 1858 "core.org"
+#line 1915 "core.org"
 int sk_dict_remove(sk_dict *d, const char *key, int sz)
 {
     int pos;
@@ -904,7 +934,7 @@ int sk_dict_remove(sk_dict *d, const char *key, int sz)
             } else {
                 prv->nxt = ent->nxt;
             }
-            if (ent->del) ent->del(ent->val);
+            if (ent->del) ent->del(ent->s.ptr);
             free(ent->key);
             free(ent);
             return 0;
@@ -914,32 +944,35 @@ int sk_dict_remove(sk_dict *d, const char *key, int sz)
     }
     return 1;
 }
-#line 1901 "core.org"
+#line 1958 "core.org"
 int sk_core_remove(sk_core *core,
                    const char *key,
                    int sz)
 {
     return sk_dict_remove(&core->dict, key, sz);
 }
-#line 1918 "core.org"
+#line 1981 "core.org"
 int sk_core_grab(sk_core *core,
                  const char *key,
                  int sz)
 {
     int rc;
-    void *ptr;
+    sk_stacklet *s;
+    sk_stacklet *out;
 
-    rc = sk_core_lookup(core, key, sz, &ptr);
+    rc = sk_dict_lookup_stacklet(&core->dict, key, sz, &s);
 
     if (rc) return 1;
 
-    rc = sk_core_generic_push(core, ptr);
+    rc = sk_stack_push(&core->stack, &out);
 
     if (rc) return 2;
 
+    *out = *s;
+
     return 0;
 }
-#line 1950 "core.org"
+#line 2016 "core.org"
 static void deltab(void *ptr)
 {
     sk_table *tab;
@@ -957,17 +990,26 @@ int sk_core_append_table(sk_core *core,
 {
     int rc;
     sk_table *tab;
+    sk_stacklet *s;
+    sk_stacklet *out;
 
     tab = calloc(1, sizeof(sk_table));
 
     tab->tab = calloc(tabsz, sizeof(SKFLT));
     tab->sz = tabsz;
 
-    rc = sk_core_append(core, key, sz, tab, deltab);
+    s = NULL;
+    rc = sk_dict_sappend(&core->dict, key, sz, tab, deltab, &s);
     SK_ERROR_CHECK(rc);
 
-    rc = sk_core_table_push(core, tab);
+    out = NULL;
+
+    s->type = SK_TYPE_TABLE;
+
+    rc = sk_stack_push(&core->stack, &out);
     SK_ERROR_CHECK(rc);
+
+    *out = *s;
 
     return 0;
 }
