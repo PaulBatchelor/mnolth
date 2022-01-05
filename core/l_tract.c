@@ -272,9 +272,10 @@ static lil_value_t tract_glang(lil_t lil, size_t argc, lil_value_t *argv)
     core = lil_get_data(lil);
 
     /* TODO use table_pop */
-    rc = sk_core_generic_pop(core, &ud);
+    /* rc = sk_core_generic_pop(core, &ud); */
+    rc = sk_core_table_pop(core, &shape);
     SKLIL_ERROR_CHECK(lil, rc, "could not get shape");
-    shape = ud;
+    /* shape = ud; */
 
     rc = sk_core_generic_pop(core, &ud);
     SKLIL_ERROR_CHECK(lil, rc, "could not get gestlang");
