@@ -85,7 +85,7 @@ lib/sndkit/nodes/modalres/l_modalres.o \
 lib/sndkit/nodes/buffer/buffer.o \
 lib/sndkit/nodes/oscf/l_oscf.o \
 lib/sndkit/nodes/oscf/oscf.o \
-lib/sndkit/nodes/tabnew/tabnew.o \
+lib/sndkit/nodes/tab/tab.o \
 lib/sndkit/nodes/osc/l_osc.o \
 lib/sndkit/nodes/osc/osc.o \
 lib/sndkit/nodes/phasor/l_phasor.o \
