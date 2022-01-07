@@ -6,8 +6,8 @@
   (tr)
   (lvl "tract_gest zz zz"))
 
-(define (tract:glang gst shp name)
-  (gst)
+(define (tract:glang gl shp name)
+  (gl)
   (shp)
   (lvl (list "tract_glang" "zz" "zz" name)))
 

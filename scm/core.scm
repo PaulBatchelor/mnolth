@@ -49,6 +49,9 @@
 (define (compute-audio)
   (lvl "compute 15"))
 
+(define (computes time)
+  (lvl (list "computes" (num2str time))))
+
 (define (mnopath s)
   (string-append (mnotop) "/" s))
 
