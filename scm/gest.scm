@@ -34,3 +34,21 @@
 (define (gest:scalar scl)
   (scl)
   (lvl "gescalar zz"))
+
+(define (glang:cdb gest glang cdb name)
+  (gest)
+  (glang)
+  (lvl (list "glang_cdb" "zz" "zz" cdb name)))
+
+(define (gest:mkgest)
+  (let ((r (nxtfree)))
+    (regset (gest:new) r)
+    (regmrk r)
+    r))
+
+(define (glang:gexprdb cnd glang cdb name)
+  (let ((g (gest:mkgest)))
+    (glang:cdb (lregget g) glang cdb name)
+    (gest:iculate (regget g) (cnd))
+    (regclr g)))
+
