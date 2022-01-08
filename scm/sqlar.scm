@@ -4,3 +4,7 @@
 (define (crate:rawk db name id)
   (db)
   (lvl (list "crtrawk" "zz" name id)))
+
+(define (crate:wavk db name id)
+  (db)
+  (lvl (list "crtwavk" "zz" name id)))

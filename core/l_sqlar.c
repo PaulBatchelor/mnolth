@@ -288,7 +288,7 @@ static lil_value_t l_cratewav(lil_t lil,
 
     core = lil_get_data(lil);
 
-    SKLIL_ARITY_CHECK(lil, "cratewave", argc, 2);
+    SKLIL_ARITY_CHECK(lil, "crtwav", argc, 2);
 
     rc = cratewav(core, lil_to_string(argv[1]));
 
@@ -414,6 +414,7 @@ static int sqlar_loadrawk(sk_core *core,
 }
 
 /* load raw values, and store it in dictionary with key */
+/* TODO: use stmtprep */
 
 static int craterawk(sk_core *core,
                      const char *key,
@@ -500,13 +501,205 @@ static lil_value_t l_craterawk(lil_t lil,
 
     core = lil_get_data(lil);
 
-    SKLIL_ARITY_CHECK(lil, "cratewave", argc, 3);
+    SKLIL_ARITY_CHECK(lil, "crtrawk", argc, 3);
 
     rc = craterawk(core,
                    lil_to_string(argv[1]),
                    lil_to_string(argv[2]));
 
-    SKLIL_ERROR_CHECK(lil, rc, "craterawk didn't work out.");
+    SKLIL_ERROR_CHECK(lil, rc, "crtrawk didn't work out.");
+
+    return NULL;
+}
+
+/* load WAV file, and store it in table in dictionary */
+/* TODO: is stmtprep mostly just uuid_to_filename? */
+
+static int stmtprep(sqlite3 *db, const char *idstr, sqlite3_stmt **pstmt) {
+    int rc;
+    sqlite3_stmt *stmt;
+    int count;
+    char *ergo;
+
+    sqlite3_prepare_v2(db,
+                       "SELECT value, COUNT(DISTINCT uuid) "
+                       "from wikizet "
+                       "WHERE uuid LIKE ?1 || \"%\" "
+                       "AND value LIKE \"/%\";",
+                       -1, pstmt, NULL);
+
+    stmt = *pstmt;
+    ergo = NULL;
+    if (idstr[0] == 'g') {
+        size_t sz;
+        /* 'g' is truncated, so N - 1 */
+        sz = strlen(idstr) - 1;
+        ergo = malloc(sz + 1);
+        ergo[sz] = '\0';
+        ergo_to_hex(&idstr[1], sz, ergo);
+
+        sqlite3_bind_text(stmt, 1, ergo, -1, NULL);
+    } else {
+        sqlite3_bind_text(stmt, 1, idstr, -1, NULL);
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        fprintf(stderr, "cratewav: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return 1;
+    }
+
+    count = sqlite3_column_int(stmt, 1);
+
+    if (count < 1) {
+        fprintf(stderr, "Could not resolve id %s\n", idstr);
+        sqlite3_finalize(stmt);
+        return 2;
+    } else if (count > 1) {
+        fprintf(stderr, "id pattern %s not unique.\n", idstr);
+        sqlite3_finalize(stmt);
+        return 3;
+    }
+
+    if (ergo != NULL) free(ergo);
+
+    return 0;
+}
+
+static int sqlar_loadwavk(sk_core *core,
+                          sqlite3 *db,
+                          const char *key,
+                          const char *filename,
+                          sk_table **ft)
+{
+    char *buf;
+    int sz;
+    sk_drwav wav;
+    size_t size;
+    SKFLT *tbl;
+    sk_table *ftp;
+    int rc;
+
+    sz = 0;
+    buf = NULL;
+    rc = sqlar_extract_to_buffer_db(db, filename, &buf, &sz);
+
+    if (rc != SQLITE_OK) {
+        if (buf != NULL) free(buf);
+        fprintf(stderr, "SQLite problems\n");
+        return 1;
+    }
+
+    if (!sk_drwav_init_memory(&wav, buf, sz, NULL)) {
+        fprintf(stderr, "drwav could not initialize\n");
+        free(buf);
+        return 2;
+    }
+
+    size = wav.totalPCMFrameCount;
+    sk_core_append_table(core, key, strlen(key), size);
+    sk_core_table_pop(core, ft);
+    ftp = *ft;
+    tbl = sk_table_data(ftp);
+    sk_drwav_read_pcm_frames_f32(&wav, size, tbl);
+    sk_drwav_uninit(&wav);
+    free(buf);
+    return 0;
+}
+
+static int cratewavk(sk_core *core,
+                     const char *key,
+                     const char *idstr)
+{
+    int rc;
+    sqlite3 *db;
+    sk_table *ft;
+    sqlite3_stmt *stmt;
+    const char *filename;
+    void *ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SK_ERROR_CHECK(rc);
+
+    db = (sqlite3 *)ud;
+
+    if (db == NULL) return 1;
+
+    /* sqlite3_prepare_v2(db, */
+    /*                    "SELECT value, COUNT(DISTINCT uuid) " */
+    /*                    "from wikizet " */
+    /*                    "WHERE uuid LIKE ?1 || \"%\" " */
+    /*                    "AND value LIKE \"/%\";", */
+    /*                    -1, &stmt, NULL); */
+
+    /* ergo = NULL; */
+    /* if (idstr[0] == 'g') { */
+    /*     size_t sz; */
+    /*     /\* 'g' is truncated, so N - 1 *\/ */
+    /*     sz = strlen(idstr) - 1; */
+    /*     ergo = malloc(sz + 1); */
+    /*     ergo[sz] = '\0'; */
+    /*     ergo_to_hex(&idstr[1], sz, ergo); */
+
+    /*     sqlite3_bind_text(stmt, 1, ergo, -1, NULL); */
+    /* } else { */
+    /*     sqlite3_bind_text(stmt, 1, idstr, -1, NULL); */
+    /* } */
+
+    /* rc = sqlite3_step(stmt); */
+
+    /* if (rc != SQLITE_ROW) { */
+    /*     fprintf(stderr, "cratewav: %s\n", sqlite3_errmsg(db)); */
+    /*     sqlite3_finalize(stmt); */
+    /*     return 1; */
+    /* } */
+
+    /* count = sqlite3_column_int(stmt, 1); */
+
+    /* if (count < 1) { */
+    /*     fprintf(stderr, "Could not resolve id %s\n", idstr); */
+    /*     sqlite3_finalize(stmt); */
+    /*     return 2; */
+    /* } else if (count > 1) { */
+    /*     fprintf(stderr, "id pattern %s not unique.\n", idstr); */
+    /*     sqlite3_finalize(stmt); */
+    /*     return 3; */
+    /* } */
+    /* if (ergo != NULL) free(ergo); */
+    rc = stmtprep(db, idstr, &stmt);
+
+    filename = (const char *)sqlite3_column_text(stmt, 0);
+
+    rc = sqlar_loadwavk(core, db, key, &filename[1], &ft);
+
+    if (rc) {
+        fprintf(stderr, "There were SQLar problems.\n");
+        sqlite3_finalize(stmt);
+        return 4;
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
+}
+
+static lil_value_t l_cratewavk(lil_t lil,
+                               size_t argc,
+                               lil_value_t *argv)
+{
+    sk_core *core;
+    int rc;
+
+    core = lil_get_data(lil);
+
+    SKLIL_ARITY_CHECK(lil, "crtwavk", argc, 3);
+
+    rc = cratewavk(core,
+                   lil_to_string(argv[1]),
+                   lil_to_string(argv[2]));
+
+    SKLIL_ERROR_CHECK(lil, rc, "crtwavk didn't work out.");
 
     return NULL;
 }
@@ -517,4 +710,5 @@ void lil_load_sqlar(lil_t lil)
     lil_register(lil, "crtwav", l_cratewav);
     lil_register(lil, "extract", l_extract);
     lil_register(lil, "crtrawk", l_craterawk);
+    lil_register(lil, "crtwavk", l_cratewavk);
 }

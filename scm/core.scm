@@ -66,11 +66,21 @@
 (define (regget r)
   (lvl (list "regget" (num2str r))))
 
+(define (regmrk r)
+  (lvl (list "regmrk" (num2str r))))
+
+(define (regclr r)
+  (lvl (list "regclr " (num2str r))))
+
 (define (regset x r)
   (param x)
   (lvl (list "regset" "zz" (num2str r))))
 
 (define (lregget r) (lambda () (regget r)))
+
+(define (nxtfree)
+  (lvl "param [regnxt 0]")
+  (pop))
 
 (define (hold c)
   (param c)

@@ -364,14 +364,14 @@ happens, a new value is produced between =min= and =max=.
   (param max)
   (lvl "trand zz zz zz"))
 #+END_SRC
-* ampdb
-=ampdb= converts a value in decibels to linear amplitude.
+* dblin
+=dblin= converts a value in decibels to linear amplitude.
 
 #+NAME: ugens-top
 #+BEGIN_SRC scheme
-(define (ampdb in)
+(define (dblin in)
   (param in)
-  (lvl "ampdb zz"))
+  (lvl "dblin zz"))
 #+END_SRC
 * crossfade
 =crossfade= performs a crossfade operation between signals
@@ -793,7 +793,6 @@ modulator.
 #+NAME: ugens-top
 #+BEGIN_SRC scheme
 (define (fmpair ft freq c m i fdbk)
-  (ft)
   (param freq)
   (param c)
   (param m)
@@ -802,14 +801,13 @@ modulator.
   (lvl "fmpair zz zz zz zz zz"))
 
 (define (fmpair2 ftc ftm freq c m i fdbk)
-  (ftc)
-  (ftm)
   (param freq)
   (param c)
   (param m)
   (param i)
   (param fdbk)
-  (lvl "fmpair2 zz zz zz zz zz zz zz"))
+  (lvl "fmpair2 zz zz zz zz zz zz zz")
+)
 #+END_SRC
 * chaosnoise
 =chaosnoise= is a noise generator based on a unstable
