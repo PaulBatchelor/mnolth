@@ -1,3 +1,31 @@
 MNOLTH
 
-a convergence of ideas.
+A convergence of ideas.
+
+Mnolth is the core environment I use for composing computer
+music, as well as the multimedia that occasionally
+accompanies it.
+
+If you are reading this from a git repository, know that
+this is a read-only export of a private Fossil repository.
+
+Written primarily in C, it is a monorepo containing internal
+copies of several third-party libraries, many of which are
+my own smaller projects being developed externally.
+
+The core design structure mnolth works by building on top
+of sndkit. sndkit comes with a LIL scripting language
+interface. Using the LIL C API, mnolth is able to add
+extensions to the sndkit library.
+
+mnolth comes with a program called mnoscm, which embeds a
+version of tinyscheme that can evaluate small chunks of
+inline LIL code.
+
+mnolth is designed to be relatively portable and self-contained.
+In addition to a typical C development setup with Make,
+mnolth depends on libx264, libsqlite3, and libz.
+
+To build mnolth, run "make".
+
+To install mnolth, run "sudo make install".
