@@ -39,11 +39,12 @@ include lib/lodepng/config.mk
 include lib/kuf/config.mk
 include lib/cdb/config.mk
 include lib/sqlite3/config.mk
+include lib/miniz/config.mk
 
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
 
-LIBS= -lm -lx264 -lz
+LIBS= -lm -lx264 #-lz
 
 ALL = mnoscm mnolth libmnolth.a mnotil
 

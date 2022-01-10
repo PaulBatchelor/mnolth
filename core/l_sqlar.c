@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sqlite3.h>
-#include <zlib.h>
+/* #include <zlib.h> */
+#include "miniz/miniz.h"
 
 #include "sndkit/lil/lil.h"
 #include "sndkit/graforge/graforge.h"
@@ -347,12 +348,20 @@ static lil_value_t l_extract(lil_t lil,
     int size;
     char *data;
     FILE *fp;
+    void *ud;
+    sk_core *core;
 
-    UUID = lil_to_string(argv[0]);
-    fname = lil_to_string(argv[1]);
+    SKLIL_ARITY_CHECK(lil, "extract", argc, 3);
 
-    /* db = smp_db(); */
-    db = NULL;
+    core = lil_get_data(lil);
+
+    UUID = lil_to_string(argv[1]);
+    fname = lil_to_string(argv[2]);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get db");
+
+    db = (sqlite3 *)ud;
 
     if (db == NULL) return NULL; /* TODO: louder error */
 
