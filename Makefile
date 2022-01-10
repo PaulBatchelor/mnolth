@@ -38,11 +38,12 @@ include lib/btprnt/config.mk
 include lib/lodepng/config.mk
 include lib/kuf/config.mk
 include lib/cdb/config.mk
+include lib/sqlite3/config.mk
 
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
 
-LIBS= -lm -lx264 -lsqlite3 -lz
+LIBS= -lm -lx264 -lz
 
 ALL = mnoscm mnolth libmnolth.a mnotil
 
