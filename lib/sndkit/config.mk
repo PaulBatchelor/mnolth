@@ -110,6 +110,8 @@ lib/sndkit/dsp/clkphs.o \
 lib/sndkit/nodes/clkphs/clkphs.o \
 lib/sndkit/nodes/clkphs/l_clkphs.o \
 lib/sndkit/nodes/cable/l_cable.o \
+lib/sndkit/nodes/cable/mix.o \
+lib/sndkit/nodes/cable/zero.o \
 lib/sndkit/nodes/cable/cabnew.o \
 lib/sndkit/dsp/noise.o \
 lib/sndkit/nodes/noise/l_noise.o \
