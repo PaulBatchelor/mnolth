@@ -26,6 +26,7 @@ mnolth is designed to be relatively portable and self-contained.
 In addition to a typical C development setup with Make,
 mnolth depends on libx264.
 
-To build mnolth, run "make".
+To build mnolth, first run "make tools", followed by
+"make".
 
 To install mnolth, run "sudo make install".
