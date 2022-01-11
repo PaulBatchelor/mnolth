@@ -45,7 +45,7 @@ include lib/miniz/config.mk
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
 
-LIBS= -lm -lx264 #-lz
+LIBS= -lm -lx264 -lpthread
 
 ALL = mnoscm mnolth libmnolth.a mnotil
 
