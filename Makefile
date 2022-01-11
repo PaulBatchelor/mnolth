@@ -45,7 +45,13 @@ include lib/miniz/config.mk
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
 
-LIBS= -lm -lx264 -lpthread
+LIBS= -lm -lx264
+
+# used by SQLite and gfxbuf
+LIBS+=-lpthread
+
+# used by SQLite
+LIBS+=-ldl
 
 ALL = mnoscm mnolth libmnolth.a mnotil
 
