@@ -5,7 +5,7 @@
 #include "graforge.h"
 #define SK_CORE_PRIV
 #include "core.h"
-#line 1670 "core.org"
+#line 1671 "core.org"
 static int hash(const char *str, int sz, int mod);
 #line 44 "core.org"
 #line 343 "core.org"
@@ -745,28 +745,28 @@ int sk_core_tabdump(sk_core *core, const char *filename)
 
     return sk_table_dump(tab, filename);
 }
-#line 1571 "core.org"
+#line 1572 "core.org"
 void sk_core_srand(sk_core *core, unsigned long val)
 {
     core->rng = val;
 }
-#line 1593 "core.org"
+#line 1594 "core.org"
 unsigned long sk_core_rand(sk_core *core)
 {
     core->rng = (1103515245 * core->rng + 12345) % SK_CORE_RANDMAX;
     return core->rng;
 }
-#line 1609 "core.org"
+#line 1610 "core.org"
 SKFLT sk_core_randf(sk_core *core)
 {
     return (SKFLT)sk_core_rand(core) / SK_CORE_RANDMAX;
 }
-#line 1660 "core.org"
+#line 1661 "core.org"
 size_t sk_dict_sizeof(void)
 {
     return sizeof(sk_dict);
 }
-#line 1675 "core.org"
+#line 1676 "core.org"
 static int hash(const char *str, int sz, int mod)
 {
     unsigned long h;
@@ -782,7 +782,7 @@ static int hash(const char *str, int sz, int mod)
 
     return h % mod;
 }
-#line 1699 "core.org"
+#line 1700 "core.org"
 void sk_dict_init(sk_dict *d)
 {
     int n;
@@ -793,7 +793,7 @@ void sk_dict_init(sk_dict *d)
 
     d->sz = 0;
 }
-#line 1718 "core.org"
+#line 1719 "core.org"
 int sk_dict_clean(sk_dict *d)
 {
     int e;
@@ -813,7 +813,7 @@ int sk_dict_clean(sk_dict *d)
 
     return 0;
 }
-#line 1765 "core.org"
+#line 1766 "core.org"
 int sk_dict_sappend(sk_dict *d,
                     const char *key,
                     int sz,
@@ -854,7 +854,7 @@ int sk_dict_sappend(sk_dict *d,
 
     return 0;
 }
-#line 1809 "core.org"
+#line 1810 "core.org"
 int sk_dict_append(sk_dict *d,
                    const char *key,
                    int sz,
@@ -863,7 +863,7 @@ int sk_dict_append(sk_dict *d,
 {
     return sk_dict_sappend(d, key, sz, p, del, NULL);
 }
-#line 1832 "core.org"
+#line 1833 "core.org"
 int sk_core_append(sk_core *core,
                    const char *key,
                    int sz,
@@ -872,7 +872,7 @@ int sk_core_append(sk_core *core,
 {
     return sk_dict_append(&core->dict, key, sz, p, del);
 }
-#line 1857 "core.org"
+#line 1858 "core.org"
 int sk_dict_lookup_stacklet(sk_dict *d,
                             const char *key,
                             int sz,
@@ -895,7 +895,7 @@ int sk_dict_lookup_stacklet(sk_dict *d,
 
     return 1;
 }
-#line 1883 "core.org"
+#line 1884 "core.org"
 int sk_dict_lookup(sk_dict *d,
                    const char *key,
                    int sz,
@@ -911,7 +911,7 @@ int sk_dict_lookup(sk_dict *d,
     *p = s->ptr;
     return 0;
 }
-#line 1913 "core.org"
+#line 1914 "core.org"
 int sk_core_lookup(sk_core *core,
                    const char *key,
                    int sz,
@@ -919,7 +919,7 @@ int sk_core_lookup(sk_core *core,
 {
     return sk_dict_lookup(&core->dict, key, sz, p);
 }
-#line 1929 "core.org"
+#line 1930 "core.org"
 int sk_dict_remove(sk_dict *d, const char *key, int sz)
 {
     int pos;
@@ -949,14 +949,14 @@ int sk_dict_remove(sk_dict *d, const char *key, int sz)
     }
     return 1;
 }
-#line 1972 "core.org"
+#line 1973 "core.org"
 int sk_core_remove(sk_core *core,
                    const char *key,
                    int sz)
 {
     return sk_dict_remove(&core->dict, key, sz);
 }
-#line 1995 "core.org"
+#line 1996 "core.org"
 int sk_core_grab(sk_core *core,
                  const char *key,
                  int sz)
@@ -977,7 +977,7 @@ int sk_core_grab(sk_core *core,
 
     return 0;
 }
-#line 2030 "core.org"
+#line 2031 "core.org"
 static void deltab(void *ptr)
 {
     sk_table *tab;
