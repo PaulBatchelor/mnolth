@@ -171,6 +171,14 @@ lib/sndkit/nodes/dblin/l_dblin.o \
 lib/sndkit/dsp/trand.o \
 lib/sndkit/nodes/trand/trand.o \
 lib/sndkit/nodes/trand/l_trand.o \
+lib/sndkit/dsp/tsmp.o \
+lib/sndkit/nodes/tsmp/tsmp.o \
+lib/sndkit/nodes/tsmp/l_tsmp.o \
+lib/sndkit/nodes/wav/loadwav.o \
+lib/sndkit/nodes/wav/l_loadwav.o \
+lib/sndkit/nodes/crossfade/l_crossfade.o \
+lib/sndkit/nodes/crossfade/crossfade.o \
+lib/sndkit/dsp/crossfade.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o
