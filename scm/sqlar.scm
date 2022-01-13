@@ -8,3 +8,7 @@
 (define (crate:wavk db name id)
   (db)
   (lvl (list "crtwavk" "zz" name id)))
+
+(define (crate:wav db id)
+  (db)
+  (lvl (list "crtwav" "zz" id)))
