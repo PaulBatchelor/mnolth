@@ -18,7 +18,7 @@ tsmp->tabsz = sz;
 #line 110 "tsmp.org"
 void sk_tsmp_rate(sk_tsmp *ts, SKFLT play)
 {
-    ts->play = 1.0;
+    ts->play = play;
 }
 #line 138 "tsmp.org"
 SKFLT sk_tsmp_tick(sk_tsmp *tsmp, SKFLT trig)
