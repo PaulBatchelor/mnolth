@@ -19,12 +19,15 @@ a home anywhere else.
 #include "gest/gest.h"
 #include "gest/gestlang.h"
 #include "cdb/cdb.h"
+#define BITLANG_PRIV
+#include "bitlang/bitlang.h"
+#include "btprnt/btprnt.h"
 
 <<lilfuncs>>
 
 void lil_load_misc(lil_t lil)
 {
-    lil_register(lil, "glang_cdb", l_glang_cdb);
+    <<lildefs>>
 }
 #+END_SRC
 * glang_cdb
@@ -32,6 +35,11 @@ Usage: glang_cdb gestlang cdbfile key
 
 =glang_cdb= will evaluate a string from a cdb file
 inside of an instance of gestlang.
+
+#+NAME: lildefs
+#+BEGIN_SRC c
+lil_register(lil, "glang_cdb", l_glang_cdb);
+#+END_SRC
 
 #+NAME: lilfuncs
 #+BEGIN_SRC c
@@ -92,6 +100,155 @@ static lil_value_t l_glang_cdb(lil_t lil,
     close(fd);
 
     SKLIL_ERROR_CHECK(lil, rc, "gestlang parser failed");
+    return NULL;
+}
+#+END_SRC
+* bitlang
+bitlang has only a few bindings.
+
+=blngnew= creates a new instance of bitlang.
+
+=blngcmp= compiles a bitlang string.
+
+=blgnex= executes a bitlang program, and writes
+the contents to a btprnt region.
+
+And should be it, really.
+
+#+NAME: lildefs
+#+BEGIN_SRC c
+lil_register(lil, "blngnew", l_blngnew);
+lil_register(lil, "blngcmp", l_blngcmp);
+lil_register(lil, "blngex", l_blngex);
+#+END_SRC
+
+#+NAME: lilfuncs
+#+BEGIN_SRC c
+struct bitpat {
+    bitlang vm;
+    bitlang_state st;
+    char bytes[128]; /* TODO: make a variable size? */
+    int err;
+};
+<<bitlang_funcs>>
+#+END_SRC
+
+#+NAME: bitlang_funcs
+#+BEGIN_SRC c
+static void delbl(void *ud)
+{
+    free(ud);
+}
+
+static lil_value_t l_blngnew(lil_t lil,
+                             size_t argc,
+                             lil_value_t *argv)
+{
+    const char *key;
+    struct bitpat *bp;
+    sk_core *core;
+    int rc;
+
+    SKLIL_ARITY_CHECK(lil, "blangnew", argc, 2);
+
+    core = lil_get_data(lil);
+    bp = malloc(sizeof(struct bitpat));
+    bitlang_init(&bp->vm);
+    bitlang_state_init(&bp->st, bp->bytes, 128);
+    bp->err = 0;
+
+    key = lil_to_string(argv[0]);
+
+    rc = sk_core_append(core, key, strlen(key), bp, delbl);
+
+    SKLIL_ERROR_CHECK(lil, rc, "could not add key");
+    /* sz = lil_to_integer(argv[1]); */
+    return NULL;
+}
+#+END_SRC
+
+#+NAME: lilfuncs
+#+BEGIN_SRC c
+static lil_value_t l_blngcmp(lil_t lil,
+                             size_t argc,
+                             lil_value_t *argv)
+{
+    struct bitpat *bp;
+    sk_core *core;
+    int rc;
+    void *ud;
+    const char *str;
+
+    core = lil_get_data(lil);
+    SKLIL_ARITY_CHECK(lil, "blngcmp", argc, 2);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get bitlang");
+
+    bp = ud;
+
+    str = lil_to_string(argv[1]);
+
+    bitlang_compile(&bp->st, str);
+    return NULL;
+}
+#+END_SRC
+
+#+NAME: lilfuncs
+#+BEGIN_SRC c
+static lil_value_t l_blngex(lil_t lil,
+                            size_t argc,
+                            lil_value_t *argv)
+{
+    struct bitpat *bp;
+    btprnt_region *reg;
+    sk_core *core;
+    int rc;
+    void *ud;
+    int t;
+    int x, y, w, h;
+
+    core = lil_get_data(lil);
+    SKLIL_ARITY_CHECK(lil, "bpatcmp", argc, 3);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get bitpat");
+    bp = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get region");
+    reg = ud;
+
+    t = lil_to_integer(argv[2]);
+
+    x = 0;
+    y = 0;
+    w = reg->w;
+    h = reg->h;
+    bitlang_regset(&bp->vm, 2, w);
+    bitlang_regset(&bp->vm, 3, h);
+    bitlang_regset(&bp->vm, 4, t);
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            int val;
+            val = 0;
+            bitlang_regset(&bp->vm, 0, x);
+            bitlang_regset(&bp->vm, 1, y);
+            bitlang_reset(&bp->vm);
+
+            bp->err = bitlang_exec(&bp->vm, &bp->st);
+            if (bp->err) {
+                printf("error\n");
+                break;
+            }
+
+            bitlang_pop(&bp->vm, &val);
+
+            btprnt_region_draw(reg, x, y, val);
+        }
+    }
+
     return NULL;
 }
 #+END_SRC
