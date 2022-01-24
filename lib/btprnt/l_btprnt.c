@@ -532,6 +532,29 @@ static lil_value_t l_bpchar(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_bpfill(lil_t lil,
+                            size_t argc,
+                            lil_value_t *argv)
+{
+    btprnt_region *reg;
+    int rc;
+    sk_core *core;
+    int clr;
+
+    SKLIL_ARITY_CHECK(lil, "bpfill", argc, 2);
+    core = lil_get_data(lil);
+
+    rc = getreg(lil, core, &reg);
+
+    if (rc) return NULL;
+
+    clr = lil_to_integer(argv[1]);
+
+    btprnt_fill(reg, clr);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -547,8 +570,10 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpfnt_default", l_bpfnt_default);
     lil_register(lil, "bptxtbox", l_bptxtbox);
     lil_register(lil, "bpchar", l_bpchar);
+    lil_register(lil, "bpfill", l_bpfill);
 
 
+    /* TODO */
     lil_register(lil, "bpfnt_cherry", l_btphi);
     lil_register(lil, "bpcirc", l_btphi);
     lil_register(lil, "bpcircf", l_btphi);
