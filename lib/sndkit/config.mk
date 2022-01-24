@@ -179,6 +179,8 @@ lib/sndkit/nodes/wav/l_loadwav.o \
 lib/sndkit/nodes/crossfade/l_crossfade.o \
 lib/sndkit/nodes/crossfade/crossfade.o \
 lib/sndkit/dsp/crossfade.o \
+lib/sndkit/nodes/plotter/l_plotter.o \
+lib/sndkit/nodes/plotter/plotter.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o
