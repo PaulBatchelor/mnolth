@@ -181,6 +181,12 @@ lib/sndkit/nodes/crossfade/crossfade.o \
 lib/sndkit/dsp/crossfade.o \
 lib/sndkit/nodes/plotter/l_plotter.o \
 lib/sndkit/nodes/plotter/plotter.o \
+lib/sndkit/nodes/qgliss/l_qgliss.o \
+lib/sndkit/nodes/qgliss/qgliss.o \
+lib/sndkit/dsp/qgliss.o \
+lib/sndkit/nodes/tdiv/l_tdiv.o \
+lib/sndkit/nodes/tdiv/tdiv.o \
+lib/sndkit/dsp/tdiv.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o

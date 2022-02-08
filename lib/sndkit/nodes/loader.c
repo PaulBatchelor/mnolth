@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "lil/lil.h"
 #include "graforge.h"
@@ -64,6 +65,8 @@ void sklil_load_crossfade(lil_t lil);
 void sklil_load_loadwav(lil_t lil);
 void sklil_load_tsmp(lil_t lil);
 void sklil_load_plotter(lil_t lil);
+void sklil_load_qgliss(lil_t lil);
+void sklil_load_tdiv(lil_t lil);
 
 void sklil_nodes(lil_t lil)
 {
@@ -124,6 +127,8 @@ void sklil_nodes(lil_t lil)
     sklil_load_tsmp(lil);
     sklil_load_loadwav(lil);
     sklil_load_plotter(lil);
+    sklil_load_qgliss(lil);
+    sklil_load_tdiv(lil);
 }
 
 static lil_value_t computes(lil_t lil, size_t argc, lil_value_t *argv)
@@ -228,10 +233,14 @@ static lil_value_t l_srand(lil_t lil, size_t argc, lil_value_t *argv)
 
     core = lil_get_data(lil);
 
-    SKLIL_ARITY_CHECK(lil, "srand", argc, 1);
+    if (argc > 0) {
+        val = lil_to_integer(argv[0]);
+    } else {
+        val = time(NULL);
+    }
 
-    val = lil_to_integer(argv[0]);
     sk_core_srand(core, val);
+
 
     return NULL;
 }
@@ -353,6 +362,24 @@ static lil_value_t l_del(lil_t lil, size_t argc, lil_value_t *argv)
     return NULL;
 }
 
+void lil_get_cmds(lil_t lil, lil_func_t **cmd, size_t *ncmd);
+const char *lil_cmd_name(lil_func_t cmd);
+
+static lil_value_t l_lscmds(lil_t lil, size_t argc, lil_value_t *argv)
+{
+    size_t c, ncmd;
+    lil_func_t *cmd;
+    c = ncmd = 0;
+
+    lil_get_cmds(lil, &cmd, &ncmd);
+
+    for (c = 0; c < ncmd; c++) {
+        printf("%s\n", lil_cmd_name(cmd[c]));
+    }
+
+    return NULL;
+}
+
 void sklil_loader(lil_t lil)
 {
     sk_core *core;
@@ -374,6 +401,7 @@ void sklil_loader(lil_t lil)
     lil_register(lil, "unholdall", l_unholdall);
     lil_register(lil, "pop", l_pop);
     lil_register(lil, "del", l_del);
+    lil_register(lil, "lscmds", l_lscmds);
 }
 
 void sklil_clean(lil_t lil)
