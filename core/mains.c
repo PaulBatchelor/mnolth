@@ -127,74 +127,86 @@ static pointer scm_chdir(scheme *sc, pointer args)
     return sc->T;
 }
 
+scheme * mno_scm_new(lil_t lil)
+{
+    scheme *sc;
+    sk_core *core;
+
+    sc = malloc(sizeof(scheme));
+    memset(sc, 0, sizeof(scheme));
+    scheme_init(sc);
+
+    core = lil_get_data(lil);
+
+    sk_core_append(core, "scm", 3, sc, NULL);
+
+    scheme_set_external_data(sc, lil);
+
+    scheme_set_input_port_file(sc, stdin);
+    scheme_set_output_port_file(sc, stdout);
+    scheme_eval_string(sc, init_scm);
+
+#if USE_DL
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "load-extension"),
+        mk_foreign_func(sc, scm_load_ext));
+#endif
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "lil"),
+        mk_foreign_func(sc, scm_lil));
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "pop"),
+        mk_foreign_func(sc, scm_pop));
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "cmd"),
+        mk_foreign_func(sc, scm_cmd));
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "mnotop"),
+        mk_foreign_func(sc, scm_mnotop));
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc,"getenv"),
+        mk_foreign_func(sc, scm_getenv));
+
+    scheme_define(sc, sc->global_env,
+        mk_symbol(sc, "chdir"),
+        mk_foreign_func(sc, scm_chdir));
+
+    return sc;
+}
+
 int mno_scm_main(int argc, char *argv[],
                  void (*load)(lil_t),
                  void (*clean)(lil_t))
 {
-    scheme sc;
+    scheme *sc;
     FILE *fp;
     lil_t lil;
-    sk_core *core;
 
     if (load == NULL) load = mno_load;
     if (clean == NULL) clean = mno_clean;
 
-    memset(&sc, 0, sizeof(scheme)); /* zero out to avoid valgrind errors */
-
     lil = lil_new();
     load(lil);
-    scheme_init(&sc);
 
-    core = lil_get_data(lil);
-
-    sk_core_append(core, "scm", 3, &sc, NULL);
-
-    scheme_set_external_data(&sc, lil);
-
-    scheme_set_input_port_file(&sc, stdin);
-    scheme_set_output_port_file(&sc, stdout);
-    scheme_eval_string(&sc, init_scm); /* load standard library */
-#if USE_DL
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"load-extension"),
-        mk_foreign_func(&sc, scm_load_ext));
-#endif
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"lil"),
-        mk_foreign_func(&sc, scm_lil));
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"pop"),
-        mk_foreign_func(&sc, scm_pop));
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"cmd"),
-        mk_foreign_func(&sc, scm_cmd));
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"mnotop"),
-        mk_foreign_func(&sc, scm_mnotop));
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"getenv"),
-        mk_foreign_func(&sc, scm_getenv));
-
-    scheme_define(&sc,sc.global_env,
-        mk_symbol(&sc,"chdir"),
-        mk_foreign_func(&sc, scm_chdir));
+    sc = mno_scm_new(lil);
 
     if(argc == 1) {
-        scheme_load_named_file(&sc, stdin, 0);
+        scheme_load_named_file(sc, stdin, 0);
     } else {
         fp = fopen(argv[1], "r");
-        scheme_load_named_file(&sc, fp, argv[1]);
+        scheme_load_named_file(sc, fp, argv[1]);
         fclose(fp);
     }
 
     clean(lil);
     lil_free(lil);
-    scheme_deinit(&sc);
+    scheme_deinit(sc);
+    free(sc);
 
     return 0;
 }
