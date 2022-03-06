@@ -10,6 +10,9 @@
 #include "sndkit/core.h"
 #include "sndkit/lil/lil.h"
 #include "sndkit/nodes/sklil.h"
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
 
 void mno_load(lil_t lil);
 void mno_clean(lil_t lil);
@@ -218,4 +221,100 @@ int mno_lil_main(int argc, char *argv[],
     if (load == NULL) load = mno_load;
     if (clean == NULL) clean = mno_clean;
     return lil_main(argc, argv, load, clean);
+}
+
+static int lvler(lua_State *L)
+{
+    lil_t lil;
+    const char *str;
+    lil_value_t val;
+    const char *err;
+    size_t pos;
+
+    lua_getglobal(L, "lil");
+    lil = lua_touserdata(L, -1);
+
+    str = lua_tostring(L, 1);
+
+    val = lil_parse(lil, str, strlen(str), 0);
+    lil_free_value(val);
+
+    if (lil_error(lil, &err, &pos)) {
+        luaL_error(L, "lil error: %s\n", err);
+    }
+
+    return 0;
+}
+
+static int lilpop(lua_State *L)
+{
+    lil_t lil;
+    sk_core *core;
+    int rc;
+    float out;
+
+    lua_getglobal(L, "lil");
+    lil = lua_touserdata(L, -1);
+
+    core = lil_get_data(lil);
+
+    out = 0;
+    rc = sk_param_get_constant(core, &out);
+
+    if (rc) {
+        luaL_error(L, "could not pop value\n");
+    }
+
+    lua_pushnumber(L, out);
+    return 1;
+}
+
+static void load_lua_funcs(lua_State *L, lil_t lil)
+{
+    lua_pushlightuserdata(L, lil);
+    lua_setglobal(L, "lil");
+    lua_register(L, "lvl", lvler);
+    lua_register(L, "pop", lilpop);
+}
+
+int lua_main (int argc, char **argv,
+              void (*loader)(lua_State*),
+              void (*clean)(lua_State*));
+
+void mno_lua_load(lua_State *L)
+{
+    lil_t lil;
+    sk_core *core;
+
+    lil = lil_new();
+    mno_load(lil);
+    load_lua_funcs(L, lil);
+
+    core = lil_get_data(lil);
+
+    sk_core_append(core, "lua", 3, L, NULL);
+}
+
+void mno_lua_clean(lua_State *L)
+{
+    lil_t lil;
+
+    lua_getglobal(L, "lil");
+
+    lil = lua_touserdata(L, -1);
+
+    mno_clean(lil);
+    lil_free(lil);
+}
+
+
+int mno_lua_main(int argc, char **argv,
+                 void (*load)(lua_State*),
+                 void (*clean)(lua_State*))
+{
+    
+    if (load == NULL) load = mno_lua_load;
+    if (clean == NULL) clean = mno_lua_clean;
+
+    return lua_main(argc, argv, load, clean);
 }
