@@ -42,6 +42,7 @@ include lib/cdb/config.mk
 include lib/sqlite3/config.mk
 include lib/miniz/config.mk
 include lib/bitlang/config.mk
+include lib/lua/config.mk
 
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
