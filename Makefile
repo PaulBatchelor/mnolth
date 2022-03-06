@@ -55,7 +55,7 @@ LIBS+=-lpthread
 # used by SQLite
 LIBS+=-ldl
 
-ALL = mnoscm mnolth libmnolth.a mnotil
+ALL = mnoscm mnolth libmnolth.a mnotil mnolua
 
 default: $(TANGLED) $(ALL)
 
@@ -97,6 +97,10 @@ mnolth: $(OBJ) core/lil_main.o
 
 mnotil: $(OBJ) util/mnotil.o
 	@echo "building mnotil"
+	@$(CC) $^ -o $@ $(LIBS)
+
+mnolua: $(OBJ) core/lua_main.o
+	@echo "building mnolua"
 	@$(CC) $^ -o $@ $(LIBS)
 
 libmnolth.a: $(OBJ)
