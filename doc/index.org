@@ -1,0 +1,39 @@
+#+TITLE: Mnolth Documentation
+This will eventually blossom into a wiki page, powered
+via weewiki. If I do this correctly, this wiki will
+also dynamically integrate with all the mnolth
+components written in a literate style (this will
+not include the several pre-tangled components that
+have been dropped into the codebase).
+
+Potential Topics:
+
+What is/isn't Mnolth?
+
+Program Structure Overview
+
+some sounds (sndkit)
+
+gfxbuf: overview, making audio-visual content
+
+btprnt
+
+LIL
+
+mnolth
+
+mnoscm
+
+mnotil
+
+mnolua
+
+hotswapping interface
+
+variables
+
+gest
+
+sqlar
+
+bitlang
