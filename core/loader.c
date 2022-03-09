@@ -17,6 +17,7 @@ void lil_load_draw(lil_t lil);
 void lil_load_hotswap(lil_t lil);
 void lil_load_rt(lil_t lil);
 void lil_load_misc(lil_t lil);
+void load_gestvm(lil_t lil);
 
 void mno_load(lil_t lil)
 {
@@ -32,6 +33,7 @@ void mno_load(lil_t lil)
     lil_load_draw(lil);
     lil_load_hotswap(lil);
     lil_load_misc(lil);
+    load_gestvm(lil);
 }
 
 void mno_clean(lil_t lil)

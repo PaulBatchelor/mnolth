@@ -7,6 +7,7 @@ int cdb_main(int argc, char *argv[]);
 int txt2cdb_main(int argc, char *argv[]);
 int sqlite3_main(int argc, char *argv[]);
 int sqlar_main(int argc, char *argv[]);
+int uxnasm_main(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
@@ -29,6 +30,10 @@ int main(int argc, char *argv[])
         argc--;
         argv++;
         return sqlar_main(argc, argv);
+    } else if (!strcmp(argv[1], "uxnasm")) {
+        argc--;
+        argv++;
+        return uxnasm_main(argc, argv);
     }
 
     fprintf(stderr,
