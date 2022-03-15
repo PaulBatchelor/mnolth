@@ -55,12 +55,12 @@ h264 video.
 #endif
 #+END_SRC
 * Top Struct
-The top-level =gfxbuf= struct will contain the following:
-
 #+NAME: typedefs
 #+BEGIN_SRC c
 typedef struct gfxbuf gfxbuf;
 #+END_SRC
+
+The top-level =gfxbuf= struct will contain the following:
 
 A allocated instance of the pixel buffer, with the width
 and height.
@@ -943,3 +943,30 @@ gfxbuf_pixel gfxbuf_clrget(gfxbuf *gfx, int pos)
     return gfx->clr[pos];
 }
 #+END_SRC
+* Zoom Buffer (WIP)
+A zoom buffer is a buffer designed to hold an upscaled
+version of another framebuffer. This is used for pixel
+art, where pixels want to be large.
+
+The main principle is, drawing happens on the regular
+framebuffer, then scaled and transferred to the zoom
+buffer.
+
+The means for which such a zoom buffer will be constructed
+will use some C cleverness (beware of cleverness).
+A new struct, called =gfxbufz=, will be built on top of
+the old struct, =gfxbuf=, and introduce variables =wz=
+and =hz=, the width and height of the zoom.
+
+When =gfxbufz= is allocated, it will allocate an instance
+of =gfxbuf= which will allocate buffer with the zoom
+dimensions, then re-initialize it to have the non-zoom
+dimensions. This way, drawing operations work as intended.
+A special function is then in charge of taking buffer
+and upscaling it (possibly in place? maybe that's too
+clever).
+
+The actual framebuffer size is stored in the first top
+of the bytes. To prevent things from being overwritten
+before being read, zoom starts at the bottom right, and
+works backwards towards the top left.
