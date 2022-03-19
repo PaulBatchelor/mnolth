@@ -44,6 +44,36 @@ static lil_value_t l_gfxnew(lil_t lil,
     return NULL;
 }
 
+/* gfxnewz: similar to gfxnew, but with a zoom amount */
+
+static lil_value_t l_gfxnewz(lil_t lil,
+                             size_t argc,
+                             lil_value_t *argv)
+{
+    sk_core *core;
+    const char *key;
+    int w, h, z;
+    int rc;
+    gfxbuf *gfx;
+
+    core = lil_get_data(lil);
+
+    SKLIL_ARITY_CHECK(lil, "gfxnewz", argc, 4);
+
+    key = lil_to_string(argv[0]);
+    w = lil_to_integer(argv[1]);
+    h = lil_to_integer(argv[2]);
+    z = lil_to_integer(argv[3]);
+
+    gfx = gfxbuf_new_zoom(w, h, z);
+
+    rc = sk_core_append(core, key, strlen(key), gfx, delgfx);
+
+    SKLIL_ERROR_CHECK(lil, rc, "Couldn't create key.");
+
+    return NULL;
+}
+
 static lil_value_t l_gfxtransfer(lil_t lil,
                                  size_t argc,
                                  lil_value_t *argv)
@@ -61,6 +91,27 @@ static lil_value_t l_gfxtransfer(lil_t lil,
     gfx = (gfxbuf *)ptr;
 
     gfxbuf_transfer(gfx);
+
+    return NULL;
+}
+
+static lil_value_t l_gfxtransferz(lil_t lil,
+                                  size_t argc,
+                                  lil_value_t *argv)
+{
+    sk_core *core;
+    gfxbuf *gfx;
+    void *ptr;
+    int rc;
+
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gfxbuf instance.");
+
+    gfx = (gfxbuf *)ptr;
+
+    gfxbuf_transferz(gfx);
 
     return NULL;
 }
@@ -402,12 +453,33 @@ static lil_value_t l_gfxclrrgb(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_gfxzoomit(lil_t lil,
+                               size_t argc,
+                               lil_value_t *argv)
+{
+    sk_core *core;
+    gfxbuf *gfx;
+    void *ptr;
+    int rc;
 
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gfxbuf instance.");
+
+    gfx = (gfxbuf *)ptr;
+
+    gfxbuf_zoomit(gfx);
+
+    return NULL;
+}
 
 void lil_load_gfxbuf(lil_t lil)
 {
     lil_register(lil, "gfxnew", l_gfxnew);
+    lil_register(lil, "gfxnewz", l_gfxnewz);
     lil_register(lil, "gfxtransfer", l_gfxtransfer);
+    lil_register(lil, "gfxtransferz", l_gfxtransferz);
     lil_register(lil, "gfxappend", l_gfxappend);
     lil_register(lil, "gfxppm", l_gfxppm);
     lil_register(lil, "gfxfill", l_gfxfill);
@@ -417,4 +489,5 @@ void lil_load_gfxbuf(lil_t lil)
     lil_register(lil, "gfxclrset", l_gfxclrset);
     lil_register(lil, "gfxclrrgb", l_gfxclrrgb);
     lil_register(lil, "gfxmp4", l_gfxmp4);
+    lil_register(lil, "gfxzoomit", l_gfxzoomit);
 }

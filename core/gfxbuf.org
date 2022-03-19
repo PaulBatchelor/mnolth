@@ -91,6 +91,7 @@ and free with =gfxbuf_del=.
 #+NAME: funcdefs
 #+BEGIN_SRC c
 gfxbuf *gfxbuf_new(int w, int h);
+void gfxbuf_init(gfxbuf *gfx, int w, int h);
 void gfxbuf_del(gfxbuf *gfx);
 #+END_SRC
 
@@ -107,6 +108,9 @@ gfxbuf *gfxbuf_new(int w, int h)
     gfx->pix = gfxbuf_pixbuf_new(w, h);
     gfx->vid = gfxbuf_vidwrt_new();
     gfx->yuv = gfxbuf_yuvbuf_new();
+
+    gfx->yuv->w = w;
+    gfx->yuv->h = h;
 
     for (i = 0; i < GFXBUF_MAXWORKERS; i++) {
         gfx->wrk[i].id = i;
@@ -553,8 +557,11 @@ static void transfer(gfxbuf_pixbuf *pix, gfxbuf_yuvbuf *yuv)
     int x, y;
 
     if (pix == NULL || yuv == NULL) return;
+
+    /* disabled in order to make zoom buffers work */
     if (pix->w != yuv->w || pix->h != yuv->h) return;
 
+    if (yuv->y == NULL || yuv->u == NULL || yuv->v == NULL) return;
     w = pix->w;
     h = pix->h;
 
@@ -684,13 +691,22 @@ void gfxbuf_vidwrt_del(gfxbuf_vidwrt *vid)
 int gfxbuf_open(gfxbuf *gfx, const char *filename);
 #+END_SRC
 
+*NOTE*: because of  zoom buffer feature, the YUV
+dimensions are initialized beforehand and are
+used instead of the pixbuf dimensions.
 #+NAME: funcs
 #+BEGIN_SRC c
 int gfxbuf_open(gfxbuf *gfx, const char *filename)
 {
     int rc;
+
+    if (gfx == NULL) return -1;
+    if (gfx->vid == NULL) return -2;
+    if (gfx->yuv == NULL) return -3;
+    if (gfx->yuv->w <= 0 || gfx->yuv->h <= 0) return -4;
+
     rc = openvid(gfx->vid, filename,
-                 gfx->pix->w, gfx->pix->h, 60);
+                 gfx->yuv->w, gfx->yuv->h, 60);
 
     if (rc) return rc;
 
@@ -875,12 +891,18 @@ current framebuffer.
 void gfxbuf_ppm(gfxbuf *gfx, const char *filename);
 #+END_SRC
 
+*NOTE*: the dimensions of the YUV buffer are used instead
+of the pixel buffer because the YUV buffer may contain
+zoom dimensions.
+
 #+NAME: funcs
 #+BEGIN_SRC c
 void gfxbuf_ppm(gfxbuf *gfx, const char *filename)
 {
     FILE *fp;
     int x, y;
+    int w, h;
+
     char *line;
     gfxbuf_pixbuf *pix;
 
@@ -889,18 +911,22 @@ void gfxbuf_ppm(gfxbuf *gfx, const char *filename)
     if (fp == NULL) return;
 
     pix = gfx->pix;
-    fprintf(fp, "P6\n#gfxbuf\n%d %d\n255\n", pix->w, pix->h);
-    line = calloc(1, gfx->pix->w * 3);
 
-    for (y = 0; y < pix->h; y++) {
-        for (x = 0; x < pix->w; x++) {
-            int pos = y * pix->w + x;
+    w = gfx->yuv->w;
+    h = gfx->yuv->h;
+
+    fprintf(fp, "P6\n#gfxbuf\n%d %d\n255\n", w, h);
+    line = calloc(1, w * 3);
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            int pos = y * w + x;
             line[3 * x] = floor(pix->buf[pos].r * 255);
             line[3 * x + 1] = floor(pix->buf[pos].g * 255);
             line[3 * x + 2] = floor(pix->buf[pos].b * 255);
         }
 
-        fwrite(line, 1, pix->w*3, fp);
+        fwrite(line, 1, w*3, fp);
     }
 
     free(line);
@@ -943,7 +969,7 @@ gfxbuf_pixel gfxbuf_clrget(gfxbuf *gfx, int pos)
     return gfx->clr[pos];
 }
 #+END_SRC
-* Zoom Buffer (WIP)
+* Zoom Buffer
 A zoom buffer is a buffer designed to hold an upscaled
 version of another framebuffer. This is used for pixel
 art, where pixels want to be large.
@@ -952,21 +978,125 @@ The main principle is, drawing happens on the regular
 framebuffer, then scaled and transferred to the zoom
 buffer.
 
-The means for which such a zoom buffer will be constructed
-will use some C cleverness (beware of cleverness).
-A new struct, called =gfxbufz=, will be built on top of
-the old struct, =gfxbuf=, and introduce variables =wz=
-and =hz=, the width and height of the zoom.
+To construct the Zoom Buffer, some cleverness will
+be utlized. The =gfxbuf= struct contains 2 buffers,
+an RGB pixel buffer, and a YUV buffer, each with
+separate variables for dimensions. This can
+be exploited: a gfxbuf instance can be allocated
+with the zoom dimensions, then the pixel buffer
+can be re-adjusted to have the normal dimensions.
+This allows all drawing operations to behave normally
+to the pixel buffer. After the buffer is drawn,
+the information can be rescaled to the real buffer
+size, with the YUV dimensions being used to determine
+the zoom factor (if ther eis any).
 
-When =gfxbufz= is allocated, it will allocate an instance
-of =gfxbuf= which will allocate buffer with the zoom
-dimensions, then re-initialize it to have the non-zoom
-dimensions. This way, drawing operations work as intended.
-A special function is then in charge of taking buffer
-and upscaling it (possibly in place? maybe that's too
-clever).
 
-The actual framebuffer size is stored in the first top
-of the bytes. To prevent things from being overwritten
-before being read, zoom starts at the bottom right, and
-works backwards towards the top left.
+A buffer with zoom is allocated with =gfxbuf_new_zoom=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gfxbuf * gfxbuf_new_zoom(int w, int h, int z);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC
+gfxbuf * gfxbuf_new_zoom(int w, int h, int z)
+{
+      gfxbuf *gfx;
+
+      gfx = gfxbuf_new(w*z, h*z);
+
+      gfx->pix->w = w;
+      gfx->pix->h = h;
+
+      return gfx;
+}
+#+END_SRC
+
+The pixel buffer, after being written, can then be blown
+up to scale with =gfxbuf_zoomit=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_zoomit(gfxbuf *gfx);
+#+END_SRC
+
+In order to keep things from overwriting themselves,
+scaling happens from bottom-right and goes to top-left.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_zoomit(gfxbuf *gfx)
+{
+    int w, h;
+    int z;
+    int x, y;
+    gfxbuf_pixel *buf;
+
+    if (gfx->pix == NULL || gfx->pix->w == 0) return;
+
+    z = gfx->yuv->w / gfx->pix->w;
+
+    if (z <= 1) return;
+
+    w = gfx->pix->w;
+    h = gfx->pix->h;
+
+    buf = gfx->pix->buf;
+
+    /* more sanity checks */
+    if (w < 0 || h < 0 || buf == NULL) return;
+
+    for (y = h - 1; y >= 0; y--) {
+        for (x = w - 1; x >= 0; x--) {
+            gfxbuf_pixel c;
+            int zx, zy;
+            int offx, offy;
+
+            /* get color */
+            c = buf[y * w + x];
+
+            /* top left corner of pixel square */
+            offx = x*z;
+            offy = y*z;
+
+            for (zx = 0; zx < z; zx++) {
+                for (zy = 0; zy < z; zy++) {
+                    buf[(offy + zy)*w*z + (offx + zx)] = c;
+                }
+            }
+        }
+    }
+}
+#+END_SRC
+
+The typical transfer function must be replaced with
+a =gfxbuf_transferz=. This will temporarily set the pixel
+buffer size to be the zoom dimensions, then call
+the transfer function before resetting it back.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxbuf_transferz(gfxbuf *gfx);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gfxbuf_transferz(gfxbuf *gfx)
+{
+    int w, h;
+
+    if (gfx->pix == NULL || gfx->yuv == NULL) return;
+
+    w = gfx->pix->w;
+    h = gfx->pix->h;
+    gfx->pix->w = gfx->yuv->w;
+    gfx->pix->h = gfx->yuv->h;
+
+    gfxbuf_transfer(gfx);
+
+    gfx->pix->w = w;
+    gfx->pix->h = h;
+}
+#+END_SRC
