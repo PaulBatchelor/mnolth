@@ -231,7 +231,7 @@ static int lvler(lua_State *L)
     const char *err;
     size_t pos;
 
-    lua_getglobal(L, "lil");
+    lua_getglobal(L, "__lil");
     lil = lua_touserdata(L, -1);
 
     str = lua_tostring(L, 1);
@@ -253,7 +253,7 @@ static int lilpop(lua_State *L)
     int rc;
     float out;
 
-    lua_getglobal(L, "lil");
+    lua_getglobal(L, "__lil");
     lil = lua_touserdata(L, -1);
 
     core = lil_get_data(lil);
@@ -272,8 +272,8 @@ static int lilpop(lua_State *L)
 static void load_lua_funcs(lua_State *L, lil_t lil)
 {
     lua_pushlightuserdata(L, lil);
-    lua_setglobal(L, "lil");
-    lua_register(L, "lvl", lvler);
+    lua_setglobal(L, "__lil");
+    lua_register(L, "lil", lvler);
     lua_register(L, "pop", lilpop);
 }
 
@@ -299,7 +299,7 @@ void mno_lua_clean(lua_State *L)
 {
     lil_t lil;
 
-    lua_getglobal(L, "lil");
+    lua_getglobal(L, "__lil");
 
     lil = lua_touserdata(L, -1);
 
