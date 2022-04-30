@@ -48,7 +48,12 @@ include lib/gestvm/config.mk
 WORGLE=$(abspath util/worgle/worglite)
 WORGLE_FLAGS=-Werror -g
 
-LIBS= -lm -lx264
+LIBS= -lm
+
+ifndef DONT_USE_X264
+CFLAGS+=-DMNOLTH_X264
+LIBS+=-lx264
+endif
 
 # used by SQLite and gfxbuf
 LIBS+=-lpthread
