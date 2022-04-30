@@ -33,7 +33,11 @@ h264 video.
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+#ifdef MNOLTH_X264
 #include <x264.h>
+#endif
+
 #include <pthread.h>
 
 #define GFXBUF_PRIV
@@ -501,6 +505,7 @@ void gfxbuf_yuvbuf_del(gfxbuf_yuvbuf *yuv)
 
 void gfxbuf_yuvbuf_link(gfxbuf_yuvbuf *yuv, gfxbuf_vidwrt *vid)
 {
+#ifdef MNOLTH_X264
     int x, y;
     yuv->y = vid->pic.img.plane[0];
     yuv->u = vid->pic.img.plane[1];
@@ -518,6 +523,7 @@ void gfxbuf_yuvbuf_link(gfxbuf_yuvbuf *yuv, gfxbuf_vidwrt *vid)
             yuv->v[pos] = 0;
         }
     }
+#endif
 }
 #+END_SRC
 
@@ -646,13 +652,15 @@ typedef struct gfxbuf_vidwrt gfxbuf_vidwrt;
 #+NAME: structs
 #+BEGIN_SRC c
 struct gfxbuf_vidwrt {
+#ifdef MNOLTH_X264
     x264_param_t param;
     x264_picture_t pic;
     x264_picture_t pic_out;
     x264_t *h;
-    int i_frame;
     x264_nal_t *nal;
+    int i_frame;
     int i_nal;
+#endif
     FILE *fp;
 };
 #+END_SRC
@@ -677,9 +685,11 @@ gfxbuf_vidwrt* gfxbuf_vidwrt_new(void)
 #+BEGIN_SRC c
 void gfxbuf_vidwrt_del(gfxbuf_vidwrt *vid)
 {
+#ifdef MNOLTH_X264
     if (vid->h != NULL) {
         closevid(vid);
     }
+#endif
     free(vid);
 }
 #+END_SRC
@@ -731,6 +741,7 @@ static int openvid(gfxbuf_vidwrt *vid,
                    int w, int h,
                    int fps)
 {
+#ifdef MNOLTH_X264
     x264_param_t *p;
 
     p = &vid->param;
@@ -774,7 +785,7 @@ static int openvid(gfxbuf_vidwrt *vid,
 
     vid->h = x264_encoder_open(p);
     if (!vid->h) return 1;
-
+#endif
     return 0;
 }
 #+END_SRC
@@ -803,6 +814,7 @@ static void append(gfxbuf_vidwrt *vid);
 #+BEGIN_SRC c
 static void append(gfxbuf_vidwrt *vid)
 {
+#ifdef MNOLTH_h264
     int i_frame_size;
 
     if(vid->fp == NULL) return;
@@ -832,6 +844,7 @@ static void append(gfxbuf_vidwrt *vid)
                1,
                vid->fp);
     }
+#endif
 }
 #+END_SRC
 ** Close
@@ -859,6 +872,7 @@ static void closevid(gfxbuf_vidwrt *vid);
 #+BEGIN_SRC c
 static void closevid(gfxbuf_vidwrt *vid)
 {
+#ifdef MNOLTH_h264
     int i_frame_size;
     if (vid->h == NULL) return;
     while (x264_encoder_delayed_frames(vid->h)) {
@@ -880,6 +894,7 @@ static void closevid(gfxbuf_vidwrt *vid)
     fclose(vid->fp);
     vid->fp = NULL;
     vid->h = NULL;
+#endif
 }
 #+END_SRC
 * PPM writer
