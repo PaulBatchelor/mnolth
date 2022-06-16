@@ -555,6 +555,35 @@ static lil_value_t l_bpfill(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_btline(lil_t lil,
+                            size_t argc,
+                            lil_value_t *argv)
+{
+    btprnt_region *reg;
+    int rc;
+    sk_core *core;
+    int x0, y0;
+    int x1, y1;
+    int clr;
+
+    SKLIL_ARITY_CHECK(lil, "bptline", argc, 6);
+    core = lil_get_data(lil);
+
+    rc = getreg(lil, core, &reg);
+
+    if (rc) return NULL;
+
+    x0 = lil_to_integer(argv[1]);
+    y0 = lil_to_integer(argv[2]);
+    x1 = lil_to_integer(argv[3]);
+    y1 = lil_to_integer(argv[4]);
+    clr = lil_to_integer(argv[5]);
+
+    btprnt_draw_line(reg, x0, y0, x1, y1, clr);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -571,6 +600,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bptxtbox", l_bptxtbox);
     lil_register(lil, "bpchar", l_bpchar);
     lil_register(lil, "bpfill", l_bpfill);
+    lil_register(lil, "bpline", l_btline);
 
 
     /* TODO */
@@ -579,7 +609,6 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpcircf", l_btphi);
     lil_register(lil, "bphline", l_btphi);
     lil_register(lil, "bpvline", l_btphi);
-    lil_register(lil, "bpline", l_btphi);
     lil_register(lil, "bpcenterbox", l_btphi);
     lil_register(lil, "bpborder", l_btphi);
     lil_register(lil, "bpinvert", l_btphi);
