@@ -8,42 +8,59 @@
 
 #line 68 "rline.org"
 typedef struct sk_rline sk_rline;
+#line 442 "rline.org"
+typedef struct sk_jitseg sk_jitseg;
 #line 48 "rline.org"
-#line 232 "rline.org"
+#line 237 "rline.org"
 void sk_rline_init(sk_rline *rl, int sr, int seed);
-#line 248 "rline.org"
+#line 253 "rline.org"
 void sk_rline_min(sk_rline *rl, SKFLT min);
-#line 275 "rline.org"
+#line 280 "rline.org"
 void sk_rline_max(sk_rline *rl, SKFLT max);
-#line 302 "rline.org"
+#line 307 "rline.org"
 void sk_rline_rate(sk_rline *rl, SKFLT rate);
-#line 329 "rline.org"
+#line 334 "rline.org"
 SKFLT sk_rline_tick(sk_rline *rl);
+#line 458 "rline.org"
+void sk_jitseg_init(sk_jitseg *js, int sr, int s1, int s2);
+#line 477 "rline.org"
+void sk_jitseg_min(sk_jitseg *js, SKFLT min);
+void sk_jitseg_max(sk_jitseg *js, SKFLT max);
+void sk_jitseg_rate_min(sk_jitseg *js, SKFLT min);
+void sk_jitseg_rate_max(sk_jitseg *js, SKFLT min);
+void sk_jitseg_rate_rate(sk_jitseg *js, SKFLT rate);
+SKFLT sk_jitseg_tick(sk_jitseg *js);
 #line 57 "rline.org"
 
 #ifdef SK_RLINE_PRIV
-#line 73 "rline.org"
+#line 77 "rline.org"
 struct sk_rline {
-#line 86 "rline.org"
+#line 91 "rline.org"
 SKFLT rngscale;
-#line 99 "rline.org"
+#line 104 "rline.org"
 int rng;
-#line 129 "rline.org"
+#line 134 "rline.org"
 SKFLT maxlens;
-#line 143 "rline.org"
+#line 148 "rline.org"
 unsigned long phasepos;
 SKFLT scale;
-#line 169 "rline.org"
+#line 174 "rline.org"
 SKFLT start;
 SKFLT end;
-#line 261 "rline.org"
+#line 266 "rline.org"
 SKFLT min;
-#line 288 "rline.org"
+#line 293 "rline.org"
 SKFLT max;
-#line 315 "rline.org"
+#line 320 "rline.org"
 SKFLT rate;
-#line 75 "rline.org"
+#line 79 "rline.org"
 };
+#line 447 "rline.org"
+struct sk_jitseg {
+    sk_rline main;
+    sk_rline rate;
+};
+#line 79 "rline.org"
 #line 60 "rline.org"
 #endif
 #endif
