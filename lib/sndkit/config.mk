@@ -187,6 +187,17 @@ lib/sndkit/dsp/qgliss.o \
 lib/sndkit/nodes/tdiv/l_tdiv.o \
 lib/sndkit/nodes/tdiv/tdiv.o \
 lib/sndkit/dsp/tdiv.o \
+lib/sndkit/nodes/shelf/l_shelf.o \
+lib/sndkit/nodes/shelf/shelf.o \
+lib/sndkit/dsp/shelf.o \
+lib/sndkit/nodes/lpf/l_lpf.o \
+lib/sndkit/nodes/lpf/lpf.o \
+lib/sndkit/dsp/lpf.o \
+lib/sndkit/nodes/envar/l_envar.o \
+lib/sndkit/nodes/envar/envar.o \
+lib/sndkit/dsp/envar.o \
+lib/sndkit/extra/brown/brown.o \
+lib/sndkit/extra/brown/l_brown.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o

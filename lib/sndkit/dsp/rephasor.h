@@ -26,9 +26,9 @@ struct sk_rephasor {
 void sk_rephasor_init(sk_rephasor *rp);
 #line 243 "rephasor.org"
 void sk_rephasor_scale(sk_rephasor *rp, SKFLT scale);
-#line 267 "rephasor.org"
+#line 266 "rephasor.org"
 SKFLT sk_rephasor_tick(sk_rephasor *rp, SKFLT ext);
-#line 354 "rephasor.org"
+#line 353 "rephasor.org"
 SKFLT sk_rephasor_tick_nosync(sk_rephasor *rp, SKFLT ext);
 #line 152 "rephasor.org"
 #endif

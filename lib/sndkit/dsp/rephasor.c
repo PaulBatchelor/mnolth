@@ -20,13 +20,12 @@ void sk_rephasor_init(sk_rephasor *rp)
 #line 251 "rephasor.org"
 void sk_rephasor_scale(sk_rephasor *rp, SKFLT scale)
 {
-    /*rp->scale = scale; */
     if (scale != rp->s) {
         rp->s = scale;
         rp->si = 1.0 / scale;
     }
 }
-#line 276 "rephasor.org"
+#line 275 "rephasor.org"
 /* implementation of a truncated phasor */
 
 static SKFLT phasor(SKFLT phs, SKFLT inc)
@@ -65,9 +64,9 @@ SKFLT sk_rephasor_tick(sk_rephasor *rp, SKFLT ext)
         rp->c = rp->pe[1] / rp->pc[1];
     }
 
-#line 344 "rephasor.org"
+#line 343 "rephasor.org"
 if (rp->c > 2.0 || rp->c < 0.5) rp->c = 1.0;
-#line 315 "rephasor.org"
+#line 314 "rephasor.org"
 
     out = pr;
 
@@ -83,7 +82,7 @@ if (rp->c > 2.0 || rp->c < 0.5) rp->c = 1.0;
 
     return out;
 }
-#line 363 "rephasor.org"
+#line 362 "rephasor.org"
 SKFLT sk_rephasor_tick_nosync(sk_rephasor *rp, SKFLT ext)
 {
     SKFLT out;
