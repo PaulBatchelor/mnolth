@@ -34,6 +34,7 @@ lib/sndkit/nodes/biramp/biramp.o \
 lib/sndkit/nodes/chaosnoise/chaosnoise.o \
 lib/sndkit/nodes/chaosnoise/l_chaosnoise.o \
 lib/sndkit/nodes/rline/rline.o \
+lib/sndkit/nodes/rline/jitseg.o \
 lib/sndkit/nodes/rline/l_rline.o \
 lib/sndkit/nodes/blep/blep.o \
 lib/sndkit/nodes/blep/l_blep.o \
@@ -94,6 +95,7 @@ lib/sndkit/nodes/metro/metro.o \
 lib/sndkit/nodes/metro/l_metro.o \
 lib/sndkit/nodes/vardelay/l_vardelay.o \
 lib/sndkit/nodes/vardelay/vardelay.o \
+lib/sndkit/nodes/vardelay/clkdel.o \
 lib/sndkit/nodes/arith/l_arith.o \
 lib/sndkit/nodes/arith/arith.o \
 lib/sndkit/nodes/mtof/l_mtof.o \
@@ -110,6 +112,8 @@ lib/sndkit/dsp/clkphs.o \
 lib/sndkit/nodes/clkphs/clkphs.o \
 lib/sndkit/nodes/clkphs/l_clkphs.o \
 lib/sndkit/nodes/cable/l_cable.o \
+lib/sndkit/nodes/cable/cabclr.o \
+lib/sndkit/nodes/cable/prev.o \
 lib/sndkit/nodes/cable/mix.o \
 lib/sndkit/nodes/cable/zero.o \
 lib/sndkit/nodes/cable/cabnew.o \
