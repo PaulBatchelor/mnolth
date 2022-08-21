@@ -47,7 +47,7 @@ struct Reader {
 	union {
 		FILE *fp;
 		Buffer b;
-	};
+	} src;
 };
 
 typedef struct {
@@ -83,7 +83,7 @@ static char *scat(char *dst, const char *src) { char *ptr = dst + slen(dst); whi
 static int
 r_file(Reader *r, void *ptr, size_t num)
 {
-	return fread(ptr, 1, num, r->fp);
+	return fread(ptr, 1, num, r->src.fp);
 }
 
 static int
@@ -93,7 +93,7 @@ r_buffer(Reader *r, void *ptr, size_t num)
 	size_t i;
 	unsigned char *out;
 
-	b = &r->b;
+	b = &r->src.b;
 
 	if ((b->pos + num) > b->len) {
 		num = b->len - b->pos;
@@ -341,7 +341,7 @@ doinclude(Program *p, const char *filename)
 		return error("Include missing", filename);
 
 	r.read = r_file;
-	r.fp = f;
+	r.src.fp = f;
 	while(readword(p, &r, w) == 1)
 		if(!parse(p, w, &r))
 			return error("Unknown token", w);
@@ -666,9 +666,9 @@ uxnasm_compile(const char *input,
 	p.bufpos = 256;
 	p.bufsize = -1;
 
-	r.b.buf = input;
-	r.b.pos = 0;
-	r.b.len = ilen;
+	r.src.b.buf = input;
+	r.src.b.pos = 0;
+	r.src.b.len = ilen;
 	r.read = r_buffer;
 
 	symsz = 0;
@@ -677,8 +677,6 @@ uxnasm_compile(const char *input,
 		return !error("Assembly", "Failed to assemble rom.");
 
 	if (symtab) {
-		/* TODO */
-		/* write_symtab(&p, dst); */
 		symsz = get_symtab_size(&p);
 	}
 
@@ -725,7 +723,7 @@ uxnasm_main(int argc, char *argv[])
 	if(!(src = fopen(argv[1], "r")))
 		return !error("Invalid input", argv[1]);
 
-	r.fp = src;
+	r.src.fp = src;
 	r.read = r_file;
 
 	if(!assemble(&p, &r))
