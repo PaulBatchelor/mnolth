@@ -7,11 +7,35 @@ ecosystem.
 * TODO Tangled File
 Probably called =memops.c=. No header file required, since
 the only external functions here will the loaders.
+
+#+NAME: memops.c
+#+BEGIN_SRC c :tangle memops.c
+#include <stdlib.h>
+#include "sndkit/lil/lil.h"
+#include "lua/lua.h"
+
+<<typedefs>>
+<<funcdefs>>
+#+END_SRC
 * TODO Lua and LIL loaders
 Called =gestvm_memops_lil= and =gestvm_memops_lua=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gestvm_memops_lua(lua_State *L);
+void gestvm_memops_lil(lil_t lil);
+#+END_SRC
 * TODO Core C component
 This will outline the core structure in C, and the basic
 operations required to set and get memory buffers into it.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct {
+    unsigned char *buf;
+    unsigned int size;
+} gestvm_membuf;
+#+END_SRC
 * TODO Creating a new memory file (LIL: gestvmnewmem)
 This is the component that creates a new instance of the
 file that automatically cleans itself up when it is
