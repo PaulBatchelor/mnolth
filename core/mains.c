@@ -312,7 +312,6 @@ int mno_lua_main(int argc, char **argv,
                  void (*load)(lua_State*),
                  void (*clean)(lua_State*))
 {
-    
     if (load == NULL) load = mno_lua_load;
     if (clean == NULL) clean = mno_lua_clean;
 

@@ -1,0 +1,30 @@
+#+TITLE: in-memory operations for gestvm
+* Overview
+This implements some operations and structures that allow
+UXN code to be assembled to blocks of memory, rather than
+a file. This allows for better integration with the mnolth
+ecosystem.
+* TODO Tangled File
+Probably called =memops.c=. No header file required, since
+the only external functions here will the loaders.
+* TODO Lua and LIL loaders
+Called =gestvm_memops_lil= and =gestvm_memops_lua=.
+* TODO Core C component
+This will outline the core structure in C, and the basic
+operations required to set and get memory buffers into it.
+* TODO Creating a new memory file (LIL: gestvmnewmem)
+This is the component that creates a new instance of the
+file that automatically cleans itself up when it is
+released.
+* TODO Symbol lookup (LIL: gestvmsymmem)
+Mimics the same logic as found in =gestvmsym=, except with
+a buffer instead of a file.
+* TODO uxntal compilation (Lua: gestvm_compile)
+In charge of compiling TAL code to a uxn bytecode, which
+is written to a buffer. This is then saved to the
+memory buffer instance managed by sndkit. It is assumed
+that the dynamically allocated memory will be properly
+freed later.
+* TODO loading into uxn VM (LIL: gestvmloadmem)
+This looks up the memory buffer instance and copies it
+over to the Uxn VM main memory.
