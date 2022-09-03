@@ -269,12 +269,15 @@ static int lilpop(lua_State *L)
     return 1;
 }
 
+void gestvm_memops_lua(lua_State *L);
+
 static void load_lua_funcs(lua_State *L, lil_t lil)
 {
     lua_pushlightuserdata(L, lil);
     lua_setglobal(L, "__lil");
     lua_register(L, "lil", lvler);
     lua_register(L, "pop", lilpop);
+    gestvm_memops_lua(L);
 }
 
 int lua_main (int argc, char **argv,
