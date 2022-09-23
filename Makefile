@@ -109,6 +109,14 @@ mnolua: $(OBJ) core/lua_main.o
 	@echo "building mnolua"
 	@$(CC) $^ -o $@ $(LIBS)
 
+MNORT_OBJ=util/mnort/server.o \
+		  util/mnort/client.o \
+		  util/mnort/rt.o \
+		  util/mnort/mnort.o
+
+mnort: $(OBJ) $(MNORT_OBJ)
+	@$(CC) $^ -o $@ $(LIBS) -ljack -lpthread
+
 libmnolth.a: $(OBJ)
 	@echo "Building libmnolth"
 	@$(AR) rcs $@ $^
@@ -127,3 +135,4 @@ clean:
 	@$(RM) core/scm_main.o
 	@$(RM) core/lil_main.o
 	@$(RM) $(TANGLED)
+	@$(RM) mnort
