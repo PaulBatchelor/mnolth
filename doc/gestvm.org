@@ -1,0 +1,138 @@
+#+TITLE: GestVM
+GestVM is a Gesture Sequencer, whose gestures are
+programmed using a modified version of
+the Uxn virtual machine.
+
+The typical Uxn workflow involves writing programs in
+some kind of assembly language (usually TAL), assembling
+it to a ROM, and then running the ROM.
+
+The version of Uxn shipped with GestVM has been modified
+to do all assembly of a ROM in-memory rather than to
+a file. Programs are then written inside of Lua, and then
+linked to a patch make by sndkit.
+
+The GestVM Uxn also adds a symbol lookup table to the
+assembled ROM. This allows the ROM to have multiple entry
+points for pseudo-concurrent access. In other words,
+multiple gesture subroutines can exist simultaneously in
+a single ROM and share data between one another.
+
+#+NAME: memops_test.lua
+#+BEGIN_SRC lua :tangle memops_test.lua
+weight_tal = [[
+%NUM { #24 DEO }
+%DEN { #25 DEO }
+%NEXT { #26 DEO }
+%NOTE { #33 ADD NEXT }
+%BHVR { #27 DEO }
+%SKDR { #23 DEO }
+%SKTY { #22 DEO }
+%MASS { #20 DEO }
+%INRT { #21 DEO }
+%MASS-POS { #7f ADD #20 DEO }
+%MASS-NEG { #7f SWP SUB #20 DEO }
+
+|0100
+
+@init
+#0b NOTE
+#02 NUM #01 DEN
+#02 BHVR
+#08 INRT
+BRK
+
+@mel
+#0c NOTE #20 MASS-POS #02 BHVR BRK
+#08 NOTE #10 MASS-POS BRK
+#0b NOTE #00 MASS-POS BRK
+#09 NOTE #40 MASS-NEG BRK
+#08 NOTE #50 MASS-NEG BRK
+
+#05 NOTE #40 MASS-NEG BRK
+#04 NOTE #20 MASS-POS BRK
+#02 NOTE #10 MASS-POS BRK
+#04 NOTE #30 MASS-NEG BRK
+#08 NOTE #40 MASS-NEG BRK
+#04 NOTE #50 MASS-NEG BRK
+#0b NOTE #60 MASS-NEG #03 BHVR BRK
+;mel JMP2
+]]
+
+lil([[
+gmemnew mem
+gestvmnew gvm
+]])
+gestvm_compile("mem", weight_tal)
+
+lil("gmemcpy [grab mem] [grab gvm]")
+lil([[
+hold [prev]
+regset zz 1
+
+regget 1
+add zz 2
+phasor zz 0
+
+hold zz
+regset zz 0
+
+gestvmnode [grab gvm] [gmemsym [grab mem] mel] [regget 0]
+gestvmweight [grab gvm] 1.2 2
+cabclr [regget 1]
+mix zz [regget 1] 1.0
+gestvmeval [grab gvm] [gmemsym [grab mem] init]
+
+sine 6.5 0.4
+gestvmweight [grab gvm] 1 1
+smoother zz 0.01
+biscale zz 1 0.1
+mul zz zz
+add zz zz
+
+mtof zz
+blsaw zz
+mul zz 0.5
+
+gestvmweight [grab gvm] 1 1
+smoother zz 0.1
+biscale zz 2000 500
+butlp zz zz
+butlp zz 4000
+
+dup
+dup
+verbity zz zz 0.1 0.1 0.1
+drop
+mul zz [dblin -15]
+dcblocker zz
+add zz zz
+
+unhold [regget 0]
+unhold [regget 1]
+
+wavout zz weight.wav
+
+computes 10
+]])
+#+END_SRC
+
+Communication from Uxn to GestVM is done using a Uxn
+virtual device, listening on port 2. Commands are written
+one byte at a time using =DEO=.
+
+=gmemnew= and =gestvmnew= will create a new gestvm memory
+buffer and gestvm instance.
+
+=gestvm_compile= in lua will assemble some TAL code to a
+gestvm memory buffer.
+
+=gestvmnode= will create a new gesture node. It will need
+the instance of gestvm, a memory address where to start,
+and a conductor signal.
+
+=gestvmweight= will synthesize a signal used for temporal
+weight. It will scale it to be in a particular range.
+
+=gestvmeval= evaluates a command from Uxn at a starting
+memeory address. It will run until it finds a =BRK=.
