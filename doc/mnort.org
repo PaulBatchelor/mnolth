@@ -1,0 +1,64 @@
+#+TITLE:MNORT
+=MNORT= is a utility that adds live-coding capabilities
+to =MNOLTH=.
+
+mnolth has the ability to build up new patches in the
+background while another patch is playing, and then
+switch it to the new patch. This is known as =hotswapping=,
+and it is the core mechanic for live coding capabilities.
+
+mnort uses =lua= as the scripting language. Inside Lua,
+chunks of =LIL= code can be evaulated using the =lil()= to
+build up sound patches.
+
+Hotswapping uses crossfading to between patches to smooth
+out clicks and other discontinuities.
+
+Some bare minimum code to set up live coding.
+
+=hsnew= creates a new instance of a hotswapper, called =hs=.
+
+=rtnew= creates a new real-time audio instance, and binds
+the hotswapper =hs= to it.
+
+=out= is a function that pops the last signal off the stack
+and uses it as the output signal. It then signals the
+hotswapper to swap patches.
+
+=playtog= is a convenient function to have that toggles
+playback between pause and play.
+
+#+BEGIN_SRC lil
+lil([[
+hsnew hs
+rtnew [grab hs] rt
+
+func out {} {
+    hsout [grab hs]
+    hsswp [grab hs]
+}
+
+func playtog {} {
+    hstog [grab hs]
+}
+]])
+#+END_SRC
+
+Server can be started with =mnort start=.
+
+Save the codeblock to something like =init.lua=, then
+run:
+
+#+BEING_SRC sh
+mnort client < init.lua
+#+END_SRC
+
+Make it play some sound:
+
+#+BEING_SRC sh
+echo 'lil("sine 440 0.3; out")' | mnort client
+#+END_SRC
+
+Some very basic vim keybindings have been added to make
+live coding easier. Load "mnort.vim" and check out test.lua
+in the mnort folder.
