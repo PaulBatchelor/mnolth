@@ -95,7 +95,7 @@ r_buffer(Reader *r, void *ptr, size_t num)
 
 	b = &r->src.b;
 
-	if ((b->pos + num) > b->len) {
+	if ((b->pos + num) >= b->len) {
 		num = b->len - b->pos;
 	}
 
@@ -127,7 +127,10 @@ readword(Program *p, Reader *r, char *word)
 		if (p->bufsize < 0 || p->bufpos >= p->bufsize) {
 			p->bufpos = 0;
 			p->bufsize = r->read(r, p->buf, 256);
-			if (p->bufsize <= 0) return numread > 0;
+			if (p->bufsize <= 0) {
+				word[n] = 0;
+				return numread > 0;
+			}
 		}
 
 		c = p->buf[p->bufpos];
