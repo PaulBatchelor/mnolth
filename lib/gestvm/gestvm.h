@@ -12,9 +12,9 @@ typedef struct gestvm gestvm;
 typedef struct gestvm_rephasor gestvm_rephasor;
 #line 733 "gestvm.org"
 typedef struct gestvm_uxn gestvm_uxn;
-#line 1260 "gestvm.org"
+#line 1326 "gestvm.org"
 typedef SKFLT (*gestvm_behavior)(gestvm *, SKFLT);
-#line 1428 "gestvm.org"
+#line 1494 "gestvm.org"
 typedef struct gestvm_weight gestvm_weight;
 #line 165 "gestvm.org"
 
@@ -51,21 +51,23 @@ int update_rephasor;
 gestvm_uxn *u;
 #line 963 "gestvm.org"
 unsigned int ptr;
-#line 1195 "gestvm.org"
+#line 1208 "gestvm.org"
 SKFLT lphs;
-#line 1247 "gestvm.org"
+#line 1260 "gestvm.org"
+int empty_value;
+#line 1313 "gestvm.org"
 SKFLT cur, nxt;
-#line 1265 "gestvm.org"
+#line 1331 "gestvm.org"
 gestvm_behavior behavior;
-#line 1410 "gestvm.org"
+#line 1476 "gestvm.org"
 SKFLT inertia;
 SKFLT mass;
-#line 1669 "gestvm.org"
+#line 1735 "gestvm.org"
 int interp;
-#line 1689 "gestvm.org"
+#line 1755 "gestvm.org"
 unsigned long counter;
 unsigned long ms;
-#line 1729 "gestvm.org"
+#line 1795 "gestvm.org"
 SKFLT ms2samps;
 #line 218 "gestvm.org"
 };
@@ -76,7 +78,7 @@ struct gestvm_uxn {
     gestvm *gvm;
 };
 #line 177 "gestvm.org"
-#line 1433 "gestvm.org"
+#line 1499 "gestvm.org"
 struct gestvm_weight {
     gestvm *gvm;
     int sr;
@@ -115,20 +117,20 @@ int gestvm_load(gestvm_uxn *gu, const char *rom);
 unsigned int gestvm_lookup(const char *rom, const char *sym);
 #line 975 "gestvm.org"
 void gestvm_pointer(gestvm *gvm, unsigned int ptr);
-#line 1230 "gestvm.org"
+#line 1296 "gestvm.org"
 void gestvm_eval(gestvm_uxn *gu, unsigned int addr);
-#line 1450 "gestvm.org"
+#line 1516 "gestvm.org"
 size_t gestvm_weight_sizeof(void);
-#line 1463 "gestvm.org"
+#line 1529 "gestvm.org"
 void gestvm_weight_init(gestvm_weight *gw, gestvm *gvm, int sr);
-#line 1489 "gestvm.org"
+#line 1555 "gestvm.org"
 void gestvm_weight_amppos(gestvm_weight *gw, SKFLT amp);
 void gestvm_weight_ampneg(gestvm_weight *gw, SKFLT amp);
-#line 1510 "gestvm.org"
+#line 1576 "gestvm.org"
 SKFLT gestvm_weight_tick(gestvm_weight *gw);
-#line 1710 "gestvm.org"
+#line 1776 "gestvm.org"
 void gestvm_counter_set(gestvm *gvm, unsigned int ms);
-#line 1739 "gestvm.org"
+#line 1805 "gestvm.org"
 void gestvm_sr_set(gestvm *gvm, int sr);
 #line 171 "gestvm.org"
 
