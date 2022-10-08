@@ -1,11 +1,11 @@
 #+TITLE: Region Pool
 * Overview and Motivations
 This implements a very simple pool of pre-allocated
-=btprnt_region=.
+=btprnt_region= data types.
 
 The most commonly used structure in btprnt is
 the region, aka =btprnt_region=. Regions represent
-subslices of bitmap array used as a canvas, and is the
+subslices of a bitmap array used as a canvas, and is the
 primary way drawing happens.
 
 The problem with regions is that they must by allocated
@@ -15,7 +15,7 @@ while parts of it can be abstracted into higher-level
 components (as it works in Janet), it is fundamentally
 a C struct full of data that cannot be ported.
 
-Recently, these issues came up trying to get
+These issues came up trying to get
 LIL bindings working for btprnt. Unlike Janet, LIL doesn't
 have a GC interface, nor a great means for throwing around
 C data (let alone manually managing it). LIL does have an
@@ -26,8 +26,9 @@ that would be.
 So, the solution working solution right now is to implement
 a very simple fixed-size region pool, with 16 pre-allocated
 instances =btprnt_region=, addressable by id, and an
-interface to manage when they are being used, freed, and
-an automated way to select the next available id.
+interface to manage when they are being used and freed
+as well as an automated way to select the next available
+id.
 * Tangled Files
 #+NAME: regpool.c
 #+BEGIN_SRC c :tangle regpool.c
