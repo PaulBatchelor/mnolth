@@ -1,0 +1,176 @@
+#+TITLE: WavDraw
+* Overview
+This aims to be a basic btprnt drawing routine
+for drawing a waveform from a file. As inputs, a region
+and a WAV audio file are given, as well as the color (black
+or white). The output is a drawing of the waveform to that
+region. My hope is to use this to render some waveforms in
+my waveform collections. Rendering waveforms from a wav file
+is also a pretty handy thing to do typically as well.
+
+For now, only mono wav files will be considered.
+
+Waveform display is based on the way Audacity
+does it. They split things up into blocks,
+and find the minimum and maximum samples in that block. This
+gets represented as a line at this length.
+
+#+NAME: wavdraw.c
+#+BEGIN_SRC c :tangle wavdraw.c
+#include <math.h>
+#include <stdio.h>
+#include "sndkit/nodes/dr_wav.h"
+#include "btprnt/btprnt.h"
+
+#define BUFSIZE 512
+
+<<btprnt_wavdraw_sk_drwav>>
+
+int btprnt_wavdraw(btprnt_region *r,
+                   const char *filename,
+                   int c)
+{
+    sk_drwav wav;
+    int rc;
+
+    rc = sk_drwav_init_file(&wav, filename, NULL);
+
+    if (!rc) {
+        fprintf(stderr, "There was a problem opening file '%s'\n",
+                filename);
+        return 0;
+    }
+
+    btprnt_wavdraw_sk_drwav(r, &wav, c);
+    sk_drwav_uninit(&wav);
+    return 1;
+}
+<<main>>
+#+END_SRC
+
+Once the WAV file is loaded with =sk_drwav=, it can be drawn
+with =btprnt_wavdraw_sk_drwav=.
+
+This function has been created with the hopes that it
+can be more naturally integrated with the weewiki crate
+interface.
+
+#+NAME: btprnt_wavdraw_sk_drwav
+#+BEGIN_SRC c
+void btprnt_wavdraw_sk_drwav(btprnt_region *r,
+                          sk_drwav *wav,
+                          int c)
+{
+
+    float buf[BUFSIZE];
+    int spp; /* samps per pixel */
+    int nsmps;
+    int n;
+    int counter;
+    int pos;
+    int max_height;
+    float samp_min;
+    float samp_max;
+    float smp;
+    int ptop;
+
+    spp = wav->totalPCMFrameCount / r->w;
+
+    counter = 0;
+    pos = 0;
+    max_height = r->h;
+    samp_min = 1;
+    samp_max = -1;
+    ptop = 0;
+
+    while (1) {
+        nsmps = sk_drwav_read_pcm_frames_f32(wav, BUFSIZE, buf);
+        if (nsmps <= 0) break;
+
+        for (n = 0; n < nsmps; n++) {
+            if (counter == spp) {
+                int len;
+                int top;
+
+                samp_min = (samp_min + 1) * 0.5;
+                samp_max = (samp_max + 1) * 0.5;
+                top = (1 - samp_max) * max_height;
+                len = (samp_max - samp_min) * max_height;
+
+                /* for low spp, just draw lines */
+                if (spp > 2) {
+                    /* make DC line */
+                    if (len == 0) {
+                        len = 1;
+                        top--; /* more centered this way */
+                    }
+
+                    btprnt_draw_vline(r,
+                                    pos,
+                                    top,
+                                    len,
+                                    c);
+                } else {
+                    if (pos > 0) {
+                        btprnt_draw_line(r,
+                                         pos - 1, ptop,
+                                         pos, top, 1);
+                    }
+                }
+
+                counter = 0;
+                pos++;
+                samp_min = 1;
+                samp_max = -1;
+                ptop = top;
+            }
+
+            smp = buf[n];
+
+            if (smp < samp_min) samp_min = smp;
+            if (smp > samp_max) samp_max = smp;
+
+            counter++;
+        }
+    }
+}
+#+END_SRC
+* Command Line Program
+This program can be built into a commandline program if
+=WAVDRAW_CLI= is built. The program itself is built into
+a program called =wavdraw_main= so it can be called
+as a subprogram in Monolith.
+
+#+NAME: main
+#+BEGIN_SRC c
+int wavdraw_main(int argc, char *argv[])
+{
+    btprnt *bp;
+    btprnt_region r;
+
+    if (argc < 3) {
+        printf("Usage: %s filename.wav out.pbm\n", argv[0]);
+        return 1;
+    }
+
+    bp = btprnt_new(500, 250);
+
+    btprnt_region_init(btprnt_canvas_get(bp),
+                       &r, 0, 0,
+                       500, 250);
+
+    btprnt_wavdraw(&r, argv[1], 1);
+
+    btprnt_buf_pbm(btprnt_buf_get(bp), argv[2]);
+
+    btprnt_del(&bp);
+    return 0;
+}
+
+#ifdef WAVDRAW_CLI
+int main(int argc, char *argv[])
+{
+    return wavdraw_main(argc, argv);
+}
+#endif
+#+END_SRC
