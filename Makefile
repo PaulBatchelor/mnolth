@@ -2,6 +2,7 @@ CFLAGS += -DSTANDALONE=0
 CFLAGS += -O3 -Wall -fPIC
 
 CFLAGS+= -Ilib/sndkit/graforge
+CFLAGS+= -Ilib/sqlite3
 CFLAGS+= -Ilib
 CFLAGS+= -Icore
 CFLAGS+= -g
