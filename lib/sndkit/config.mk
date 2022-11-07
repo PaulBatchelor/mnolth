@@ -202,6 +202,9 @@ lib/sndkit/nodes/envar/envar.o \
 lib/sndkit/dsp/envar.o \
 lib/sndkit/extra/brown/brown.o \
 lib/sndkit/extra/brown/l_brown.o \
+lib/sndkit/nodes/euclid/l_euclid.o \
+lib/sndkit/nodes/euclid/euclid.o \
+lib/sndkit/dsp/euclid.o \
 
 # graforge embedded in sndkit is now the standard
 OBJ += lib/sndkit/graforge/graforge.o
