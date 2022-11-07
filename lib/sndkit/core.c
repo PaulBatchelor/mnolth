@@ -5,10 +5,10 @@
 #include "graforge.h"
 #define SK_CORE_PRIV
 #include "core.h"
-#line 1671 "core.org"
+#line 1685 "core.org"
 static int hash(const char *str, int sz, int mod);
 #line 44 "core.org"
-#line 343 "core.org"
+#line 357 "core.org"
 enum {
    SK_TYPE_NONE,
    SK_TYPE_CONSTANT,
@@ -98,19 +98,24 @@ sk_dict* sk_core_dict(sk_core *core)
 {
     return &core->dict;
 }
-#line 274 "core.org"
+#line 251 "core.org"
+void sk_core_srate_set(sk_core *core, int sr)
+{
+    gf_patch_srate_set(core->patch, sr);
+}
+#line 288 "core.org"
 void sk_stacklet_init(sk_stacklet *s)
 {
     s->type = SK_TYPE_NONE;
     s->f = 0;
     s->ptr = NULL;
 }
-#line 289 "core.org"
+#line 303 "core.org"
 SKFLT sk_stacklet_constant(sk_stacklet *s)
 {
     return s->f;
 }
-#line 327 "core.org"
+#line 341 "core.org"
 void sk_stack_init(sk_stack *s)
 {
     int i;
@@ -121,7 +126,7 @@ void sk_stack_init(sk_stack *s)
 
     s->pos = -1;
 }
-#line 363 "core.org"
+#line 377 "core.org"
 int sk_stacklet_isnone(sk_stacklet *s)
 {
     return s->type == SK_TYPE_NONE;
@@ -146,7 +151,7 @@ int sk_stacklet_isgeneric(sk_stacklet *s)
 {
     return s->type == SK_TYPE_GENERIC;
 }
-#line 407 "core.org"
+#line 421 "core.org"
 int sk_stack_pop(sk_stack *stack, sk_stacklet **out)
 {
     sk_stacklet *s;
@@ -162,7 +167,7 @@ int sk_stack_pop(sk_stack *stack, sk_stacklet **out)
     *out = s;
     return 0;
 }
-#line 426 "core.org"
+#line 440 "core.org"
 int sk_stack_push(sk_stack *stack, sk_stacklet **out)
 {
     sk_stacklet *s;
@@ -175,7 +180,7 @@ int sk_stack_push(sk_stack *stack, sk_stacklet **out)
     *out = s;
     return 0;
 }
-#line 450 "core.org"
+#line 464 "core.org"
 int sk_stack_peak(sk_stack *stack, sk_stacklet **out)
 {
     sk_stacklet *s;
@@ -186,7 +191,7 @@ int sk_stack_peak(sk_stack *stack, sk_stacklet **out)
     *out = s;
     return 0;
 }
-#line 475 "core.org"
+#line 489 "core.org"
 int sk_stack_dup(sk_stack *stack, sk_stacklet **out)
 {
     int rc;
@@ -204,7 +209,7 @@ int sk_stack_dup(sk_stack *stack, sk_stacklet **out)
 
     return 0;
 }
-#line 506 "core.org"
+#line 520 "core.org"
 int sk_core_dup(sk_core *core)
 {
     sk_stacklet *s;
@@ -221,7 +226,7 @@ int sk_core_dup(sk_core *core)
 
     return 0;
 }
-#line 538 "core.org"
+#line 552 "core.org"
 int sk_stack_drop(sk_stack *stack, sk_stacklet **out)
 {
     int rc;
@@ -234,7 +239,7 @@ int sk_stack_drop(sk_stack *stack, sk_stacklet **out)
     if (out != NULL) *out = s;
     return 0;
 }
-#line 563 "core.org"
+#line 577 "core.org"
 int sk_core_drop(sk_core *core)
 {
     int rc;
@@ -251,7 +256,7 @@ int sk_core_drop(sk_core *core)
 
     return 0;
 }
-#line 598 "core.org"
+#line 612 "core.org"
 int sk_stack_swap(sk_stack *stack,
                   sk_stacklet **out1,
                   sk_stacklet **out2)
@@ -273,7 +278,7 @@ int sk_stack_swap(sk_stack *stack,
 
     return 0;
 }
-#line 631 "core.org"
+#line 645 "core.org"
 int sk_core_swap(sk_core *core)
 {
     int rc;
@@ -290,12 +295,12 @@ int sk_core_swap(sk_core *core)
 
     return 0;
 }
-#line 656 "core.org"
+#line 670 "core.org"
 int sk_core_stackpos(sk_core *core)
 {
     return core->stack.pos;
 }
-#line 692 "core.org"
+#line 706 "core.org"
 gf_cable* sk_param_cable(sk_param *p)
 {
     return p->data.c;
@@ -305,7 +310,7 @@ SKFLT sk_param_constant(sk_param *p)
 {
     return p->data.f;
 }
-#line 718 "core.org"
+#line 732 "core.org"
 int sk_param_get(sk_core *core, sk_param *p)
 {
     sk_stack *stk;
@@ -331,7 +336,7 @@ int sk_param_get(sk_core *core, sk_param *p)
 
     return 0;
 }
-#line 755 "core.org"
+#line 769 "core.org"
 int sk_param_get_constant(sk_core *core, SKFLT *val)
 {
     sk_stack *stk;
@@ -351,7 +356,7 @@ int sk_param_get_constant(sk_core *core, SKFLT *val)
     *val = s->f;
     return 0;
 }
-#line 786 "core.org"
+#line 800 "core.org"
 int sk_param_get_cable(sk_core *core, sk_param *p)
 {
     sk_stack *stk;
@@ -374,7 +379,7 @@ int sk_param_get_cable(sk_core *core, sk_param *p)
 
     return 0;
 }
-#line 822 "core.org"
+#line 836 "core.org"
 int sk_param_set(sk_core *core,
                  gf_node *node,
                  sk_param *p,
@@ -392,7 +397,7 @@ int sk_param_set(sk_core *core,
     }
     return 0;
 }
-#line 857 "core.org"
+#line 871 "core.org"
 int sk_core_constant(sk_core *core, SKFLT x)
 {
     int rc;
@@ -409,7 +414,7 @@ int sk_core_constant(sk_core *core, SKFLT x)
 
     return 0;
 }
-#line 893 "core.org"
+#line 907 "core.org"
 int sk_param_out(sk_core *core,
                  gf_node *node,
                  int cid)
@@ -431,7 +436,7 @@ int sk_param_out(sk_core *core,
 
     return 0;
 }
-#line 928 "core.org"
+#line 942 "core.org"
 int sk_core_generic_push(sk_core *core, void *ptr)
 {
     int rc;
@@ -445,7 +450,7 @@ int sk_core_generic_push(sk_core *core, void *ptr)
 
     return rc;
 }
-#line 945 "core.org"
+#line 959 "core.org"
 int sk_core_generic_pop(sk_core *core, void **ptr)
 {
     int rc;
@@ -463,7 +468,7 @@ int sk_core_generic_pop(sk_core *core, void **ptr)
 
     return rc;
 }
-#line 976 "core.org"
+#line 990 "core.org"
 int sk_param_isconstant(sk_param *p)
 {
     return p->type == 0;
@@ -473,13 +478,13 @@ int sk_param_iscable(sk_param *p)
 {
     return p->type == 1;
 }
-#line 1027 "core.org"
+#line 1041 "core.org"
 void sk_register_entry_init(sk_register_entry *e)
 {
     sk_stacklet_init(&e->data);
     e->flags = 0;
 }
-#line 1061 "core.org"
+#line 1075 "core.org"
 void sk_regtbl_init(sk_regtbl *rs)
 {
     int i;
@@ -488,7 +493,7 @@ void sk_regtbl_init(sk_regtbl *rs)
         sk_register_entry_init(&rs->r[i]);
     }
 }
-#line 1090 "core.org"
+#line 1104 "core.org"
 int sk_register_get(sk_regtbl *rt, int pos, sk_stacklet *s)
 {
     if (pos < 0 || pos >= SK_REGSIZE) return 1;
@@ -496,7 +501,7 @@ int sk_register_get(sk_regtbl *rt, int pos, sk_stacklet *s)
     *s = rt->r[pos].data;
     return 0;
 }
-#line 1105 "core.org"
+#line 1119 "core.org"
 int sk_core_regget(sk_core *core, int pos)
 {
     int rc;
@@ -520,7 +525,7 @@ int sk_core_regget(sk_core *core, int pos)
 
     return 0;
 }
-#line 1132 "core.org"
+#line 1146 "core.org"
 int sk_register_set(sk_regtbl *rt, int pos, sk_stacklet *s)
 {
     if (pos < 0 || pos >= SK_REGSIZE) return 1;
@@ -528,7 +533,7 @@ int sk_register_set(sk_regtbl *rt, int pos, sk_stacklet *s)
     rt->r[pos].data = *s;
     return 0;
 }
-#line 1143 "core.org"
+#line 1157 "core.org"
 int sk_core_regset(sk_core *core, int pos)
 {
     int rc;
@@ -541,7 +546,7 @@ int sk_core_regset(sk_core *core, int pos)
 
     return 0;
 }
-#line 1168 "core.org"
+#line 1182 "core.org"
 int sk_register_mark(sk_regtbl *rt, int pos)
 {
     if (pos < 0 || pos >= SK_REGSIZE) return 1;
@@ -549,12 +554,12 @@ int sk_register_mark(sk_regtbl *rt, int pos)
     rt->r[pos].flags |= 1;
     return 0;
 }
-#line 1179 "core.org"
+#line 1193 "core.org"
 int sk_core_regmrk(sk_core *core, int pos)
 {
     return sk_register_mark(&core->regtbl, pos);
 }
-#line 1197 "core.org"
+#line 1211 "core.org"
 int sk_register_clear(sk_regtbl *rt, int pos)
 {
     if (pos < 0 || pos >= SK_REGSIZE) return 1;
@@ -562,12 +567,12 @@ int sk_register_clear(sk_regtbl *rt, int pos)
     rt->r[pos].flags = 0;
     return 0;
 }
-#line 1208 "core.org"
+#line 1222 "core.org"
 int sk_core_regclr(sk_core *core, int pos)
 {
     return sk_register_clear(&core->regtbl, pos);
 }
-#line 1232 "core.org"
+#line 1246 "core.org"
 int sk_register_nxtfree(sk_regtbl *rt, int start)
 {
     int pos;
@@ -587,7 +592,7 @@ int sk_register_nxtfree(sk_regtbl *rt, int start)
 
     return -1;
 }
-#line 1259 "core.org"
+#line 1273 "core.org"
 int sk_core_regnxt(sk_core *core, int start, int *pos)
 {
     *pos = sk_register_nxtfree(&core->regtbl, start);
@@ -596,7 +601,7 @@ int sk_core_regnxt(sk_core *core, int start, int *pos)
 
     return 0;
 }
-#line 1298 "core.org"
+#line 1312 "core.org"
 int sk_core_hold(sk_core *core)
 {
     int rc;
@@ -614,7 +619,7 @@ int sk_core_hold(sk_core *core)
 
     return 0;
 }
-#line 1319 "core.org"
+#line 1333 "core.org"
 int sk_core_unhold(sk_core *core)
 {
     sk_param cable;
@@ -637,7 +642,7 @@ int sk_core_unhold(sk_core *core)
 
     return 0;
 }
-#line 1376 "core.org"
+#line 1390 "core.org"
 static void free_table(gf_pointer *p)
 {
     sk_table *tab;
@@ -669,13 +674,13 @@ int sk_core_table_new(sk_core *core, unsigned long sz)
 
     return 0;
 }
-#line 1416 "core.org"
+#line 1430 "core.org"
 void sk_table_init(sk_table *tab, SKFLT *data, unsigned long sz)
 {
     tab->tab = data;
     tab->sz = sz;
 }
-#line 1433 "core.org"
+#line 1447 "core.org"
 size_t sk_table_size(sk_table *t)
 {
     return t->sz;
@@ -685,7 +690,7 @@ SKFLT* sk_table_data(sk_table *t)
 {
     return t->tab;
 }
-#line 1454 "core.org"
+#line 1468 "core.org"
 int sk_core_table_push(sk_core *core, sk_table *tab)
 {
     int rc;
@@ -700,7 +705,7 @@ int sk_core_table_push(sk_core *core, sk_table *tab)
 
     return rc;
 }
-#line 1472 "core.org"
+#line 1486 "core.org"
 int sk_core_table_pop(sk_core *core, sk_table **tab)
 {
     int rc;
@@ -719,7 +724,7 @@ int sk_core_table_pop(sk_core *core, sk_table **tab)
 
     return rc;
 }
-#line 1512 "core.org"
+#line 1526 "core.org"
 int sk_table_dump(sk_table *tab, const char *filename)
 {
     FILE *fp;
@@ -734,7 +739,7 @@ int sk_table_dump(sk_table *tab, const char *filename)
 
     return 0;
 }
-#line 1530 "core.org"
+#line 1544 "core.org"
 int sk_core_tabdump(sk_core *core, const char *filename)
 {
     int rc;
@@ -745,28 +750,28 @@ int sk_core_tabdump(sk_core *core, const char *filename)
 
     return sk_table_dump(tab, filename);
 }
-#line 1572 "core.org"
+#line 1586 "core.org"
 void sk_core_srand(sk_core *core, unsigned long val)
 {
     core->rng = val;
 }
-#line 1594 "core.org"
+#line 1608 "core.org"
 unsigned long sk_core_rand(sk_core *core)
 {
     core->rng = (1103515245 * core->rng + 12345) % SK_CORE_RANDMAX;
     return core->rng;
 }
-#line 1610 "core.org"
+#line 1624 "core.org"
 SKFLT sk_core_randf(sk_core *core)
 {
     return (SKFLT)sk_core_rand(core) / SK_CORE_RANDMAX;
 }
-#line 1661 "core.org"
+#line 1675 "core.org"
 size_t sk_dict_sizeof(void)
 {
     return sizeof(sk_dict);
 }
-#line 1676 "core.org"
+#line 1690 "core.org"
 static int hash(const char *str, int sz, int mod)
 {
     unsigned long h;
@@ -782,7 +787,7 @@ static int hash(const char *str, int sz, int mod)
 
     return h % mod;
 }
-#line 1700 "core.org"
+#line 1714 "core.org"
 void sk_dict_init(sk_dict *d)
 {
     int n;
@@ -793,7 +798,7 @@ void sk_dict_init(sk_dict *d)
 
     d->sz = 0;
 }
-#line 1719 "core.org"
+#line 1733 "core.org"
 int sk_dict_clean(sk_dict *d)
 {
     int e;
@@ -813,7 +818,7 @@ int sk_dict_clean(sk_dict *d)
 
     return 0;
 }
-#line 1766 "core.org"
+#line 1780 "core.org"
 int sk_dict_sappend(sk_dict *d,
                     const char *key,
                     int sz,
@@ -854,7 +859,7 @@ int sk_dict_sappend(sk_dict *d,
 
     return 0;
 }
-#line 1810 "core.org"
+#line 1824 "core.org"
 int sk_dict_append(sk_dict *d,
                    const char *key,
                    int sz,
@@ -863,7 +868,7 @@ int sk_dict_append(sk_dict *d,
 {
     return sk_dict_sappend(d, key, sz, p, del, NULL);
 }
-#line 1833 "core.org"
+#line 1847 "core.org"
 int sk_core_append(sk_core *core,
                    const char *key,
                    int sz,
@@ -872,7 +877,7 @@ int sk_core_append(sk_core *core,
 {
     return sk_dict_append(&core->dict, key, sz, p, del);
 }
-#line 1858 "core.org"
+#line 1872 "core.org"
 int sk_dict_lookup_stacklet(sk_dict *d,
                             const char *key,
                             int sz,
@@ -895,7 +900,7 @@ int sk_dict_lookup_stacklet(sk_dict *d,
 
     return 1;
 }
-#line 1884 "core.org"
+#line 1898 "core.org"
 int sk_dict_lookup(sk_dict *d,
                    const char *key,
                    int sz,
@@ -911,7 +916,7 @@ int sk_dict_lookup(sk_dict *d,
     *p = s->ptr;
     return 0;
 }
-#line 1914 "core.org"
+#line 1928 "core.org"
 int sk_core_lookup(sk_core *core,
                    const char *key,
                    int sz,
@@ -919,7 +924,7 @@ int sk_core_lookup(sk_core *core,
 {
     return sk_dict_lookup(&core->dict, key, sz, p);
 }
-#line 1930 "core.org"
+#line 1944 "core.org"
 int sk_dict_remove(sk_dict *d, const char *key, int sz)
 {
     int pos;
@@ -949,14 +954,14 @@ int sk_dict_remove(sk_dict *d, const char *key, int sz)
     }
     return 1;
 }
-#line 1973 "core.org"
+#line 1987 "core.org"
 int sk_core_remove(sk_core *core,
                    const char *key,
                    int sz)
 {
     return sk_dict_remove(&core->dict, key, sz);
 }
-#line 1996 "core.org"
+#line 2010 "core.org"
 int sk_core_grab(sk_core *core,
                  const char *key,
                  int sz)
@@ -977,7 +982,7 @@ int sk_core_grab(sk_core *core,
 
     return 0;
 }
-#line 2031 "core.org"
+#line 2045 "core.org"
 static void deltab(void *ptr)
 {
     sk_table *tab;
