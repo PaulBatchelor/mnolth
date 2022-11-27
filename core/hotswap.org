@@ -1,7 +1,7 @@
 #+TITLE: Hotswap
 * Overview
 This documents a hotswapping cable interface with crossfade.
-A useful primtiive for creating live coding environments.
+A useful primitive for creating live coding environments.
 * Tangled Files
 #+NAME: hotswap.h
 #+BEGIN_SRC c :tangle hotswap.h
@@ -79,7 +79,7 @@ void mno_cable_del(mno_cable *c)
 * The Hotswapper
 Rolls up 2 cables together, and two pointers: one for
 reading (the one you hear), one for writing
-(the one on deck). Also, a pleaseswap flag.
+(the one on deck). Also, a swap flag.
 
 Later, I'll add in the ability to do crossfading.
 
