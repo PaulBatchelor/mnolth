@@ -12,7 +12,7 @@
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
-#define BUF_SIZE 500
+#define BUF_SIZE 1024
 #define MAXHOST 1024
 #define MAXSERV 32
 
@@ -42,7 +42,7 @@ int mno_rtserver(int argc, char *argv[])
     struct sockaddr_storage peer_addr;
     socklen_t peer_addr_len;
     ssize_t nread;
-    char buf[BUF_SIZE];
+    char *buf;
     char host[MAXHOST], service[MAXSERV];
     const char *port;
     lua_State *L;
@@ -60,6 +60,8 @@ int mno_rtserver(int argc, char *argv[])
     } else {
         port = argv[1];
     }
+
+    buf = calloc(1, BUF_SIZE);
 
     L = luaL_newstate();
     luaL_openlibs(L);
@@ -144,5 +146,6 @@ int mno_rtserver(int argc, char *argv[])
 
     mno_lua_clean(L);
     lua_close(L);
+    free(buf);
     return 0;
 }

@@ -1,0 +1,489 @@
+#+TITLE: GestLive
+* Overview
+This document implments =GestLive=, an interface
+for GestVM that makes it possible to work in a realtime
+environment that uses hotswapping, or the ability to
+hotswap or reload sndkit patches without stopping the
+program. Specifically, it is designed to work with
+the hotswapping capabilities found in =mnolth=.
+* Tangled Files
+#+NAME: gestlive.c
+#+BEGIN_SRC c :tangle gestlive.c
+#include <stdlib.h>
+#include <string.h>
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#include "sndkit/lil/lil.h"
+#include "sndkit/nodes/sklil.h"
+#include "gestvm.h"
+#include "gestlive.h"
+<<funcs>>
+#+END_SRC
+
+#+NAME: gestlive.h
+#+BEGIN_SRC c :tangle gestlive.h
+#ifndef GESTLIVE_H
+#define GESTLIVE_H
+<<typedefs>>
+<<funcdefs>>
+#endif
+#+END_SRC
+* Data Structure
+The =gestlive= data structure contains the following
+elements:
+
+Two instances of the gestvm Uxn machine are stored. One
+is designated as the *reader*, or the one that the system
+is currently using. The other one is the *writer*, the
+"on deck" Uxn instance that gets written to. The read/write
+values are kept track of using the =read= and
+=write= variables, which hold the indices 0 or 1.
+
+The =please_swap= variable is a flag that signals to a
+process to swap the read/write Uxn machine. A swap can
+only happen when a hotswap is called, and will effectively
+prevent new Uxn programs from being made until the swap
+is successful. This could be circumvented by manually
+unsetting this flag. (As you'd probably expect, this
+is not thread safe, but at the moment I'm not expecting
+this to be in a highly threaded situation).
+
+The =gestlive_node= construct is data used by a special
+swapper node that swaps the =gestvm_uxn= machines. A
+swap operations happens the first time a block of audio
+is requested, which is indicated using the =init= flag.
+The =glive= data points to the instance of gestlive.
+
+#+NAME: gestlive_node
+#+BEGIN_SRC c
+struct gestlive_node {
+    int init;
+    struct gestlive *glive;
+};
+#+END_SRC
+
+There are two instances of =gestlive_node=, which correspond
+to the read/write Uxn instances inside =gestvm_uxn=.
+
+#+NAME: typedefs
+#+BEGIN_SRC c
+<<gestlive_node>>
+struct gestlive {
+    gestvm_uxn *uxn[2];
+    int read;
+    int write;
+    int please_swap;
+    struct gestlive_node node[2];
+};
+#+END_SRC
+* Initialization
+#+NAME: funcdefs
+#+BEGIN_SRC c
+struct gestlive * gestlive_new(void);
+void gestlive_del(struct gestlive *glive);
+#+END_SRC
+
+Note that write is set to be 0 at the beginning so that
+the first uxn element will be the first element *actually*
+read when swap is called for the first time.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+struct gestlive * gestlive_new(void)
+{
+    struct gestlive *glive;
+    int i;
+
+    glive = NULL;
+
+    glive = malloc(sizeof(struct gestlive));
+    for (i = 0; i < 2; i++) {
+        glive->uxn[i] = malloc(gestvm_uxn_sizeof());
+        gestvm_uxn_init(glive->uxn[i]);
+        glive->node[i].init = 0;
+        glive->node[i].glive = glive;
+    }
+
+    glive->read = 1;
+    glive->write = 0;
+    glive->please_swap = 0;
+
+    return glive;
+}
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gestlive_del(struct gestlive *glive)
+{
+    free(glive->uxn[0]);
+    free(glive->uxn[1]);
+    free(glive);
+}
+#+END_SRC
+* Get
+This will get the current GestVM instance available for
+writing.
+
+If a swap is happening, a =NULL= value will be returned
+as an error.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+gestvm_uxn * gestlive_get(struct gestlive *glive);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+gestvm_uxn * gestlive_get(struct gestlive *glive)
+{
+    if (glive->please_swap) {
+        return NULL;
+    }
+
+    return glive->uxn[glive->write];
+}
+#+END_SRC
+* Unlock
+In case gestlive is locked up, explicitely unlock it.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gestlive_unlock(struct gestlive *glive);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gestlive_unlock(struct gestlive *glive)
+{
+    glive->please_swap = 0;
+}
+#+END_SRC
+* Swap
+The function =gestlive_signal_swap= will set the
+=please_swap= flag. On the next patch hotswap, the Uxn
+machines will change places, making the reader the
+writer, and the writer the reader.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gestlive_swap(struct gestlive *glive);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gestlive_swap(struct gestlive *glive)
+{
+    glive->please_swap = 1;
+}
+#+END_SRC
+* Update
+=gestlive_update= will actually perform a swap, if a swap
+has been requested.
+
+This should be called at compute time in the first compute
+block. That way, it is guaranteed that a swap will happen
+when the subpatch it is in gets hotswapped. The order is
+therefore signal a swap for gestlive, *then* hotswap the
+subpatch.
+
+This will be called in a dedicated node that gets
+added to the subpatch that is being hotswapped. For
+this reason, There shouldn't be any other subpatches
+using this particular instance of gestlive.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gestlive_update(struct gestlive *glive);
+#+END_SRC
+
+The =gestlive_update= call should be set up so that it
+is called once inside of the first compute block of
+the patch it belongs to. (This is managed using
+the =init= flag in =gestlive_node=).
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void gestlive_update(struct gestlive *glive)
+{
+    if (glive->please_swap) {
+        int tmp;
+        tmp = glive->read;
+        glive->read = glive->write;
+        glive->write = tmp;
+        glive->please_swap = 0;
+    }
+}
+#+END_SRC
+* Swapper Node
+The Swapper Node is a special node in charge of actually
+swapping the positions of the read/write Uxn instances.
+It has no inputs or outputs.
+
+A swapper node must only appear once per patch. If a swapper
+node is absent or there is more than once instance of
+a swapper node, there is risk of accidentally
+writing to the Uxn machine currently being used by the
+running patch.
+
+It is somewhat arbitrary where the Swapper node is placed
+in a patch, but it is recommended that it be placed at
+the beginning or end of the patch.
+
+A new node is created using =sk_node_gestlive=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int sk_node_gestlive_swapper(sk_core *core);
+#+END_SRC
+
+The important thing to note in this function is how
+the =init= flag is set for the current =write= Uxn
+instance. This will be turned off when the first compute
+function is called for this node in =swapper_compute=.
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<swapper_compute>>
+int sk_node_gestlive_swapper(sk_core *core)
+{
+    int rc;
+    void *ud;
+    gf_patch *patch;
+    struct gestlive *glive;
+    gf_node *node;
+    struct gestlive_node *node_data;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SK_ERROR_CHECK(rc);
+    glive = ud;
+
+    node_data = &glive->node[glive->write];
+    node_data->init = 1;
+    patch = sk_core_patch(core);
+    rc = gf_patch_new_node(patch, &node);
+    SK_GF_ERROR_CHECK(rc);
+
+    gf_node_set_compute(node, swapper_compute);
+    gf_node_set_data(node, node_data);
+
+    return 0;
+}
+#+END_SRC
+
+The swapper compute function uses the =init= flag to
+ensure that =gestlive_update= is called only once.
+
+#+NAME: swapper_compute
+#+BEGIN_SRC c
+static void swapper_compute(gf_node *node)
+{
+    struct gestlive_node *gl_node;
+
+    gl_node = gf_node_get_data(node);
+
+    if (gl_node->init) {
+        gl_node->init = 0;
+        gestlive_update(gl_node->glive);
+    }
+}
+#+END_SRC
+* LIL commands
+** Loader
+LIL commands for gestlive are loaded via =gestlive_load=.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void load_gestlive(lil_t lil);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<loadfuncs>>
+void load_gestlive(lil_t lil)
+{
+   <<entries>>
+}
+#+END_SRC
+** glnew
+=glnew= creates a new instance of gestlive.
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "glnew", l_glnew);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static void delgestlive(void *ptr)
+{
+    struct gestlive *glive;
+
+    glive = ptr;
+
+    gestlive_del(glive);
+    ptr = glive = NULL;
+}
+
+static lil_value_t l_glnew(lil_t lil,
+                           size_t argc,
+                           lil_value_t *argv)
+{
+    int rc;
+    const char *key;
+    struct gestlive *glive;
+    sk_core *core;
+
+    SKLIL_ARITY_CHECK(lil, "glnew", argc, 1);
+
+    core = lil_get_data(lil);
+
+    glive = gestlive_new();
+
+    key = lil_to_string(argv[0]);
+
+    rc = sk_core_append(core, key, strlen(key),
+                        glive, delgestlive);
+
+    SKLIL_ERROR_CHECK(lil, rc, "glnew didn't work out.");
+
+    return NULL;
+}
+#+END_SRC
+** glget
+=glget= will push to the sndkit stack the current
+instance of uxn that is being written to. It expects
+as input the instance of gestlive, most likely retrieved
+via =grab=:
+
+#+BEING_SRC c
+glget [grab glive]
+#+END_SRC
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "glget", l_glget);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_glget(lil_t lil,
+                           size_t argc,
+                           lil_value_t *argv)
+{
+    int rc;
+    struct gestlive *glive;
+    sk_core *core;
+    void *ud;
+    gestvm_uxn *gu;
+
+    SKLIL_ARITY_CHECK(lil, "glget", argc, 1);
+
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ud);
+    glive = ud;
+
+    gu = gestlive_get(glive);
+
+    rc = gu == NULL;
+    SKLIL_ERROR_CHECK(lil, rc, "glget: waiting for hotswap.");
+
+    rc = sk_core_generic_push(core, gu);
+    SKLIL_ERROR_CHECK(lil, rc, "glget didn't work out.");
+
+    return NULL;
+}
+#+END_SRC
+** gldone
+When a program is done being compiled, it can be signaled
+for swapping with =gldone=.
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "gldone", l_gldone);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_gldone(lil_t lil,
+                            size_t argc,
+                            lil_value_t *argv)
+{
+    struct gestlive *glive;
+    sk_core *core;
+    void *ud;
+
+    SKLIL_ARITY_CHECK(lil, "gldone", argc, 1);
+
+    core = lil_get_data(lil);
+
+    sk_core_generic_pop(core, &ud);
+    glive = ud;
+
+    gestlive_swap(glive);
+
+    return NULL;
+}
+#+END_SRC
+** glreset
+In case things break. =glreset= will reset the state of
+gestlive.
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "glreset", l_glreset);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_glreset(lil_t lil,
+                             size_t argc,
+                             lil_value_t *argv)
+{
+    struct gestlive *glive;
+    sk_core *core;
+    void *ud;
+
+    SKLIL_ARITY_CHECK(lil, "gldone", argc, 1);
+
+    core = lil_get_data(lil);
+
+    sk_core_generic_pop(core, &ud);
+    glive = ud;
+
+    gestlive_unlock(glive);
+
+    return NULL;
+}
+#+END_SRC
+** glswapper
+The =glswapper= command will create a gestlive swapper
+node. This should probably be placed at either the
+beginning or the end of the patch.
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "glswapper", l_glswapper);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_glswapper(lil_t lil,
+                               size_t argc,
+                               lil_value_t *argv)
+{
+    int rc;
+    sk_core *core;
+
+    SKLIL_ARITY_CHECK(lil, "glswapper", argc, 1);
+
+    core = lil_get_data(lil);
+
+    rc = sk_node_gestlive_swapper(core);
+
+    SKLIL_ERROR_CHECK(lil, rc, "glswapper didn't work out.");
+
+    return NULL;
+}
+#+END_SRC

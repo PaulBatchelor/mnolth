@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUF_SIZE 500
+#define BUF_SIZE 1024
 
 int mno_rtclient(int argc, char *argv[])
 {
@@ -15,10 +15,11 @@ int mno_rtclient(int argc, char *argv[])
     struct addrinfo *result, *rp;
     int sfd, s;
     size_t len;
-    char buf[BUF_SIZE];
+    char *buf;
     const char *host;
     const char *port;
 
+    buf = calloc(1, BUF_SIZE);
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
     hints.ai_socktype = SOCK_DGRAM; /* Datagram socket */
@@ -94,7 +95,7 @@ int mno_rtclient(int argc, char *argv[])
     }
 #endif
 
-    len = fread(buf, 1, 500, stdin);
+    len = fread(buf, 1, BUF_SIZE, stdin);
 
     if (write(sfd, buf, len) != len) {
         fprintf(stderr, "partial/failed write\n");
@@ -102,6 +103,8 @@ int mno_rtclient(int argc, char *argv[])
     }
 
     fwrite(buf, 1, len, stdout);
+
+    free(buf);
 
     exit(EXIT_SUCCESS);
 }

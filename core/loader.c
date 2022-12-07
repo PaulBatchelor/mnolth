@@ -18,6 +18,7 @@ void lil_load_hotswap(lil_t lil);
 void lil_load_rt(lil_t lil);
 void lil_load_misc(lil_t lil);
 void load_gestvm(lil_t lil);
+void load_gestlive(lil_t lil);
 void gestvm_memops_lil(lil_t lil);
 
 void mno_load(lil_t lil)
@@ -35,6 +36,7 @@ void mno_load(lil_t lil)
     lil_load_hotswap(lil);
     lil_load_misc(lil);
     load_gestvm(lil);
+    load_gestlive(lil);
     gestvm_memops_lil(lil);
 }
 
