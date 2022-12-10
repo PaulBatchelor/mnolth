@@ -62,6 +62,11 @@ LIBS+=-lpthread
 # used by SQLite
 LIBS+=-ldl
 
+USE_READLINE?=1
+ifeq ($(USE_READLINE), 1)
+LIBS+=-lreadline
+endif
+
 ALL = mnoscm mnolth libmnolth.a mnotil mnolua
 
 default: $(TANGLED) $(ALL)
