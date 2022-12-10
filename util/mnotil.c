@@ -10,35 +10,60 @@ int sqlar_main(int argc, char *argv[]);
 int uxnasm_main(int argc, char *argv[]);
 int wavdraw_main(int argc, char *argv[]);
 
+struct mnotil_cmd {
+    const char *name;
+    int (*main)(int, char**);
+};
+
+static int helper(int argc, char *argv[]);
+
+struct mnotil_cmd cmds[] = {
+    {"cdb", cdb_main},
+    {"txt2cdb", txt2cdb_main},
+    {"sqlite", sqlite3_main},
+    {"sqlar", sqlar_main},
+    {"uxnasm", uxnasm_main},
+    {"wavdraw", wavdraw_main},
+    {"help", helper},
+};
+
+
+static int helper(int argc, char *argv[])
+{
+    int ncmds;
+    int i;
+
+    ncmds = sizeof(cmds) / sizeof(*cmds);
+
+    fprintf(stderr, "Available utilities:\n");
+
+    for (i = 0; i < ncmds; i++) {
+        fprintf(stderr, "%s\n", cmds[i].name);
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
+    int i;
+    int ncmds;
     if (argc < 2) {
-        fprintf(stderr, "enter a command\n");
+        fprintf(stderr, "enter a command, or run 'help'\n");
         return 1;
-    } else if (!strcmp(argv[1], "cdb")) {
-        argc--;
-        argv++;
-        return cdb_main(argc, argv);
-    } else if (!strcmp(argv[1], "txt2cdb")) {
-        argc--;
-        argv++;
-        return txt2cdb_main(argc, argv);
-    } else if (!strcmp(argv[1], "sqlite")) {
-        argc--;
-        argv++;
-        return sqlite3_main(argc, argv);
-    } else if (!strcmp(argv[1], "sqlar")) {
-        argc--;
-        argv++;
-        return sqlar_main(argc, argv);
-    } else if (!strcmp(argv[1], "uxnasm")) {
-        argc--;
-        argv++;
-        return uxnasm_main(argc, argv);
-    } else if (!strcmp(argv[1], "wavdraw")) {
-        argc--;
-        argv++;
-        return wavdraw_main(argc, argv);
+    }
+
+    ncmds = sizeof(cmds) / sizeof(*cmds);
+
+    for (i = 0; i < ncmds; i++) {
+        struct mnotil_cmd *c;
+
+        c = &cmds[i];
+        if (!strcmp(argv[1], c->name)) {
+            argc--;
+            argv++;
+            return c->main(argc, argv);
+        }
     }
 
     fprintf(stderr,
