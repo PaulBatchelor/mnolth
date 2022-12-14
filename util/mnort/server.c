@@ -12,7 +12,7 @@
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 #define MAXHOST 1024
 #define MAXSERV 32
 

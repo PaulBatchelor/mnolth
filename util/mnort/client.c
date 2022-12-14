@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 
 int mno_rtclient(int argc, char *argv[])
 {
