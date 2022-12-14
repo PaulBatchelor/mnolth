@@ -270,6 +270,7 @@ static int lilpop(lua_State *L)
 }
 
 void gestvm_memops_lua(lua_State *L);
+int luaopen_lpeg (lua_State *L);
 
 static void load_lua_funcs(lua_State *L, lil_t lil)
 {
@@ -278,6 +279,7 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     lua_register(L, "lil", lvler);
     lua_register(L, "pop", lilpop);
     gestvm_memops_lua(L);
+    luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
 }
 
 int lua_main (int argc, char **argv,
