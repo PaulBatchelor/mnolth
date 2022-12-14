@@ -43,6 +43,7 @@ include lib/cdb/config.mk
 include lib/sqlite3/config.mk
 include lib/miniz/config.mk
 include lib/bitlang/config.mk
+include lib/lpeg/config.mk
 include lib/lua/config.mk
 include lib/gestvm/config.mk
 

@@ -6,5 +6,6 @@ LUA_LIB_O=	lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o \
 LUA_BASE_O= $(LUA_CORE_O) $(LUA_LIB_O) lua.o
 
 CFLAGS+=-DLUA_USE_C89 -DLUA_COMPAT_5_2
+CFLAGS+=-Ilib/lua
 
 OBJ += $(addprefix lib/lua/, $(LUA_BASE_O))
