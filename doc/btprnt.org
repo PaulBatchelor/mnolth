@@ -1,0 +1,54 @@
+#+TITLE: btprnt
+=btprnt= is a 1-bit graphics library.
+
+These are some (very) brief words on how to use it inside
+LIL.
+
+A new btprnt instance is created with =bpnew=.
+
+To create a 256x128 btprnt instance stored to sndkit
+dictionary value "bp":
+
+#+BEGIN_SRC lil
+bpnew bp 256 128
+#+END_SRC
+
+btprnt draws to regions, or subsections of the entire
+bitmap canvas. LIL doesn't have garbage collection, nor
+does it have the greatest data structures, so the
+strategy taken here is to use a pre-allocated set of
+regions accessible by index. There are 16 pre-allocated
+regions to choose frome.
+
+=bpset= sets a region at an index to a specific area:
+
+bpset: bp index x y w h
+
+This sets region 0 to be the entire canvas:
+
+#+BEGIN_SRC lil
+bpset [grab bp] 0 0 0 256 128
+#+END_SRC
+
+
+=bpget= retrieves a region stored at a particular index.
+
+bpget: bp, index
+
+As a small example, this lil program creates an instance
+of btprnt, generates a rectangle, and writes it to a pbm
+file:
+
+#+BEGIN_SRC lil
+bpnew bp 256 128
+bpset [grab bp] 0 0 0 256 128
+bprect [bpget [grab bp] 0] 10 10 64 64 1
+bppbm [grab bp] out.pbm
+#+END_SRC
+
+Other words: =bpmrk=, =bpclr=, =bpnxt=, =bppbm=, =bprect=,
+=bprectf=, =bptr=, =bpfnt_default=, =bptxtbox=, =bpchar=,
+=bpfill=, =bpline=.
+
+I ran out of time, I'll need to document
+these later. check the source code (lib/btprnt/l_btprnt.c).
