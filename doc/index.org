@@ -16,7 +16,7 @@ some sounds (sndkit)
 
 gfxbuf: overview, making audio-visual content
 
-btprnt
+@!(ref "btprnt")!@
 
 LIL
 
@@ -28,11 +28,13 @@ mnotil
 
 mnolua
 
+@!(ref "mnort")!@
+
 hotswapping interface
 
 variables
 
-gest
+@!(ref "gestvm")!@
 
 sqlar
 

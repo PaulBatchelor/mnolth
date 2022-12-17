@@ -46,8 +46,41 @@ bprect [bpget [grab bp] 0] 10 10 64 64 1
 bppbm [grab bp] out.pbm
 #+END_SRC
 
-Other words: =bpmrk=, =bpclr=, =bpnxt=, =bppbm=, =bprect=,
-=bprectf=, =bptr=, =bpfnt_default=, =bptxtbox=, =bpchar=,
+=bpmrk=, =bpclr=, and =bpnxt= are mark, clear, and
+next operations for regions in the pool. Mark will set
+a region in the region pool to be used. clear will clear
+that bit. Next, will return the next available free
+register. Using these together can be a way to abstract
+away region ID.
+
+#+BEGIN_SRC lil
+set $reg [bpnxt [grab bp]]
+bgmrk [grab bp] $reg
+bgclr [grab bp] $reg
+#+END_SRC
+
+=bppbm= generates a PBM file from a btprnt canvas:
+
+#+BEGIN_SRC lil
+bppbm [grab bp] "out.pbm"
+#+END_SRC
+
+=bprect= draws a location at (x,y) with dimensions (w, h)
+
+#+BEGIN_SRC lil
+bprect [bpget [grab bp] 0] x y w h
+#+END_SRC
+
+=bprectf= draws a filled rectangle:
+
+#+BEGIN_SRC lil
+bprectf [bpget [grab bp] 0] x y w h
+#+END_SRC
+
+=bptr= transfers a btprnt canvas to a
+@!(ref "gfxbuf")!@ instance. TODO: explain more.
+
+Other words: =bpfnt_default=, =bptxtbox=, =bpchar=,
 =bpfill=, =bpline=.
 
 I ran out of time, I'll need to document
