@@ -3,7 +3,7 @@ Takes a btprnt buffer, and creates a PNG file encoded as
 a base64 string.
 
 #+NAME: pngencode.c
-#+BEGIN_SRC c :tangle pngencode.c
+#+BEGIN_SRC c :tangle lib/btprnt/pngencode.c
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

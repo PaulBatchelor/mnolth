@@ -8,7 +8,7 @@ program. Specifically, it is designed to work with
 the hotswapping capabilities found in =mnolth=.
 * Tangled Files
 #+NAME: gestlive.c
-#+BEGIN_SRC c :tangle gestlive.c
+#+BEGIN_SRC c :tangle lib/gestvm/gestlive.c
 #include <stdlib.h>
 #include <string.h>
 #include "sndkit/graforge/graforge.h"
@@ -21,7 +21,7 @@ the hotswapping capabilities found in =mnolth=.
 #+END_SRC
 
 #+NAME: gestlive.h
-#+BEGIN_SRC c :tangle gestlive.h
+#+BEGIN_SRC c :tangle lib/gestvm/gestlive.h
 #ifndef GESTLIVE_H
 #define GESTLIVE_H
 <<typedefs>>

@@ -3,7 +3,7 @@ A simple interface for storing floating
 point variables in the sndkit core dictionary.
 
 #+NAME: var.h
-#+BEGIN_SRC c :tangle var.h
+#+BEGIN_SRC c :tangle core/var.h
 #ifndef M_VAR_H
 #define M_VAR_H
 <<funcdefs>>
@@ -11,7 +11,7 @@ point variables in the sndkit core dictionary.
 #+END_SRC
 
 #+NAME: var.c
-#+BEGIN_SRC c :tangle var.c
+#+BEGIN_SRC c :tangle core/var.c
 #include <stdlib.h>
 #include "sndkit/graforge/graforge.h"
 #include "sndkit/core.h"

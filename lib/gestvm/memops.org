@@ -9,7 +9,7 @@ Probably called =memops.c=. No header file required, since
 the only external functions here will the loaders.
 
 #+NAME: memops.c
-#+BEGIN_SRC c :tangle memops.c
+#+BEGIN_SRC c :tangle lib/gestvm/memops.c
 #include <stdlib.h>
 #include <string.h>
 #include "sndkit/graforge/graforge.h"

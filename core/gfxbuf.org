@@ -28,7 +28,7 @@ h264 video.
 =gfxbuf.c= and =gfxbuf.h=.
 
 #+NAME: gfxbuf.c
-#+BEGIN_SRC c :tangle gfxbuf.c
+#+BEGIN_SRC c :tangle core/gfxbuf.c
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +47,7 @@ h264 video.
 #+END_SRC
 
 #+NAME: gfxbuf.h
-#+BEGIN_SRC c :tangle gfxbuf.h
+#+BEGIN_SRC c :tangle core/gfxbuf.h
 #ifndef GFXBUF_H
 #define GFXBUF_H
 <<typedefs>>

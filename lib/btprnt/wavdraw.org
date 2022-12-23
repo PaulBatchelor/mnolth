@@ -16,7 +16,7 @@ and find the minimum and maximum samples in that block. This
 gets represented as a line at this length.
 
 #+NAME: wavdraw.c
-#+BEGIN_SRC c :tangle wavdraw.c
+#+BEGIN_SRC c :tangle lib/btprnt/wavdraw.c
 #include <math.h>
 #include <stdio.h>
 #include "sndkit/nodes/dr_wav.h"

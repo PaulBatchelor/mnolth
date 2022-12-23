@@ -19,7 +19,7 @@ multiple gesture subroutines can exist simultaneously in
 a single ROM and share data between one another.
 
 #+NAME: memops_test.lua
-#+BEGIN_SRC lua :tangle memops_test.lua
+#+BEGIN_SRC lua :tangle doc/memops_test.lua
 weight_tal = [[
 %NUM { #24 DEO }
 %DEN { #25 DEO }

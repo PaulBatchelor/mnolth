@@ -31,7 +31,7 @@ as well as an automated way to select the next available
 id.
 * Tangled Files
 #+NAME: regpool.c
-#+BEGIN_SRC c :tangle regpool.c
+#+BEGIN_SRC c :tangle lib/btprnt/regpool.c
 #include <stddef.h>
 #include "btprnt/btprnt.h"
 #define BP_REGPOOL_PRIV
@@ -40,7 +40,7 @@ id.
 #+END_SRC
 
 #+NAME: regpool.h
-#+BEGIN_SRC c :tangle regpool.h
+#+BEGIN_SRC c :tangle lib/btprnt/regpool.h
 #ifndef BP_REGPOOL_H
 #define BP_REGPOOL_H
 <<typedefs>>

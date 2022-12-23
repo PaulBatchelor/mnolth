@@ -4,7 +4,7 @@ This documents a hotswapping cable interface with crossfade.
 A useful primitive for creating live coding environments.
 * Tangled Files
 #+NAME: hotswap.h
-#+BEGIN_SRC c :tangle hotswap.h
+#+BEGIN_SRC c :tangle core/hotswap.h
 #ifndef MNO_HOTSWAP_H
 #define MNO_HOTSWAP_H
 <<typedefs>>
@@ -16,7 +16,7 @@ A useful primitive for creating live coding environments.
 #+END_SRC
 
 #+NAME: hotswap.c
-#+BEGIN_SRC c :tangle hotswap.c
+#+BEGIN_SRC c :tangle core/hotswap.c
 #include <stdlib.h>
 #include "sndkit/graforge/graforge.h"
 #include "sndkit/core.h"
