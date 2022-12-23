@@ -1,7 +1,7 @@
 #+PROPERTY: header-args:scheme :results silent :noweb yes
 #+TITLE: UGens
 #+NAME: ugens-scm
-#+BEGIN_SRC scheme :tangle ugens.scm
+#+BEGIN_SRC scheme :tangle scm/ugens.scm
 <<ugens-top>>
 #+END_SRC
 * sine

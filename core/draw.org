@@ -4,14 +4,14 @@ Some basic drawing primitives, using =gfxbuf=.
 WIP.
 
 #+NAME: draw.c
-#+BEGIN_SRC c :tangle draw.c
+#+BEGIN_SRC c :tangle core/draw.c
 #include "gfxbuf.h"
 #include "draw.h"
 <<funcs>>
 #+END_SRC
 
 #+NAME: draw.h
-#+BEGIN_SRC c :tangle draw.h
+#+BEGIN_SRC c :tangle core/draw.h
 #ifndef MNO_DRAW_H
 #define MNO_DRAW_H
 <<funcdefs>>

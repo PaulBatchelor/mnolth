@@ -90,12 +90,12 @@ C99?=$(CC) -std=c99
 .SUFFIXES: .org .c
 .org.c:
 	@echo "WORGLE $<"
-	@cd $(dir $<); $(WORGLE) $(WORGLE_FLAGS) $(notdir $<)
+	$(WORGLE) $(WORGLE_FLAGS) $<
 
 .SUFFIXES: .org .scm
 .org.scm:
 	@echo "WORGLE $<"
-	@cd $(dir $<); $(WORGLE) -Werror $(notdir $<)
+	$(WORGLE) -Werror $<
 
 util/worgle/worglite: util/worgle/worgle.c util/worgle/parg.c
 	$(CC) -std=c89 -Wall -pedantic -O3 -DWORGLITE $^ -o $@

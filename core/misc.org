@@ -4,7 +4,7 @@ This file is where I put things that don't really have
 a home anywhere else.
 * Tangled File (misc.c)
 #+NAME: misc.c
-#+BEGIN_SRC c :tangle misc.c
+#+BEGIN_SRC c :tangle core/misc.c
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>

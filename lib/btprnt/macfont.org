@@ -7,7 +7,7 @@ This document tangles out to two files, =macfont.h= and
 =macfont.c=.
 
 #+NAME: macfont.h
-#+BEGIN_SRC c :tangle macfont.h
+#+BEGIN_SRC c :tangle lib/btprnt/macfont.h
 #ifndef MACFONT_H
 #define MACFONT_H
 <<typedefs>>
@@ -17,7 +17,7 @@ This document tangles out to two files, =macfont.h= and
 #+END_SRC
 
 #+NAME: macfont.c
-#+BEGIN_SRC c :tangle macfont.c
+#+BEGIN_SRC c :tangle lib/btprnt/macfont.c
 #include <stdint.h>
 #include <string.h>
 #include "btprnt/btprnt.h"
