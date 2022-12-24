@@ -8,20 +8,28 @@ end
 
 rules = {}
 build = {}
+
+objects = {}
+
 cflags = {"-Wall", "-pedantic", "-O3"}
 
 function add_object(obj)
+    obj_o = obj .. ".o"
     table.insert(build,
-        mkbuild(obj .. ".o",
+        mkbuild(obj_o,
             "c89",
             obj .. ".c"))
+
+    table.insert(objects, obj_o)
 end
 
 function add_c99object(obj)
+    obj_o = obj .. ".o"
     table.insert(build,
         mkbuild(obj .. ".o",
             "c99",
             obj .. ".c"))
+    table.insert(objects, obj_o)
 end
 
 function add_objects(objs)
@@ -76,11 +84,35 @@ table.insert(rules,
 table.insert(rules,
     mkrule("c99", "gcc -std=c99 -c $cflags $in -o $out"))
 
+table.insert(rules,
+    mkrule("link", "gcc $in -o $out $libs"))
+
+libs = {
+    "-lm", 
+    "-lx264",
+
+    -- used by SQLite
+    "-lpthread",
+
+    "-ldl",
+
+    -- "-lreadline",
+}
+
 add_cflags({"-Ilib", "-Icore"})
 
 function generate_ninja()
     fp = io.open("build.ninja", "w")
+
+    table.insert(build,
+        mkbuild("core/lil_main.o", "c89", "core/lil_main.c"))
+    table.insert(build,
+        mkbuild("mnolth",
+            "link",
+            table.concat(objects, " ") .. " core/lil_main.o"))
+
     fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
+    fp:write("libs = " .. table.concat(libs, " ") .."\n")
 
     for _, v in pairs(rules) do
         fp:write("rule " .. v.name .. "\n")
@@ -103,6 +135,8 @@ function generate_ninja()
             " " ..
             process_files(v.inputs) .. "\n")
     end
+
+    fp:write("default mnolth\n")
 
     fp:close()
 end

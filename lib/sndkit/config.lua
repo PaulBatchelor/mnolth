@@ -1,12 +1,13 @@
 add_cflags {
     "-Ilib/sndkit",
-    "-Ilib/sndkit/nodes", 
-    "-Ilib/sndkit/dsp", 
-    "-Ilib/sndkit/graforge", 
+    "-Ilib/sndkit/nodes",
+    "-Ilib/sndkit/dsp",
+    "-Ilib/sndkit/graforge",
 }
 
 add_objects {
     "lib/sndkit/core",
+    "lib/sndkit/graforge/graforge",
     "lib/sndkit/dsp/dcblocker",
     "lib/sndkit/dsp/env",
     "lib/sndkit/dsp/metro",
