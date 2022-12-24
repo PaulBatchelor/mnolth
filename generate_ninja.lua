@@ -97,8 +97,9 @@ function generate_ninja()
     fp:close()
 end
 
+require("core/config")
 require("lib/btprnt/config")
 require("lib/sndkit/config")
-require("core/config")
+require("lib/mathc/config")
 
 generate_ninja()
