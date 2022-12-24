@@ -11,3 +11,7 @@ add_tangled_objects {
     {"lib/gestvm/memops", false},
 	"lib/gestvm/gestlive",
 }
+
+add_cflags {
+    "-DNO_UXNASM_MAIN"
+}
