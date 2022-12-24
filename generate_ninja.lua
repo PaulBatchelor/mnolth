@@ -1,5 +1,5 @@
-function mkrule(name, command)
-    return {name=name, command=command}
+function mkrule(name, command, description)
+    return {name=name, command=command, description=description}
 end
 
 function mkbuild(outputs, rule, inputs)
@@ -10,6 +10,8 @@ rules = {}
 build = {}
 
 objects = {}
+
+tangled = {}
 
 cflags = {"-Wall", "-pedantic", "-O3"}
 
@@ -54,15 +56,16 @@ function add_tangled_object(obj, header)
     if header == nil then header = true end
 
     tangled_c = obj .. ".c"
-    tangled = tangled_c
+    tangled_files = tangled_c
 
     if header == true then
-        tangled = {tangled_c, obj .. ".h"}
+        tangled_files = {tangled_c, obj .. ".h"}
     end
 
     table.insert(build,
-        mkbuild(tangled, "tangle", obj .. ".org"))
+        mkbuild(tangled_files, "worgle", obj .. ".org"))
 
+    table.insert(tangled, tangled_c)
 
     add_object(obj)
 end
@@ -78,17 +81,24 @@ function add_tangled_objects(obj)
 end
 
 table.insert(rules,
-    mkrule("tangle", "worgle -Werror -g $in"))
+    mkrule("worgle", "worgle -Werror -g $in"))
 table.insert(rules,
-    mkrule("c89", "gcc -std=c89 -c $cflags $in -o $out"))
+    mkrule("c89",
+        "gcc -std=c89 -c $cflags $in -o $out",
+        "c89 $in"))
 table.insert(rules,
-    mkrule("c99", "gcc -std=c99 -c $cflags $in -o $out"))
-
+    mkrule("c99",
+        "gcc -std=c99 -c $cflags $in -o $out",
+        "c99 $in"))
 table.insert(rules,
-    mkrule("link", "gcc $in -o $out $libs"))
+    mkrule("link",
+        "gcc $in -o $out $libs",
+        "creating $out"))
+table.insert(rules,
+    mkrule("ar", "ar rcs $out $in"))
 
 libs = {
-    "-lm", 
+    "-lm",
     "-lx264",
 
     -- used by SQLite
@@ -103,13 +113,45 @@ add_cflags({"-Ilib", "-Icore"})
 
 function generate_ninja()
     fp = io.open("build.ninja", "w")
+    objstr = table.concat(objects, " ")
 
+    -- mnolth
     table.insert(build,
         mkbuild("core/lil_main.o", "c89", "core/lil_main.c"))
     table.insert(build,
         mkbuild("mnolth",
             "link",
-            table.concat(objects, " ") .. " core/lil_main.o"))
+             objstr .. " core/lil_main.o"))
+
+    -- mnotil
+    table.insert(build,
+        mkbuild("util/mnotil.o", "c89", "util/mnotil.c"))
+    table.insert(build,
+        mkbuild("mnotil",
+            "link",
+             objstr .. " util/mnotil.o"))
+
+    -- mnolua
+    table.insert(build,
+        mkbuild("core/lua_main.o", "c89", "core/lua_main.c"))
+    table.insert(build,
+        mkbuild("mnolua",
+            "link",
+             objstr .. " core/lua_main.o"))
+
+    -- mnoscm
+    table.insert(build,
+        mkbuild("core/scm_main.o", "c89", "core/scm_main.c"))
+    table.insert(build,
+        mkbuild("mnoscm",
+            "link",
+             objstr .. " core/scm_main.o"))
+
+    -- libmnolth
+    table.insert(build,
+        mkbuild("libmnolth.a", "ar", objstr))
+
+    table.insert(build, mkbuild("tangle", "phony", tangled))
 
     fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
     fp:write("libs = " .. table.concat(libs, " ") .."\n")
@@ -117,6 +159,11 @@ function generate_ninja()
     for _, v in pairs(rules) do
         fp:write("rule " .. v.name .. "\n")
         fp:write("    command = " .. v.command .. "\n")
+
+        if v.description ~= nil then
+            fp:write("    description = "
+                .. v.description.. "\n")
+        end
     end
 
     function process_files(f)
@@ -136,7 +183,7 @@ function generate_ninja()
             process_files(v.inputs) .. "\n")
     end
 
-    fp:write("default mnolth\n")
+    fp:write("default mnolth mnotil mnolua libmnolth.a\n")
 
     fp:close()
 end
@@ -156,5 +203,6 @@ require("lib/bitlang/config")
 require("lib/lpeg/config")
 require("lib/lua/config")
 require("lib/gestvm/config")
+require("util/config")
 
 generate_ninja()
