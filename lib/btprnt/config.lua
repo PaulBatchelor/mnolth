@@ -1,0 +1,7 @@
+add_tangled_object("lib/btprnt/regpool")
+add_tangled_object("lib/btprnt/macfont")
+add_tangled_object("lib/btprnt/wavdraw", false)
+add_tangled_object("lib/btprnt/pngencode", false)
+add_object("lib/btprnt/btprnt")
+add_object("lib/btprnt/l_btprnt")
+add_object("lib/btprnt/base64")
