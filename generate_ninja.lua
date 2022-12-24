@@ -1,4 +1,3 @@
-
 function mkrule(name, command)
     return {name=name, command=command}
 end
@@ -69,32 +68,37 @@ table.insert(rules,
 
 add_cflags({"-Ilib", "-Icore"})
 
-require("lib/btprnt/config")
-require("lib/sndkit/config")
+function generate_ninja()
+    fp = io.open("build.ninja", "w")
+    fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
 
-fp = io.open("build.ninja", "w")
-fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
-
-for _, v in pairs(rules) do
-    fp:write("rule " .. v.name .. "\n")
-    fp:write("    command = " .. v.command .. "\n")
-end
-
-function process_files(f)
-    if type(f) == "string" then
-        return f
+    for _, v in pairs(rules) do
+        fp:write("rule " .. v.name .. "\n")
+        fp:write("    command = " .. v.command .. "\n")
     end
 
-    return table.concat(f, " ")
+    function process_files(f)
+        if type(f) == "string" then
+            return f
+        end
+
+        return table.concat(f, " ")
+    end
+
+    for _, v in pairs(build) do
+        fp:write("build " ..
+            process_files(v.outputs) ..
+            ": " ..
+            v.rule ..
+            " " ..
+            process_files(v.inputs) .. "\n")
+    end
+
+    fp:close()
 end
 
-for _, v in pairs(build) do
-    fp:write("build " ..
-        process_files(v.outputs) ..
-        ": " ..
-        v.rule ..
-        " " ..
-        process_files(v.inputs) .. "\n")
-end
+require("lib/btprnt/config")
+require("lib/sndkit/config")
+require("core/config")
 
-fp:close()
+generate_ninja()
