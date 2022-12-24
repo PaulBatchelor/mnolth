@@ -110,7 +110,7 @@ require("lib/sqlite3/config")
 require("lib/miniz/config")
 require("lib/bitlang/config")
 require("lib/lpeg/config")
--- require("lib/lua/config")
+require("lib/lua/config")
 -- require("lib/gestvm/config")
 
 generate_ninja()
