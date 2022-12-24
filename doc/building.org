@@ -1,0 +1,42 @@
+#+TITLE: Building Mnolth
+
+The build system for mnolth is now a combination of
+ninja (via samurai), and lua. Both are included in
+mnolth, so no external dependencies should be required other
+than a C compiler.
+
+First, bootstrap. This will build Lua and Samurai (samu).
+
+#+BEGIN_SRC sh
+$ ./bootstrap.sh
+#+END_SRC
+
+The build.ninja file needs to be generated. This
+is done with the generate_ninja.lua script:
+
+#+BEGIN_SRC sh
+$ ./lua generate_ninja.lua
+#+END_SRC
+
+Before building, generate all intermediate C code from
+literate programs written in Worgle. Doing this before
+the build helps sort out dependency issues (this could
+probably be fixed in samurai, but this is simpler).
+
+#+BEGIN_SRC sh
+$ samu tangle
+#+END_SRC
+
+Finally, build the program. This will create
+the =mnolth=, =mnotil=, =mnolua=, and =mnoscm= binaries.
+It will also make the static library =libmnolth.a=.
+
+#+BEGIN_SRC sh
+$ samu
+#+END_SRC
+
+To build =mnort=:
+
+#+BEGIN_SRC sh
+$ samu mnort
+#+END_SRC
