@@ -2,8 +2,13 @@ function mkrule(name, command, description)
     return {name=name, command=command, description=description}
 end
 
-function mkbuild(outputs, rule, inputs)
-    return {outputs=outputs, rule=rule, inputs=inputs}
+function mkbuild(outputs, rule, inputs, vars)
+    return {
+        outputs = outputs,
+        rule = rule,
+        inputs = inputs,
+        vars = vars
+    }
 end
 
 rules = {}
@@ -151,6 +156,29 @@ function generate_ninja()
     table.insert(build,
         mkbuild("libmnolth.a", "ar", objstr))
 
+    mnort_items = {
+          "util/mnort/server",
+		  "util/mnort/client",
+		  "util/mnort/rt",
+		  "util/mnort/mnort"
+    }
+
+    mnort_objs = {}
+
+    for _,o in pairs(mnort_items) do
+        table.insert(build,
+            mkbuild(o .. ".o", "c89", o .. ".c"))
+        table.insert(mnort_objs, o .. ".o")
+    end
+
+    table.insert(build,
+        mkbuild("mnort",
+            "link",
+             objstr ..
+             " " ..
+             table.concat(mnort_objs, " "),
+             {"libs = -ljack"}))
+
     table.insert(build, mkbuild("tangle", "phony", tangled))
 
     fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
@@ -181,6 +209,11 @@ function generate_ninja()
             v.rule ..
             " " ..
             process_files(v.inputs) .. "\n")
+        if v.vars ~= nil then
+            for _, var in pairs(v.vars) do
+                fp:write("    " .. var .. "\n")
+            end
+        end
     end
 
     fp:write("default mnolth mnotil mnolua libmnolth.a\n")
