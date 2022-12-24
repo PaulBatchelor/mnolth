@@ -9,6 +9,8 @@ int sqlite3_main(int argc, char *argv[]);
 int sqlar_main(int argc, char *argv[]);
 int uxnasm_main(int argc, char *argv[]);
 int wavdraw_main(int argc, char *argv[]);
+int samu_main(int argc, char *argv[]);
+int lua_main_noloader(int argc, char *argv[]);
 
 struct mnotil_cmd {
     const char *name;
@@ -24,6 +26,8 @@ struct mnotil_cmd cmds[] = {
     {"sqlar", sqlar_main},
     {"uxnasm", uxnasm_main},
     {"wavdraw", wavdraw_main},
+    {"samu", samu_main},
+    {"lua", lua_main_noloader},
     {"help", helper},
 };
 

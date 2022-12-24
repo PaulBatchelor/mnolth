@@ -247,5 +247,6 @@ require("lib/lpeg/config")
 require("lib/lua/config")
 require("lib/gestvm/config")
 require("util/config")
+require("util/samurai/config")
 
 generate_ninja()

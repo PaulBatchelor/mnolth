@@ -635,3 +635,9 @@ int lua_main (int argc, char **argv,
   lua_close(L);
   return (result && status == LUA_OK) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+
+int lua_main_noloader(int argc, char *argv[])
+{
+    return lua_main(argc, argv, NULL, NULL);
+}
