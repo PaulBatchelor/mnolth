@@ -101,5 +101,6 @@ require("core/config")
 require("lib/btprnt/config")
 require("lib/sndkit/config")
 require("lib/mathc/config")
+require("lib/minimp4/config")
 
 generate_ninja()
