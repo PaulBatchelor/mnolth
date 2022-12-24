@@ -86,7 +86,7 @@ function add_tangled_objects(obj)
 end
 
 table.insert(rules,
-    mkrule("worgle", "worgle -Werror -g $in"))
+    mkrule("worgle", "util/worgle/worglite -Werror -g $in"))
 table.insert(rules,
     mkrule("c89",
         "gcc -std=c89 -c $cflags $in -o $out",
@@ -97,10 +97,10 @@ table.insert(rules,
         "c99 $in"))
 table.insert(rules,
     mkrule("link",
-        "gcc $in -o $out $libs",
+        "gcc $cflags $in -o $out $libs",
         "creating $out"))
 table.insert(rules,
-    mkrule("ar", "ar rcs $out $in"))
+    mkrule("ar", "ar rcs $out $in", "creating $out"))
 
 libs = {
     "-lm",
@@ -178,6 +178,16 @@ function generate_ninja()
              " " ..
              table.concat(mnort_objs, " "),
              {"libs = -ljack"}))
+
+
+    table.insert(build,
+        mkbuild("util/worgle/worglite",
+            "link",
+             "util/worgle/worgle.c util/worgle/parg.c",
+             {"cflags = -O3 -DWORGLITE"}))
+
+    table.insert(build, mkbuild("worglite",
+        "phony", "util/worgle/worglite"))
 
     table.insert(build, mkbuild("tangle", "phony", tangled))
 
