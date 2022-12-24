@@ -39,4 +39,4 @@ cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua -c lutf8lib.c -o lutf8lib
 cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua -c loadlib.c -o loadlib.o
 cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua -c linit.c -o linit.o
 cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua -c lua.c -o lua.o
-cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o lmathlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o loadlib.o linit.o lua.o -o $OUTPUT
+cc -DLUA_USE_C89 -DLUA_COMPAT_5_2 -DLUA_MAIN -Ilib/lua lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o lmem.o lobject.o lopcodes.o lparser.o lstate.o lstring.o ltable.o ltm.o lundump.o lvm.o lzio.o lauxlib.o lbaselib.o lbitlib.o lcorolib.o ldblib.o liolib.o lmathlib.o loslib.o lstrlib.o ltablib.o lutf8lib.o loadlib.o linit.o lua.o -o $OUTPUT -lm
