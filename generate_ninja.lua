@@ -226,7 +226,7 @@ function generate_ninja()
         end
     end
 
-    fp:write("default mnolth mnotil mnolua libmnolth.a\n")
+    fp:write("default mnoscm mnolth mnotil mnolua libmnolth.a\n")
 
     fp:close()
 end
