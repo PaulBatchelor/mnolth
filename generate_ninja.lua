@@ -59,6 +59,16 @@ function add_tangled_object(obj, header)
     add_object(obj)
 end
 
+function add_tangled_objects(obj)
+    for _,v in pairs(obj) do
+        if (type(v) == "string") then
+            add_tangled_object(v)
+        else
+            add_tangled_object(v[1], v[2])
+        end
+    end
+end
+
 table.insert(rules,
     mkrule("tangle", "worgle -Werror -g $in"))
 table.insert(rules,
@@ -111,6 +121,6 @@ require("lib/miniz/config")
 require("lib/bitlang/config")
 require("lib/lpeg/config")
 require("lib/lua/config")
--- require("lib/gestvm/config")
+require("lib/gestvm/config")
 
 generate_ninja()
