@@ -248,5 +248,6 @@ require("lib/lua/config")
 require("lib/gestvm/config")
 require("util/config")
 require("util/samurai/config")
+require("lib/lsqlite3/config")
 
 generate_ninja()
