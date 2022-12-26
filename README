@@ -26,7 +26,7 @@ mnolth is designed to be relatively portable and self-contained.
 In addition to a typical C development setup with Make,
 mnolth depends on libx264.
 
-To build mnolth, first run "make tools", followed by
-"make".
-
-To install mnolth, run "sudo make install".
+mnolth uses Ninja (via Samurai) as the build system, coupled
+with some scripts with some scripts built in lua. These can
+be bootstrapped from source without any third-party
+dependencies. See doc/building.org for more information.
