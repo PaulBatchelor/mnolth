@@ -14,6 +14,7 @@
 (ww-add-link "building" "building.org")
 (ww-add-link "mnort" "mnort.org")
 (ww-add-link "wikidex" "wikidex.org")
+(ww-add-link "fennel_mnort" "fennel_mnort.org")
 
 # sync and close
 
