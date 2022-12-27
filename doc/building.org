@@ -15,7 +15,7 @@ The build.ninja file needs to be generated. This
 is done with the generate_ninja.lua script:
 
 #+BEGIN_SRC sh
-$ ./lua generate_ninja.lua
+$ ./tools/lua generate_ninja.lua
 #+END_SRC
 
 Before building, generate all intermediate C code from
@@ -24,7 +24,7 @@ the build helps sort out dependency issues (this could
 probably be fixed in samurai, but this is simpler).
 
 #+BEGIN_SRC sh
-$ samu tangle
+$ ./tools/samu tangle
 #+END_SRC
 
 Finally, build the program. This will create
@@ -38,5 +38,5 @@ $ samu
 To build =mnort=:
 
 #+BEGIN_SRC sh
-$ samu mnort
+$ ./tools/samu mnort
 #+END_SRC
