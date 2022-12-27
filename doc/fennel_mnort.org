@@ -1,0 +1,32 @@
+#+TITLE: Using Fennel in mnort
+
+Some very brief words on how this can be done.
+
+Start =mnort server=, set up vim,
+load fennel library (fennel.lua) into lua.
+These are things are not formally documented yet.
+
+Update the evaluator:
+
+#+BEGIN_SRC
+-- <@>
+eval = fennel.eval
+-- </@>
+#+END_SRC
+
+Now the evaluator will accept blocks of fennel instead
+of blocks of Lua:
+
+#+BEGIN_SRC
+; <@>
+(print "hi there")
+; </@>
+#+END_SRC
+
+To go back to Lua:
+
+#+BEGIN_SRC
+; <@>
+((load "eval = eval_default"))
+; </@>
+#+END_SRC
