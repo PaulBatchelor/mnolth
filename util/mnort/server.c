@@ -34,6 +34,38 @@ static void loader(lil_t lil)
     lil_register(lil, "stop", stop);
 }
 
+static void setup_lua_eval(lua_State *L)
+{
+    int rc;
+
+    rc = luaL_dostring(L,
+        "function eval_default(str) load(str)() end "
+        "eval = eval_default"
+    );
+
+    if (rc != LUA_OK) {
+        const char *errstr;
+
+        errstr = lua_tostring(L, 0);
+        fprintf(stderr, "%s\n", errstr);
+    }
+}
+
+static void eval(lua_State *L, const char *str)
+{
+    int rc;
+    lua_getglobal(L, "eval");
+    lua_pushstring(L, str);
+    rc = lua_pcall(L, 1, 0, 0);
+
+    if (rc != LUA_OK) {
+        const char *errstr;
+
+        errstr = lua_tostring(L, -1);
+        fprintf(stderr, "error: %s\n", errstr);
+    }
+}
+
 int mno_rtserver(int argc, char *argv[])
 {
     struct addrinfo hints;
@@ -66,6 +98,7 @@ int mno_rtserver(int argc, char *argv[])
     L = luaL_newstate();
     luaL_openlibs(L);
     mno_lua_load(L);
+    setup_lua_eval(L);
 
     lua_getglobal(L, "__lil");
 
@@ -115,32 +148,37 @@ int mno_rtserver(int argc, char *argv[])
 
     while (running) {
         peer_addr_len = sizeof(struct sockaddr_storage);
-        nread = recvfrom(
-            sfd, buf, BUF_SIZE, 0, (struct sockaddr *) &peer_addr, &peer_addr_len
-        );
-        if (nread == -1)
-                continue;               /* Ignore failed request */
+        nread = recvfrom(sfd,
+                         buf, BUF_SIZE,
+                         0,
+                         (struct sockaddr *) &peer_addr,
+                         &peer_addr_len);
 
-        s = getnameinfo(
-            (struct sockaddr *) &peer_addr,
-            peer_addr_len,
-            host,
-            MAXHOST,
-            service,
-            MAXSERV,
-            NI_NUMERICSERV
-        );
+        /* Ignore failed request */
+        if (nread == -1) continue;
+
+        s = getnameinfo((struct sockaddr *) &peer_addr,
+                        peer_addr_len,
+                        host,
+                        MAXHOST,
+                        service,
+                        MAXSERV,
+                        NI_NUMERICSERV);
         if (s == 0) {
-            int e;
             buf[nread] = '\0';
+            eval(L, buf);
+            /*
+            int e;
             e = luaL_dostring(L, buf);
             if (e != LUA_OK) {
                 fprintf(stderr,
                         "eval error: %s\n",
                         lua_tostring(L, -1));
             }
+            */
         } else {
-            fprintf(stderr, "getnameinfo: %s\n", gai_strerror(s));
+            fprintf(stderr,
+                    "getnameinfo: %s\n", gai_strerror(s));
         }
     }
 
