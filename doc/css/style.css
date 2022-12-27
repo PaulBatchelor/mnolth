@@ -1,0 +1,28 @@
+#main{
+margin:40px auto;
+max-width:650px;
+line-height:1.2;
+font-size:14px;
+color:#444;
+padding:0 10px}
+h1,h2,h3{line-height:1.2}
+
+pre code {
+color:#111;
+background:lightgrey;
+border: 1px solid #999;
+border-radius:4px;
+display: block;
+padding: 10px;
+overflow: auto;
+}
+
+code{
+color:#000;
+background:lightgrey;
+border-style:solid;
+border-width:1px;
+border-color:#000;
+border-radius:4px;
+padding:1px
+}
