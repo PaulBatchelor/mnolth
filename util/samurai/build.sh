@@ -5,7 +5,10 @@ then
     OUTPUT=$1
 fi
 
-cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter -c -o build.o build.c
+-- mac hack
+CFLAGS=-DNO_GETLOADAVG
+
+cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter $CFLAGS -c -o build.o build.c
 cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter -c -o deps.o deps.c
 cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter -c -o env.o env.c
 cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter -c -o graph.o graph.c

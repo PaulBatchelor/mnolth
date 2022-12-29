@@ -20,6 +20,9 @@ tangled = {}
 
 cflags = {"-Wall", "-pedantic", "-O3"}
 
+-- mac hacks
+table.insert(cflags, "-I/opt/homebrew/include")
+
 function add_object(obj)
     obj_o = obj .. ".o"
     table.insert(build,
@@ -97,14 +100,13 @@ table.insert(rules,
         "c99 $in"))
 table.insert(rules,
     mkrule("link",
-        "gcc $cflags $in -o $out $libs",
+        "gcc $cflags $in -o $out $ldflags $libs",
         "creating $out"))
 table.insert(rules,
     mkrule("ar", "ar rcs $out $in", "creating $out"))
 
 libs = {
     "-lm",
-    "-lx264",
 
     -- used by SQLite
     "-lpthread",
@@ -113,6 +115,8 @@ libs = {
 
     -- "-lreadline",
 }
+
+-- table.insert(libs, "-lx264")
 
 add_cflags({"-Ilib", "-Icore"})
 
@@ -193,6 +197,9 @@ function generate_ninja()
 
     fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
     fp:write("libs = " .. table.concat(libs, " ") .."\n")
+
+    -- mac hack
+    fp:write("ldflags = -L/opt/homebrew/lib\n")
 
     for _, v in pairs(rules) do
         fp:write("rule " .. v.name .. "\n")

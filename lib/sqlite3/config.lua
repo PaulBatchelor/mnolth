@@ -3,6 +3,7 @@ add_c99object("lib/sqlite3/shell")
 
 add_cflags {
     "-DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_JSON1",
+    "-Ilib/sqlite3/",
 
     -- recommended SQLite build flags for CLI
     "-DSQLITE_THREADSAFE=0",

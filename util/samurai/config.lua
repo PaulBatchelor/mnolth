@@ -1,3 +1,8 @@
+-- mac hack
+add_cflags {
+    "-DNO_GETLOADAVG"
+}
+
 add_c99objects {
     "util/samurai/build",
     "util/samurai/deps",

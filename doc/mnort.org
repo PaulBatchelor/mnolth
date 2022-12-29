@@ -29,6 +29,7 @@ hotswapper to swap patches.
 playback between pause and play.
 
 #+BEGIN_SRC lil
+-- <@>
 lil([[
 hsnew hs
 rtnew [grab hs] rt
@@ -42,6 +43,7 @@ func playtog {} {
     hstog [grab hs]
 }
 ]])
+-- </@>
 #+END_SRC
 
 Server can be started with =mnort start=.
@@ -57,6 +59,14 @@ Make it play some sound:
 
 #+BEING_SRC sh
 echo 'lil("sine 440 0.3; out")' | mnort client
+#+END_SRC
+
+or, in Vim:
+
+#+BEING_SRC sh
+-- <@>
+lil("sine 440 0.3; out")
+-- </@>
 #+END_SRC
 
 Some very basic vim keybindings have been added to make
