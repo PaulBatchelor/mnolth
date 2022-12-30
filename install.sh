@@ -5,18 +5,7 @@ LIBPATH=lib
 # typical binary/library install
 
 cp $MNOLTH_PATH/libmnolth.a $INSTALL_PATH/lib
-cp $MNOLTH_PATH/mnoscm $INSTALL_PATH/bin
 cp $MNOLTH_PATH/mnolth $INSTALL_PATH/bin
-cp $MNOLTH_PATH/mnotil $INSTALL_PATH/bin
-cp $MNOLTH_PATH/mnolua $INSTALL_PATH/bin
-
-# install mnort if it finds the mnort binary
-
-if [ -f $MNOLTH_PATH/mnort ]
-then
-    cp $MNOLTH_PATH/mnort $INSTALL_PATH/bin
-fi
-
 
 # mathc
 
