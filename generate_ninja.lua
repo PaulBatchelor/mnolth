@@ -1,3 +1,10 @@
+config = {}
+
+if (arg[1] == "live") then
+    config.mnort = true
+end
+
+
 function mkrule(name, command, description)
     return {name=name, command=command, description=description}
 end
@@ -116,9 +123,22 @@ libs = {
     -- "-lreadline",
 }
 
--- table.insert(libs, "-lx264")
+table.insert(libs, "-lx264")
+add_cflags{"-DMNOLTH_X264"}
 
 add_cflags({"-Ilib", "-Icore"})
+
+if config.mnort then
+    add_cflags{"-DBUILD_MNORT"}
+
+    add_objects {
+      "util/mnort/server",
+      "util/mnort/client",
+      "util/mnort/rt",
+    }
+
+    table.insert(libs, "-ljack")
+end
 
 function generate_ninja()
     fp = io.open("build.ninja", "w")
@@ -126,62 +146,38 @@ function generate_ninja()
 
     -- mnolth
     table.insert(build,
-        mkbuild("core/lil_main.o", "c89", "core/lil_main.c"))
+        mkbuild("main.o", "c89", "main.c"))
     table.insert(build,
         mkbuild("mnolth",
             "link",
-             objstr .. " core/lil_main.o"))
-
-    -- mnotil
-    table.insert(build,
-        mkbuild("util/mnotil.o", "c89", "util/mnotil.c"))
-    table.insert(build,
-        mkbuild("mnotil",
-            "link",
-             objstr .. " util/mnotil.o"))
-
-    -- mnolua
-    table.insert(build,
-        mkbuild("core/lua_main.o", "c89", "core/lua_main.c"))
-    table.insert(build,
-        mkbuild("mnolua",
-            "link",
-             objstr .. " core/lua_main.o"))
-
-    -- mnoscm
-    table.insert(build,
-        mkbuild("core/scm_main.o", "c89", "core/scm_main.c"))
-    table.insert(build,
-        mkbuild("mnoscm",
-            "link",
-             objstr .. " core/scm_main.o"))
+             objstr .. " main.o"))
 
     -- libmnolth
     table.insert(build,
         mkbuild("libmnolth.a", "ar", objstr))
 
-    mnort_items = {
-          "util/mnort/server",
-		  "util/mnort/client",
-		  "util/mnort/rt",
-		  "util/mnort/mnort"
-    }
+    -- mnort_items = {
+    --       "util/mnort/server",
+	-- 	  "util/mnort/client",
+	-- 	  "util/mnort/rt",
+	-- 	  "util/mnort/mnort"
+    -- }
 
-    mnort_objs = {}
+    -- mnort_objs = {}
 
-    for _,o in pairs(mnort_items) do
-        table.insert(build,
-            mkbuild(o .. ".o", "c89", o .. ".c"))
-        table.insert(mnort_objs, o .. ".o")
-    end
+    -- for _,o in pairs(mnort_items) do
+    --     table.insert(build,
+    --         mkbuild(o .. ".o", "c89", o .. ".c"))
+    --     table.insert(mnort_objs, o .. ".o")
+    -- end
 
-    table.insert(build,
-        mkbuild("mnort",
-            "link",
-             objstr ..
-             " " ..
-             table.concat(mnort_objs, " "),
-             {"libs = -ljack"}))
+    -- table.insert(build,
+    --     mkbuild("mnort",
+    --         "link",
+    --          objstr ..
+    --          " " ..
+    --          table.concat(mnort_objs, " "),
+    --          {"libs = -ljack"}))
 
 
     table.insert(build,
@@ -233,7 +229,7 @@ function generate_ninja()
         end
     end
 
-    fp:write("default mnoscm mnolth mnotil mnolua libmnolth.a\n")
+    fp:write("default mnolth libmnolth.a\n")
 
     fp:close()
 end

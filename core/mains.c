@@ -214,6 +214,11 @@ int mno_scm_main(int argc, char *argv[],
     return 0;
 }
 
+int mno_scm_main_noloader(int argc, char *argv[])
+{
+    return mno_scm_main(argc, argv, NULL, NULL);
+}
+
 int mno_lil_main(int argc, char *argv[],
                  void (*load)(lil_t),
                  void (*clean)(lil_t))
@@ -221,6 +226,11 @@ int mno_lil_main(int argc, char *argv[],
     if (load == NULL) load = mno_load;
     if (clean == NULL) clean = mno_clean;
     return lil_main(argc, argv, load, clean);
+}
+
+int mno_lil_main_noloader(int argc, char *argv[])
+{
+    return mno_lil_main(argc, argv, NULL, NULL);
 }
 
 static int lvler(lua_State *L)
@@ -323,4 +333,9 @@ int mno_lua_main(int argc, char **argv,
     if (clean == NULL) clean = mno_lua_clean;
 
     return lua_main(argc, argv, load, clean);
+}
+
+int mno_lua_main_noloader(int argc, char *argv[])
+{
+    return mno_lua_main(argc, argv, NULL, NULL);
 }
