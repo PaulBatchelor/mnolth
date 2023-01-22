@@ -208,6 +208,9 @@ add_objects {
     "lib/sndkit/nodes/euclid/l_euclid",
     "lib/sndkit/nodes/euclid/euclid",
     "lib/sndkit/dsp/euclid",
+    "lib/sndkit/nodes/gtick/l_gtick",
+    "lib/sndkit/nodes/gtick/gtick",
+    "lib/sndkit/dsp/gtick",
 }
 
 add_c99objects {
