@@ -5,7 +5,7 @@ then
     OUTPUT=$1
 fi
 
--- mac hack
+# mac hack
 CFLAGS=-DNO_GETLOADAVG
 
 cc -O -std=c99 -Wall -Wextra -Wpedantic -Wno-unused-parameter $CFLAGS -c -o build.o build.c
