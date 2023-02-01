@@ -1,7 +1,11 @@
 config = {}
 
-if (arg[1] == "live") then
-    config.mnort = true
+for _,a in pairs(arg) do
+    if (a == "live") then
+        config.mnort = true
+    elseif (a == "mnodes") then
+        config.mnodes = true
+    end
 end
 
 
@@ -252,5 +256,9 @@ require("lib/gestvm/config")
 require("util/config")
 require("util/samurai/config")
 require("lib/lsqlite3/config")
+
+if config.mnodes then
+    require("mnodes/config")
+end
 
 generate_ninja()

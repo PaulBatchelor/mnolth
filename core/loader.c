@@ -21,6 +21,10 @@ void load_gestvm(lil_t lil);
 void load_gestlive(lil_t lil);
 void gestvm_memops_lil(lil_t lil);
 
+#ifdef MNODES
+void sklil_load_mnodes(lil_t lil);
+#endif
+
 void mno_load(lil_t lil)
 {
     sklil_loader_withextra(lil);
@@ -38,6 +42,10 @@ void mno_load(lil_t lil)
     load_gestvm(lil);
     load_gestlive(lil);
     gestvm_memops_lil(lil);
+
+#ifdef MNODES
+    sklil_load_mnodes(lil);
+#endif
 }
 
 void mno_clean(lil_t lil)
