@@ -15,6 +15,7 @@
 (ww-add-link "mnort" "mnort.org")
 (ww-add-link "wikidex" "wikidex.org")
 (ww-add-link "fennel_mnort" "fennel_mnort.org")
+(ww-add-link "crate" "crate.org")
 
 # sync and close
 
