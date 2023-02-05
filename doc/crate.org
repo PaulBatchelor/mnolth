@@ -1,20 +1,56 @@
 #+TITLE Crates
+* Not The Rust Kind
 Crates are a mechanism in the Weewiki that allow files
 to be stored in the zettelkasten via the SQLar format.
 
 Mainly, the usage they have in mnolth is to load samples
 or wavetables in to a table.
+* Opening a Crate
+A Crate is a SQLar file, and a SQLar file is a SQLite
+database. A database can be opened with =opendb=.
 
 opendb: opens a database and stores it in a key.
 
 Usage: opendb name path
 
+Example:
+
+#+BEGIN_SRC lil
+opendb db a.db
+#+END_SRC
+
+Will load "a.db" and store it in the key "db". Whenever
+the db is needed, it can be retrieved from the sndkit
+dictionary using =grab db=, or =[grab db]= if it is
+called as a parameter.
+* Loading WAV files from a Crate
 crtwav: load values, and push onto stack. Can take
 in a partial UUID (ergoID works as well).
 
 Usage: cratewav db UUID
 
+Example:
+
+#+BEGIN_SRC lil
+crtwav [grab db] galwawqpj
+#+END_SRC
+
+Will load the WAV file stored in entry "galwawqpj" into
+a sndkit table and push it onto the stack.
+
 crtwavk: load values, and store in dictionary with key.
 
+Usage: crtwavk db name id
+
+#+BEGIN_SRC lil
+crtwav [grab db] wt galwawqpj
+#+END_SRC
+
+Will load "galwawqpj" into a sndkit table, and then store
+that table in the sndkit dictionary as an entry called
+"wt". To retrieve the table, use =grab wt=, or
+=[grab wt]= if called as a parameter.
+* Loading headerless (RAW) files from a crate
+These are very similar to =crtwav=, except that 
 crtraw: like crtwav, only just load raw values.
 crtrawk: like crtwavk, only just load raw values.
