@@ -25,26 +25,25 @@ static void nil_deo(Device *d, Uint8 port);
 static void console_deo(Device *d, Uint8 port);
 #line 1053 "gestvm.org"
 static void gestvm_deo(Device *d, Uint8 port);
-#line 1221 "gestvm.org"
+#line 1202 "gestvm.org"
 static void vm_tick(gestvm *gvm, SKFLT phs);
-#line 1343 "gestvm.org"
+#line 1339 "gestvm.org"
 static SKFLT b_linear(gestvm *gvm, SKFLT a);
 static SKFLT b_step(gestvm *gvm, SKFLT a);
 static SKFLT b_gliss_medium(gestvm *gvm, SKFLT a);
 static SKFLT b_gliss(gestvm *gvm, SKFLT a);
-#line 1395 "gestvm.org"
+#line 1391 "gestvm.org"
 static SKFLT interpolate(gestvm *gvm, SKFLT phs);
-#line 1413 "gestvm.org"
+#line 1410 "gestvm.org"
 static gestvm_behavior find_behavior(int id);
-#line 1633 "gestvm.org"
+#line 1661 "gestvm.org"
 static void uxn_mass(gestvm *gvm, unsigned char val);
-#line 1655 "gestvm.org"
+#line 1683 "gestvm.org"
 static void uxn_inertia(gestvm *gvm, unsigned char val);
-#line 1692 "gestvm.org"
+#line 1720 "gestvm.org"
 static SKFLT b_gate_rel_25(gestvm *gvm, SKFLT a);
 static SKFLT b_gate_rel_50(gestvm *gvm, SKFLT a);
 static SKFLT b_gate_rel_125(gestvm *gvm, SKFLT a);
-static SKFLT b_gate_abs(gestvm *gvm, SKFLT a);
 #line 177 "gestvm.org"
 #line 711 "gestvm.org"
 int uxn_halt(Uxn *u, Uint8 error, char *name, int id)
@@ -75,25 +74,22 @@ gvm->update_rephasor = 0;
 gvm->u = u;
 #line 968 "gestvm.org"
 gvm->ptr = 0;
-#line 1216 "gestvm.org"
+#line 1197 "gestvm.org"
 gvm->lphs = 999;
-#line 1265 "gestvm.org"
+#line 1246 "gestvm.org"
 gvm->empty_value = 1;
-#line 1318 "gestvm.org"
+#line 1299 "gestvm.org"
 gvm->cur = 0;
 gvm->nxt = 0;
-#line 1336 "gestvm.org"
+#line 1317 "gestvm.org"
 gvm->behavior = b_linear;
-#line 1482 "gestvm.org"
+#line 1332 "gestvm.org"
+gvm->a = 0;
+#line 1510 "gestvm.org"
 gvm->mass = 0;
 gvm->inertia = 0;
-#line 1740 "gestvm.org"
+#line 1757 "gestvm.org"
 gvm->interp = 1;
-#line 1761 "gestvm.org"
-gvm->counter = 0;
-gvm->ms = 0;
-#line 1800 "gestvm.org"
-gvm->ms2samps = 1;
 #line 234 "gestvm.org"
 }
 #line 247 "gestvm.org"
@@ -116,11 +112,11 @@ SKFLT gestvm_tick(gestvm *gvm, SKFLT cnd)
 
     cnd = rephasor_tick(gvm, cnd);
 
-    /* VM process */
+    /* VM process! */
 
     vm_tick(gvm, cnd);
 
-    /* Interpolate */
+    /* Interpolate! */
 
     out = interpolate(gvm, cnd);
 
@@ -503,18 +499,11 @@ case 5: {
 case 6:
     gvm->nxt = (SKFLT) d->dat[port];
     break;
-#line 1159 "gestvm.org"
+#line 1162 "gestvm.org"
 case 7:
     gvm->behavior = find_behavior(d->dat[port]);
     break;
-#line 1178 "gestvm.org"
-case 8:
-    gestvm_counter_set(gvm, d->dat[port]);
-    break;
-case 9:
-    gestvm_counter_set(gvm, (gvm->ms << 8) | d->dat[port]);
-    break;
-#line 1188 "gestvm.org"
+#line 1169 "gestvm.org"
 case 10:
     gvm->interp = d->dat[port];
     break;
@@ -523,7 +512,7 @@ case 10:
             break;
     }
 }
-#line 1226 "gestvm.org"
+#line 1207 "gestvm.org"
 static void vm_tick(gestvm *gvm, SKFLT phs)
 {
     if (phs < gvm->lphs) {
@@ -532,24 +521,24 @@ static void vm_tick(gestvm *gvm, SKFLT phs)
         uxn_eval(&gvm->u->u, gvm->ptr);
         gvm->ptr = gvm->u->u.ram.ptr;
 
-#line 1280 "gestvm.org"
+#line 1261 "gestvm.org"
 if (gvm->empty_value) {
     gvm->empty_value = 0;
     gvm->cur = gvm->nxt;
     uxn_eval(&gvm->u->u, gvm->ptr);
     gvm->ptr = gvm->u->u.ram.ptr;
 }
-#line 1235 "gestvm.org"
+#line 1216 "gestvm.org"
     }
 
     gvm->lphs = phs;
 }
-#line 1301 "gestvm.org"
+#line 1282 "gestvm.org"
 void gestvm_eval(gestvm_uxn *gu, unsigned int addr)
 {
     uxn_eval(&gu->u, addr);
 }
-#line 1351 "gestvm.org"
+#line 1347 "gestvm.org"
 static SKFLT b_linear(gestvm *gvm, SKFLT a)
 {
     return a;
@@ -586,17 +575,18 @@ static SKFLT b_gliss(gestvm *gvm, SKFLT a)
 
     return a;
 }
-#line 1400 "gestvm.org"
+#line 1396 "gestvm.org"
 static SKFLT interpolate(gestvm *gvm, SKFLT phs)
 {
     SKFLT a;
     a = gvm->behavior(gvm, phs);
-
+    /* cache interpolation value */
+    gvm->a = a;
     if (gvm->interp)
         return (1.0 - a)*gvm->cur + a*gvm->nxt;
     return a;
 }
-#line 1418 "gestvm.org"
+#line 1415 "gestvm.org"
 static gestvm_behavior find_behavior(int id)
 {
     gestvm_behavior b;
@@ -625,21 +615,28 @@ static gestvm_behavior find_behavior(int id)
         case 6:
             b = b_gate_rel_50;
             break;
-        case 7:
-            b = b_gate_abs;
-            break;
         default:
             break;
     }
 
     return b;
 }
-#line 1521 "gestvm.org"
+#line 1474 "gestvm.org"
+void gestvm_get_last_values(gestvm *gvm,
+                            SKFLT *x,
+                            SKFLT *y,
+                            SKFLT *a)
+{
+    *x = gvm->cur;
+    *y = gvm->nxt;
+    *a = gvm->a;
+}
+#line 1549 "gestvm.org"
 size_t gestvm_weight_sizeof(void)
 {
     return sizeof(gestvm_weight);
 }
-#line 1534 "gestvm.org"
+#line 1562 "gestvm.org"
 void gestvm_weight_init(gestvm_weight *gw, gestvm *gvm, int sr)
 {
     gw->sr = sr;
@@ -650,7 +647,7 @@ void gestvm_weight_init(gestvm_weight *gw, gestvm *gvm, int sr)
     gestvm_weight_amppos(gw, 20);
     gestvm_weight_ampneg(gw, 20);
 }
-#line 1561 "gestvm.org"
+#line 1589 "gestvm.org"
 void gestvm_weight_amppos(gestvm_weight *gw, SKFLT amp)
 {
     gw->amppos = amp;
@@ -660,7 +657,7 @@ void gestvm_weight_ampneg(gestvm_weight *gw, SKFLT amp)
 {
     gw->ampneg = amp;
 }
-#line 1581 "gestvm.org"
+#line 1609 "gestvm.org"
 SKFLT gestvm_weight_tick(gestvm_weight *gw)
 {
     SKFLT i;
@@ -701,7 +698,7 @@ SKFLT gestvm_weight_tick(gestvm_weight *gw)
 
     return out;
 }
-#line 1638 "gestvm.org"
+#line 1666 "gestvm.org"
 static void uxn_mass(gestvm *gvm, unsigned char val)
 {
     SKFLT m;
@@ -715,7 +712,7 @@ static void uxn_mass(gestvm *gvm, unsigned char val)
 
     gvm->mass = m;
 }
-#line 1660 "gestvm.org"
+#line 1688 "gestvm.org"
 static void uxn_inertia(gestvm *gvm, unsigned char val)
 {
     SKFLT i;
@@ -726,7 +723,7 @@ static void uxn_inertia(gestvm *gvm, unsigned char val)
 
     gvm->inertia = i;
 }
-#line 1700 "gestvm.org"
+#line 1727 "gestvm.org"
 static SKFLT b_gate_rel_25(gestvm *gvm, SKFLT a)
 {
     return a <= 0.25;
@@ -740,26 +737,5 @@ static SKFLT b_gate_rel_50(gestvm *gvm, SKFLT a)
 static SKFLT b_gate_rel_125(gestvm *gvm, SKFLT a)
 {
     return a <= 0.125;
-}
-
-static SKFLT b_gate_abs(gestvm *gvm, SKFLT a)
-{
-    if (gvm->counter > 0) {
-        gvm->counter--;
-        return 1.0;
-    }
-
-    return 0.0;
-}
-#line 1781 "gestvm.org"
-void gestvm_counter_set(gestvm *gvm, unsigned int ms)
-{
-    gvm->counter = floor(ms * gvm->ms2samps);
-    gvm->ms = ms;
-}
-#line 1810 "gestvm.org"
-void gestvm_sr_set(gestvm *gvm, int sr)
-{
-    gvm->ms2samps = sr / 1000.0;
 }
 #line 177 "gestvm.org"
