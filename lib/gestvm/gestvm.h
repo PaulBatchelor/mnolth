@@ -12,9 +12,9 @@ typedef struct gestvm gestvm;
 typedef struct gestvm_rephasor gestvm_rephasor;
 #line 733 "gestvm.org"
 typedef struct gestvm_uxn gestvm_uxn;
-#line 1326 "gestvm.org"
+#line 1307 "gestvm.org"
 typedef SKFLT (*gestvm_behavior)(gestvm *, SKFLT);
-#line 1494 "gestvm.org"
+#line 1522 "gestvm.org"
 typedef struct gestvm_weight gestvm_weight;
 #line 165 "gestvm.org"
 
@@ -51,24 +51,21 @@ int update_rephasor;
 gestvm_uxn *u;
 #line 963 "gestvm.org"
 unsigned int ptr;
-#line 1208 "gestvm.org"
+#line 1189 "gestvm.org"
 SKFLT lphs;
-#line 1260 "gestvm.org"
+#line 1241 "gestvm.org"
 int empty_value;
-#line 1313 "gestvm.org"
+#line 1294 "gestvm.org"
 SKFLT cur, nxt;
-#line 1331 "gestvm.org"
+#line 1312 "gestvm.org"
 gestvm_behavior behavior;
-#line 1476 "gestvm.org"
+#line 1327 "gestvm.org"
+SKFLT a;
+#line 1504 "gestvm.org"
 SKFLT inertia;
 SKFLT mass;
-#line 1735 "gestvm.org"
+#line 1752 "gestvm.org"
 int interp;
-#line 1755 "gestvm.org"
-unsigned long counter;
-unsigned long ms;
-#line 1795 "gestvm.org"
-SKFLT ms2samps;
 #line 218 "gestvm.org"
 };
 #line 177 "gestvm.org"
@@ -78,7 +75,7 @@ struct gestvm_uxn {
     gestvm *gvm;
 };
 #line 177 "gestvm.org"
-#line 1499 "gestvm.org"
+#line 1527 "gestvm.org"
 struct gestvm_weight {
     gestvm *gvm;
     int sr;
@@ -117,21 +114,22 @@ int gestvm_load(gestvm_uxn *gu, const char *rom);
 unsigned int gestvm_lookup(const char *rom, const char *sym);
 #line 975 "gestvm.org"
 void gestvm_pointer(gestvm *gvm, unsigned int ptr);
-#line 1296 "gestvm.org"
+#line 1277 "gestvm.org"
 void gestvm_eval(gestvm_uxn *gu, unsigned int addr);
-#line 1516 "gestvm.org"
+#line 1461 "gestvm.org"
+void gestvm_get_last_values(gestvm *gvm,
+                            SKFLT *x,
+                            SKFLT *y,
+                            SKFLT *a);
+#line 1544 "gestvm.org"
 size_t gestvm_weight_sizeof(void);
-#line 1529 "gestvm.org"
+#line 1557 "gestvm.org"
 void gestvm_weight_init(gestvm_weight *gw, gestvm *gvm, int sr);
-#line 1555 "gestvm.org"
+#line 1583 "gestvm.org"
 void gestvm_weight_amppos(gestvm_weight *gw, SKFLT amp);
 void gestvm_weight_ampneg(gestvm_weight *gw, SKFLT amp);
-#line 1576 "gestvm.org"
+#line 1604 "gestvm.org"
 SKFLT gestvm_weight_tick(gestvm_weight *gw);
-#line 1776 "gestvm.org"
-void gestvm_counter_set(gestvm *gvm, unsigned int ms);
-#line 1805 "gestvm.org"
-void gestvm_sr_set(gestvm *gvm, int sr);
 #line 171 "gestvm.org"
 
 #endif

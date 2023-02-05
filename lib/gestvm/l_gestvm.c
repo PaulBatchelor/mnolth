@@ -84,7 +84,6 @@ int sk_node_gestvm(sk_core *core, unsigned int ptr)
     gf_node *node;
     sk_param cnd;
     gestvm *gvm;
-    int sr;
 
     rc = sk_param_get(core, &cnd);
     SK_ERROR_CHECK(rc);
@@ -101,8 +100,6 @@ int sk_node_gestvm(sk_core *core, unsigned int ptr)
     gvm = ud;
 
     gestvm_init(gvm, gu);
-    sr = gf_patch_srate_get(patch);
-    gestvm_sr_set(gvm, sr);
     gestvm_pointer(gvm, ptr);
 
     rc = gf_patch_new_node(patch, &node);
