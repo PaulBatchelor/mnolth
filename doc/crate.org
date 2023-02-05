@@ -1,0 +1,20 @@
+#+TITLE Crates
+Crates are a mechanism in the Weewiki that allow files
+to be stored in the zettelkasten via the SQLar format.
+
+Mainly, the usage they have in mnolth is to load samples
+or wavetables in to a table.
+
+opendb: opens a database and stores it in a key.
+
+Usage: opendb name path
+
+crtwav: load values, and push onto stack. Can take
+in a partial UUID (ergoID works as well).
+
+Usage: cratewav db UUID
+
+crtwavk: load values, and store in dictionary with key.
+
+crtraw: like crtwav, only just load raw values.
+crtrawk: like crtwavk, only just load raw values.
