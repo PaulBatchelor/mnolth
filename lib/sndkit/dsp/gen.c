@@ -98,8 +98,11 @@ void sk_gen_vals(SKFLT **ptab, int *psz, const char *string)
     *psz = sz;
     free(ptr);
 }
-#line 179 "gen.org"
-void sk_gen_sinesum(SKFLT *tab, int sz, const char *argstring)
+#line 182 "gen.org"
+void sk_gen_sinesum(SKFLT *tab,
+                    int sz,
+                    const char *argstring,
+                    int normalize)
 {
     SKFLT *args;
     int argsz;
@@ -108,10 +111,13 @@ void sk_gen_sinesum(SKFLT *tab, int sz, const char *argstring)
     int flen;
     SKFLT tpdlen;
     int i, n;
+    SKFLT ampsum;
 
     args = malloc(sizeof(SKFLT));
     args[0] = 0;
     argsz = 1;
+
+    ampsum = 0;
 
     sk_gen_vals(&args, &argsz, argstring);
     flen = sz;
@@ -119,12 +125,21 @@ void sk_gen_sinesum(SKFLT *tab, int sz, const char *argstring)
 
     for (i = argsz; i > 0; i--) {
         amp = args[i - 1];
-        if (amp != 0) {
+        if (amp > 0) {
+            ampsum += amp;
             for (phs = 0, n = 0; n < sz; n++) {
                 tab[n] += sin(phs * tpdlen) * amp;
                 phs += i;
                 phs %= flen;
             }
+        }
+    }
+
+    if (normalize) {
+        SKFLT norm;
+        norm = 1.0 / ampsum;
+        for (n = 0; n < sz; n++) {
+            tab[n] *= norm;
         }
     }
 
