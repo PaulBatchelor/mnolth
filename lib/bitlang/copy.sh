@@ -8,6 +8,6 @@ BITLANG_PATH=$1
 CURDIR=$(pwd)
 WORGLE=$CURDIR/../../util/worgle/worglite
 cd $BITLANG_PATH
-$(WORGLE) bitlang.org
+$WORGLE bitlang.org
 rsync -rvt bitlang.c bitlang.h $CURDIR
 cd $CURDIR

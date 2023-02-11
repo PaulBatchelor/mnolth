@@ -207,9 +207,10 @@ static lil_value_t l_blngex(lil_t lil,
     void *ud;
     int t;
     int x, y, w, h;
+    int invert;
 
     core = lil_get_data(lil);
-    SKLIL_ARITY_CHECK(lil, "bpatcmp", argc, 3);
+    SKLIL_ARITY_CHECK(lil, "blngex", argc, 3);
 
     rc = sk_core_generic_pop(core, &ud);
     SKLIL_ERROR_CHECK(lil, rc, "could not get bitpat");
@@ -229,6 +230,12 @@ static lil_value_t l_blngex(lil_t lil,
     bitlang_regset(&bp->vm, 3, h);
     bitlang_regset(&bp->vm, 4, t);
 
+    invert = 0;
+
+    if (argc > 3) {
+        invert = lil_to_integer(argv[3]);
+    }
+
     for (y = 0; y < h; y++) {
         for (x = 0; x < w; x++) {
             int val;
@@ -244,6 +251,8 @@ static lil_value_t l_blngex(lil_t lil,
             }
 
             bitlang_pop(&bp->vm, &val);
+
+            if (invert) val = val ? 0 : 1;
 
             btprnt_region_draw(reg, x, y, val);
         }

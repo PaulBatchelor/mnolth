@@ -1,0 +1,38 @@
+Graphics Operations in mnolth (WIP)
+
+similar to =grfxnew=, but with a zoom amount.
+
+This creates a 128x64 image called "gfx" with a zoom of 4:
+
+#+BEGIN_SRC lil
+gfxnewz gfx 128 64 4
+#+END_SRC
+
+=gfxclrset= sets the color in a particular index slot.
+
+
+This sets the color at index 1 to be white (1,1,1):
+
+#+BEGIN_SRC lil
+grab gfx
+gfxclrset 1 1.0 1.0 1.0
+#+END_SRC
+
+=gfxfill= fills the buffer to be a color from an index.
+
+This fills the color to be whatever is stored in index 1:
+
+#+BEGIN_SRC lil
+gfxfill 1
+#+END_SRC
+
+=bptr= transfers a btprnt instance to a gfxbuf canvas.
+
+#+BEGIN_SRC lil
+bptr [grab bp] 0 0 128 128 0 0 0
+#+END_SRC
+
+
+gfxzoomit
+
+gfxtransferz
