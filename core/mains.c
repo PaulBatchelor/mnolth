@@ -283,6 +283,10 @@ void gestvm_memops_lua(lua_State *L);
 int luaopen_lpeg(lua_State *L);
 int luaopen_lsqlite3(lua_State *L);
 
+#ifdef MONOME_GRID
+int luaopen_monome_grid(lua_State *L);
+#endif
+
 static void load_lua_funcs(lua_State *L, lil_t lil)
 {
     lua_pushlightuserdata(L, lil);
@@ -292,6 +296,9 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     gestvm_memops_lua(L);
     luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
     luaL_requiref(L, "lsqlite3", luaopen_lsqlite3, 1);
+#ifdef MONOME_GRID
+    luaL_requiref(L, "monome_grid", luaopen_monome_grid, 1);
+#endif
 }
 
 int lua_main (int argc, char **argv,
