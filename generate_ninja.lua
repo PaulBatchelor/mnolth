@@ -5,6 +5,8 @@ for _,a in pairs(arg) do
         config.mnort = true
     elseif (a == "mnodes") then
         config.mnodes = true
+    elseif (a == "grid") then
+        config.grid = true
     end
 end
 
@@ -144,6 +146,12 @@ if config.mnort then
     table.insert(libs, "-ljack")
 end
 
+function add_libs(p)
+    for _,v in pairs(p) do
+        table.insert(libs, "-l" .. v)
+    end
+end
+
 function generate_ninja()
     fp = io.open("build.ninja", "w")
     objstr = table.concat(objects, " ")
@@ -260,5 +268,10 @@ require("lib/lsqlite3/config")
 if config.mnodes then
     require("mnodes/config")
 end
+
+if config.grid then
+    require("grid/config")
+end
+
 
 generate_ninja()
