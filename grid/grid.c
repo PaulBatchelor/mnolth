@@ -1,3 +1,4 @@
+#define _BSD_SOURCE /* for usleep() */
 #include <monome.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -153,12 +154,30 @@ static int grid_update(lua_State *L)
     return 0;
 }
 
+static double now_sec(void)
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + tv.tv_usec*1e-6;
+}
+
+static int grid_now(lua_State *L)
+{
+    double t;
+
+    t = now_sec();
+
+    lua_pushnumber(L, t);
+    return 1;
+}
+
 static const luaL_Reg grid_lib[] = {
     {"open", grid_open},
     {"close", grid_close},
     {"get_input_events", grid_get_input_events},
     {"usleep", grid_usleep},
     {"update", grid_update},
+    {"now", grid_now},
     {NULL, NULL}
 };
 
