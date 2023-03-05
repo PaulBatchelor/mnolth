@@ -17,6 +17,10 @@
 void mno_load(lil_t lil);
 void mno_clean(lil_t lil);
 
+#ifdef MNODES
+void mnodes_lua_funcs(lua_State *L);
+#endif
+
 static pointer scm_lil(scheme *sc, pointer args)
 {
     const char *str;
@@ -298,6 +302,10 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     luaL_requiref(L, "lsqlite3", luaopen_lsqlite3, 1);
 #ifdef MONOME_GRID
     luaL_requiref(L, "monome_grid", luaopen_monome_grid, 1);
+#endif
+
+#ifdef MNODES
+    mnodes_lua_funcs(L);
 #endif
 }
 

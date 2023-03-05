@@ -7,6 +7,10 @@ for _,a in pairs(arg) do
         config.mnodes = true
     elseif (a == "grid") then
         config.grid = true
+    elseif (a == "all") then
+        config.grid = true
+        config.mnodes = true
+        config.mnort = true
     end
 end
 
