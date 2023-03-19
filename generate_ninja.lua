@@ -274,7 +274,7 @@ if config.mnodes then
 end
 
 if config.grid then
-    require("grid/config")
+    require("monome/grid/config")
 end
 
 
