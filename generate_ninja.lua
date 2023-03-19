@@ -5,10 +5,10 @@ for _,a in pairs(arg) do
         config.mnort = true
     elseif (a == "mnodes") then
         config.mnodes = true
-    elseif (a == "grid") then
-        config.grid = true
+    elseif (a == "monome") then
+        config.monome = true
     elseif (a == "all") then
-        config.grid = true
+        config.monome = true
         config.mnodes = true
         config.mnort = true
     end
@@ -273,8 +273,8 @@ if config.mnodes then
     require("mnodes/config")
 end
 
-if config.grid then
-    require("monome/grid/config")
+if config.monome then
+    require("monome/config")
 end
 
 

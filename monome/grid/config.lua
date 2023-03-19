@@ -5,7 +5,3 @@ add_cflags {
 add_objects {
     "monome/grid/grid",
 }
-
-add_libs {
-    "monome"
-}
