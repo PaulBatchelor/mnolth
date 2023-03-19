@@ -8,14 +8,58 @@
 #include "lua/lualib.h"
 
 typedef struct {
-    /* TODO impleemnt */
+    /* TODO implement */
 	monome_t *monome;
+	lua_State *L;
+    uint8_t map[64];
+
 } monome_arc_data;
+
+static void delta2lua(lua_State *L, int number, int delta)
+{
+    int pos;
+
+    lua_len(L, -1);
+    pos = lua_tointeger(L, -1);
+    lua_pop(L, 1);
+    lua_pushinteger(L, pos + 1);
+
+    lua_createtable(L, 2, 0);
+
+    lua_pushinteger(L, 1);
+    lua_pushinteger(L, number);
+    lua_settable(L, -3);
+
+    lua_pushinteger(L, 2);
+    lua_pushinteger(L, delta);
+    lua_settable(L, -3);
+
+    lua_settable(L, -3);
+}
+void handle_delta(const monome_event_t *e, void *data)
+{
+	unsigned int number, delta;
+    lua_State *L;
+    monome_arc_data *md;
+
+    md = data;
+    number = e->encoder.number;
+    delta = e->encoder.delta;
+	L = md->L;
+
+    delta2lua(L, number, delta);
+}
+
+static void clear_rings(monome_t *monome)
+{
+	int i;
+
+	for( i = 0; i < 4; i++ )
+		monome_led_ring_all(monome, i, 0);
+}
 
 static int arc_open(lua_State *L)
 {
-    /* TODO: implement */
-#if 0
     const char *path;
     monome_arc_data *md;
 
@@ -28,47 +72,34 @@ static int arc_open(lua_State *L)
         luaL_error(L, "Could not open arc at %s", path);
     }
 
-	monome_led_all(md->monome, 0);
+	clear_rings(md->monome);
 
 	monome_register_handler(md->monome,
-	                        MONOME_BUTTON_DOWN,
-	                        handle_press_down,
+	                        MONOME_ENCODER_DELTA,
+	                        handle_delta,
 	                        md);
-
-	monome_register_handler(md->monome,
-	                        MONOME_BUTTON_UP,
-	                        handle_press_up,
-	                        md);
-
     md->L = L;
-#endif
     return 1;
 }
 
 static int arc_close(lua_State *L)
 {
-    /* TODO: implement */
-#if 0
     monome_arc_data *md;
     md = lua_touserdata(L, 1);
 
-	monome_led_all(md->monome, 0);
+	clear_rings(md->monome);
 	monome_close(md->monome);
-#endif
     return 0;
 }
 
 static int arc_get_input_events(lua_State *L)
 {
-    /* TODO: implement */
-#if 0
     monome_arc_data *md;
     md = lua_touserdata(L, 1);
 
     lua_newtable(L);
 
     while(monome_event_handle_next(md->monome));
-#endif
     return 1;
 }
 
