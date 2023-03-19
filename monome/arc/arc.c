@@ -115,28 +115,28 @@ static int arc_usleep(lua_State *L)
 static int arc_update(lua_State *L)
 {
     /* TODO implement */
-#if 0
     monome_arc_data *md;
     int i;
-    md = lua_touserdata(L, 1);
+    int knob;
+    uint32_t state[2];
+    uint8_t *map;
 
-    for (i = 0; i < 8; i++) {
-        int val;
-        lua_pushinteger(L, i + 1);
-        lua_gettable(L, 2);
-        val = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        md->quadL[i] = val;
-        lua_pushinteger(L, i + 1);
-        lua_gettable(L, 3);
-        val = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-        md->quadR[i] = val;
+    md = lua_touserdata(L, 1);
+    map = md->map;
+
+    knob = lua_tointeger(L, 2);
+    state[0] = lua_tointeger(L, 3);
+    state[1] = lua_tointeger(L, 4);
+
+    for (i = 0; i < 32; i ++) {
+        int p;
+        p = i;
+        map[p] = ((state[0] & (1 << i)) >> i) * 15;
+        p = i + 32;
+        map[p] = ((state[1] & (1 << i)) >> i) * 15;
     }
 
-    monome_led_map(md->monome, 0, 0, md->quadL);
-    monome_led_map(md->monome, 255, 0, md->quadR);
-#endif
+    monome_led_ring_map(md->monome, knob, map);
     return 0;
 }
 
