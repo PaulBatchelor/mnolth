@@ -291,6 +291,10 @@ int luaopen_lsqlite3(lua_State *L);
 int luaopen_monome_grid(lua_State *L);
 #endif
 
+#ifdef MONOME_ARC
+int luaopen_monome_arc(lua_State *L);
+#endif
+
 static void load_lua_funcs(lua_State *L, lil_t lil)
 {
     lua_pushlightuserdata(L, lil);
@@ -302,6 +306,10 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     luaL_requiref(L, "lsqlite3", luaopen_lsqlite3, 1);
 #ifdef MONOME_GRID
     luaL_requiref(L, "monome_grid", luaopen_monome_grid, 1);
+#endif
+
+#ifdef MONOME_ARC
+    luaL_requiref(L, "monome_arc", luaopen_monome_arc, 1);
 #endif
 
 #ifdef MNODES
