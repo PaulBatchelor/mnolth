@@ -36,12 +36,15 @@ mkdir -p $INSTALL_PATH/include/mnolth/sndkit/nodes
 mkdir -p $INSTALL_PATH/include/mnolth/sndkit/lil
 mkdir -p $INSTALL_PATH/include/mnolth/sndkit/dsp
 mkdir -p $INSTALL_PATH/include/mnolth/sndkit/graforge
+mkdir -p $INSTALL_PATH/include/mnolth/sndkit/kissfft
 cp $LIBPATH/sndkit/core.h $INSTALL_PATH/include/mnolth/sndkit
 cp $LIBPATH/sndkit/nodes/sknodes.h $INSTALL_PATH/include/mnolth/sndkit/nodes
 cp $LIBPATH/sndkit/nodes/sklil.h $INSTALL_PATH/include/mnolth/sndkit/nodes
 cp $LIBPATH/sndkit/dsp/*.h $INSTALL_PATH/include/mnolth/sndkit/dsp
 cp $LIBPATH/sndkit/lil/lil.h $INSTALL_PATH/include/mnolth/sndkit/lil
 cp $LIBPATH/sndkit/graforge/graforge.h $INSTALL_PATH/include/mnolth/sndkit/graforge
+cp $LIBPATH/sndkit/extra/kissfft/kiss_fft.h $INSTALL_PATH/include/mnolth/sndkit/kissfft
+cp $LIBPATH/sndkit/extra/kissfft/kiss_fftr.h $INSTALL_PATH/include/mnolth/sndkit/kissfft
 
 # lua
 mkdir -p $INSTALL_PATH/include/mnolth/lua
