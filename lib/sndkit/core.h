@@ -26,7 +26,7 @@ typedef struct sk_register_entry sk_register_entry;
 typedef struct sk_regtbl sk_regtbl;
 #line 1365 "core.org"
 typedef struct sk_table sk_table;
-#line 1648 "core.org"
+#line 1689 "core.org"
 typedef struct sk_dict sk_dict;
 #line 26 "core.org"
 #ifdef SK_CORE_PRIV
@@ -58,7 +58,7 @@ struct sk_table {
     SKFLT *tab;
     unsigned long sz;
 };
-#line 1653 "core.org"
+#line 1694 "core.org"
 struct dict_entry {
     char *key;
     int sz;
@@ -83,14 +83,14 @@ struct sk_core {
 };
 #line 29 "core.org"
 #endif
-#line 1561 "core.org"
+#line 1602 "core.org"
 #define SK_ERROR_CHECK(rc) if (rc) return rc;
-#line 1566 "core.org"
+#line 1607 "core.org"
 #define SK_GF_ERROR_CHECK(rc) if(rc != GF_OK) {\
     fprintf(stderr, "Error: %s\n", gf_error(rc));\
     return 1;\
 }
-#line 1603 "core.org"
+#line 1644 "core.org"
 #define SK_CORE_RANDMAX 2147483648
 #line 29 "core.org"
 #line 61 "core.org"
@@ -206,19 +206,21 @@ int sk_core_table_pop(sk_core *core, sk_table **tab);
 #line 1514 "core.org"
 int sk_table_dump(sk_table *tab, const char *filename);
 int sk_core_tabdump(sk_core *core, const char *filename);
-#line 1581 "core.org"
+#line 1563 "core.org"
+int sk_core_tabload(sk_core *core, const char *filename);
+#line 1622 "core.org"
 void sk_core_srand(sk_core *core, unsigned long val);
-#line 1596 "core.org"
+#line 1637 "core.org"
 unsigned long sk_core_rand(sk_core *core);
-#line 1619 "core.org"
+#line 1660 "core.org"
 SKFLT sk_core_randf(sk_core *core);
-#line 1670 "core.org"
+#line 1711 "core.org"
 size_t sk_dict_sizeof(void);
-#line 1709 "core.org"
+#line 1750 "core.org"
 void sk_dict_init(sk_dict *d);
-#line 1728 "core.org"
+#line 1769 "core.org"
 int sk_dict_clean(sk_dict *d);
-#line 1764 "core.org"
+#line 1805 "core.org"
 int sk_dict_append(sk_dict *d,
                    const char *key,
                    int sz,
@@ -231,13 +233,13 @@ int sk_dict_sappend(sk_dict *d,
                     void *p,
                     void (*del)(void*),
                     sk_stacklet **s);
-#line 1838 "core.org"
+#line 1879 "core.org"
 int sk_core_append(sk_core *core,
                    const char *key,
                    int sz,
                    void *p,
                    void (*del)(void*));
-#line 1859 "core.org"
+#line 1900 "core.org"
 int sk_dict_lookup_stacklet(sk_dict *d,
                             const char *key,
                             int sz,
@@ -247,22 +249,22 @@ int sk_dict_lookup(sk_dict *d,
                    const char *key,
                    int sz,
                    void **p);
-#line 1920 "core.org"
+#line 1961 "core.org"
 int sk_core_lookup(sk_core *core,
                    const char *key,
                    int sz,
                    void **p);
-#line 1939 "core.org"
-int sk_dict_remove(sk_dict *d, const char *key, int sz);
 #line 1980 "core.org"
+int sk_dict_remove(sk_dict *d, const char *key, int sz);
+#line 2021 "core.org"
 int sk_core_remove(sk_core *core,
                    const char *key,
                    int sz);
-#line 1997 "core.org"
+#line 2038 "core.org"
 int sk_core_grab(sk_core *core,
                  const char *key,
                  int sz);
-#line 2037 "core.org"
+#line 2078 "core.org"
 int sk_core_append_table(sk_core *core,
                          const char *key,
                          int sz,
