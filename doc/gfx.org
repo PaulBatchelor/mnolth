@@ -1,6 +1,6 @@
 Graphics Operations in mnolth (WIP)
 
-similar to =grfxnew=, but with a zoom amount.
+similar to =gfxnew=, but with a zoom amount.
 
 This creates a 128x64 image called "gfx" with a zoom of 4:
 
@@ -36,3 +36,29 @@ bptr [grab bp] 0 0 128 128 0 0 0
 gfxzoomit
 
 gfxtransferz
+
+gfxppm writes a ppm file.
+
+#+BEGIN_SRC lil
+gfxppm "foo.ppm"
+#+END_SRC
+
+Drawing a circle with gfxcirc:
+
+#+BEING_SRC lil
+gfxnew gfx 256 256
+
+grab gfx
+dup
+gfxclrset 1 1.0 1.0 1.0
+dup
+gfxclrset 0 0.0 0.0 0.0
+
+dup
+gfxfill 1
+
+dup
+gfxcirc 128 128 64 0
+dup
+gfxppm "test.ppm"
+#+END_SRC
