@@ -4,6 +4,7 @@ add_object("core/l_gfxbuf")
 add_tangled_object("core/draw")
 add_tangled_object("core/var")
 add_tangled_object("core/misc", false)
+add_tangled_object("core/sdf", false)
 
 add_object("core/loader")
 add_object("core/l_var")
