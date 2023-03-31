@@ -137,6 +137,7 @@ static lil_value_t l_gfxboxround(lil_t lil,
     void *ptr;
     int rc;
     double x, y, w, h, r;
+    double scale;
     int pos;
 
     SKLIL_ARITY_CHECK(lil, "gfxbuf", argc, 6);
@@ -154,8 +155,13 @@ static lil_value_t l_gfxboxround(lil_t lil,
     h = lil_to_double(argv[3]);
     r = lil_to_double(argv[4]);
     pos = lil_to_integer(argv[5]);
+    scale = 1.0;
 
-    gfxdrw_rounded_box(gfx, x, y, w, h, r, pos);
+    if (argc >= 7) {
+        scale = lil_to_double(argv[6]);
+    }
+
+    gfxdrw_rounded_box(gfx, x, y, w, h, r, scale, pos);
 
     rc = sk_core_generic_push(core, ptr);
     SKLIL_ERROR_CHECK(lil, rc, "could not push gfxbuf instance.");
