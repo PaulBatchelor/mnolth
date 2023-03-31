@@ -1,13 +1,12 @@
 #+TITLE: Draw
 Some basic drawing primitives, using =gfxbuf=.
-
-WIP.
-
+* Tangled Files
 #+NAME: draw.c
 #+BEGIN_SRC c :tangle core/draw.c
 #include "mathc/mathc.h"
 #include "gfxbuf.h"
 #include "draw.h"
+#include "sdf.h"
 <<funcs>>
 #+END_SRC
 
@@ -18,7 +17,7 @@ WIP.
 <<funcdefs>>
 #endif
 #+END_SRC
-
+* Rectangle
 #+NAME: funcdefs
 #+BEGIN_SRC c
 void gfxdrw_rect_filled(gfxbuf *buf,
@@ -51,7 +50,7 @@ void gfxdrw_rect_filled(gfxbuf *buf,
 
 }
 #+END_SRC
-
+* Circle
 #+NAME: funcdefs
 #+BEGIN_SRC c
 void gfxdrw_circ_filled(gfxbuf *gfx,
@@ -62,11 +61,6 @@ void gfxdrw_circ_filled(gfxbuf *gfx,
 
 #+NAME: funcs
 #+BEGIN_SRC c
-float sdf_circle(struct vec2 p, float r);
-float sdf_sign(float x);
-struct vec2 sdf_normalize(struct vec2 pos, struct vec2 res);
-float sdf_smoothstep(float e0, float e1, float x);
-
 static void circ(gfxbuf_state *st)
 {
     float d;
@@ -122,5 +116,75 @@ void gfxdrw_circ_filled(gfxbuf *gfx,
     clr = gfxbuf_clrget(gfx, clrpos);
 
     gfxbuf_draw(gfx, x, y, w, h, circ, &clr);
+}
+#+END_SRC
+* Heart
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxdrw_heart(gfxbuf *gfx,
+                  double cx,
+                  double cy,
+                  double r,
+                  int clrpos);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static void heart(gfxbuf_state *st)
+{
+    float d;
+    struct vec3 col;
+    float alpha;
+    struct vec2 p;
+    struct vec2 res;
+    gfxbuf_pixel *pix;
+    struct vec3 bg;
+
+    res = svec2(st->info->rw, st->info->rh);
+
+    pix = st->info->ud;
+
+    /* p = sdf_normalize(svec2(st->x, st->y), res); */
+    p = sdf_heart_center(svec2(st->x, st->y), res);
+    d = sdf_heart(p);
+
+    alpha = 0;
+    alpha = -sdf_sign(d) > 0;
+
+    alpha += sdf_smoothstep(3.0 / st->info->rw, 0.0, fabs(d));
+    alpha = clampf(alpha, 0, 1);
+
+    bg.x = st->out->r;
+    bg.y = st->out->g;
+    bg.z = st->out->b;
+
+    bg = svec3(st->out->r, st->out->g, st->out->b);
+    col = svec3(pix->r, pix->g, pix->b);
+    col = svec3_lerp(bg, col, alpha);
+
+    st->out->r = col.x;
+    st->out->g = col.y;
+    st->out->b = col.z;
+}
+
+void gfxdrw_heart(gfxbuf *gfx,
+                  double cx,
+                  double cy,
+                  double r,
+                  int clrpos)
+{
+    double x;
+    double y;
+    double w;
+    double h;
+    gfxbuf_pixel clr;
+
+    x = cx - r;
+    y = cy - r;
+    w = 2 * r;
+    h = w;
+    clr = gfxbuf_clrget(gfx, clrpos);
+
+    gfxbuf_draw(gfx, (int)x, (int)y, (int)w, (int)h, heart, &clr);
 }
 #+END_SRC
