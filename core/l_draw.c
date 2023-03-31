@@ -90,6 +90,9 @@ static lil_value_t l_gfxcirc(lil_t lil,
     pos = lil_to_integer(argv[3]);
 
     gfxdrw_circ_filled(gfx, cx, cy, r, pos);
+
+    rc = sk_core_generic_push(core, ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not push gfxbuf instance.");
     return NULL;
 }
 
