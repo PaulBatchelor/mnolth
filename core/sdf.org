@@ -133,3 +133,63 @@ struct vec2 sdf_normalize(struct vec2 pos, struct vec2 res)
     return p;
 }
 #+END_SRC
+* Rounded Box
+pos: xy position.
+
+b = width/height
+
+r = roundness (x: tr, y: br, z: tl, w: bl)
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r)
+{
+    struct vec2 q;
+    float out;
+
+    /* r.xy = (p.x>0.0)?r.xy : r.zw; */
+
+    if (pos.x <= 0.0) {
+        r.x = r.z;
+        r.y = r.w;
+    }
+
+    /* r.x  = (p.y>0.0)?r.x  : r.y; */
+
+    if (pos.y <= 0.0) {
+        r.x = r.y;
+    }
+    /* vec2 q = abs(p)-b+r.x; */
+
+    /* abs(p) */
+    q = pos;
+    q.x = fabs(q.x);
+    q.y = fabs(q.y);
+
+    /* q - b */
+    q = svec2_subtract(q, b);
+
+    /* q + r.x */
+    q = svec2_add_f(q, r.x);
+
+    /* return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x; */
+
+    /* min(max(q.x, q.y), 0.0) */
+
+    out = sdf_min(sdf_max(q.x, q.y), 0.0);
+
+    /* + length(max(q, 0.0)) */
+
+    out += svec2_length(svec2_max(q, svec2_zero()));
+
+    /* - r.x */
+    out -= r.x;
+
+    return out;
+}
+#+END_SRC

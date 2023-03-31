@@ -188,3 +188,83 @@ void gfxdrw_heart(gfxbuf *gfx,
     gfxbuf_draw(gfx, (int)x, (int)y, (int)w, (int)h, heart, &clr);
 }
 #+END_SRC
+* Rounded Box
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void gfxdrw_rounded_box(gfxbuf *gfx,
+                        double x,
+                        double y,
+                        double w,
+                        double h,
+                        double r,
+                        int clrpos);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+struct rounded_box_d {
+    gfxbuf_pixel pix;
+    float roundedness;
+};
+
+static void rounded_box(gfxbuf_state *st)
+{
+    float d;
+    struct vec3 col;
+    float alpha;
+    struct vec2 p;
+    struct vec2 res;
+    gfxbuf_pixel *pix;
+    struct vec3 bg;
+    struct rounded_box_d *rb;
+    struct vec4 r;
+    struct vec2 b;
+    float rad;
+
+    res = svec2(st->info->rw, st->info->rh);
+
+    rb = st->info->ud;
+    pix = &rb->pix;
+
+    p = sdf_normalize(svec2(st->x, st->y), res);
+    b = svec2_one();
+    rad = rb->roundedness;
+    r = svec4(rad, rad, rad, rad);
+    d = sdf_rounded_box(p, b, r);
+
+    alpha = 0;
+    alpha = -sdf_sign(d) > 0;
+
+    alpha += sdf_smoothstep(3.0 / st->info->rw, 0.0, fabs(d));
+    alpha = clampf(alpha, 0, 1);
+
+    bg.x = st->out->r;
+    bg.y = st->out->g;
+    bg.z = st->out->b;
+
+    bg = svec3(st->out->r, st->out->g, st->out->b);
+    col = svec3(pix->r, pix->g, pix->b);
+    col = svec3_lerp(bg, col, alpha);
+
+    st->out->r = col.x;
+    st->out->g = col.y;
+    st->out->b = col.z;
+}
+
+void gfxdrw_rounded_box(gfxbuf *gfx,
+                        double x,
+                        double y,
+                        double w,
+                        double h,
+                        double r,
+                        int clrpos)
+{
+    struct rounded_box_d rb;
+
+    rb.pix = gfxbuf_clrget(gfx, clrpos);
+    rb.roundedness = r;
+
+
+    gfxbuf_draw(gfx, (int)x, (int)y, (int)w, (int)h, rounded_box, &rb);
+}
+#+END_SRC
