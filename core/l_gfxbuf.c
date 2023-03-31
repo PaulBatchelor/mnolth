@@ -158,6 +158,8 @@ static lil_value_t l_gfxppm(lil_t lil,
     ppm = lil_to_string(argv[0]);
 
     gfxbuf_ppm(gfx, ppm);
+    rc = sk_core_generic_push(core, ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not pushgfxbuf instance.");
 
     return NULL;
 }
@@ -201,6 +203,8 @@ static lil_value_t l_gfxfill(lil_t lil,
     pix = gfxbuf_clrget(gfx, clr);
 
     fill(gfx, pix);
+    rc = sk_core_generic_push(core, ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not push gfxbuf instance.");
 
     return NULL;
 }
@@ -295,6 +299,9 @@ static lil_value_t l_gfxclrset(lil_t lil,
     b = lil_to_double(argv[3]);
 
     gfxbuf_clrset(gfx, pos, gfxbuf_rgb(r, g, b));
+
+    rc = sk_core_generic_push(core, ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not push gfxbuf instance.");
     return NULL;
 }
 
