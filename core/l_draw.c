@@ -128,9 +128,44 @@ static lil_value_t l_gfxheart(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_gfxboxround(lil_t lil,
+                                 size_t argc,
+                                 lil_value_t *argv)
+{
+    sk_core *core;
+    gfxbuf *gfx;
+    void *ptr;
+    int rc;
+    double x, y, w, h, r;
+    int pos;
+
+    SKLIL_ARITY_CHECK(lil, "gfxbuf", argc, 6);
+
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gfxbuf instance.");
+
+    gfx = (gfxbuf *)ptr;
+
+    x = lil_to_double(argv[0]);
+    y = lil_to_double(argv[1]);
+    w = lil_to_double(argv[2]);
+    h = lil_to_double(argv[3]);
+    r = lil_to_double(argv[4]);
+    pos = lil_to_integer(argv[5]);
+
+    gfxdrw_rounded_box(gfx, x, y, w, h, r, pos);
+
+    rc = sk_core_generic_push(core, ptr);
+    SKLIL_ERROR_CHECK(lil, rc, "could not push gfxbuf instance.");
+    return NULL;
+}
+
 void lil_load_draw(lil_t lil)
 {
     lil_register(lil, "gfxrectf", gfxrectf);
     lil_register(lil, "gfxcirc", l_gfxcirc);
     lil_register(lil, "gfxheart", l_gfxheart);
+    lil_register(lil, "gfxboxround", l_gfxboxround);
 }
