@@ -197,6 +197,7 @@ void gfxdrw_rounded_box(gfxbuf *gfx,
                         double w,
                         double h,
                         double r,
+                        double scale,
                         int clrpos);
 #+END_SRC
 
@@ -205,6 +206,7 @@ void gfxdrw_rounded_box(gfxbuf *gfx,
 struct rounded_box_d {
     gfxbuf_pixel pix;
     float roundedness;
+    float scale;
 };
 
 static void rounded_box(gfxbuf_state *st)
@@ -228,6 +230,7 @@ static void rounded_box(gfxbuf_state *st)
 
     p = sdf_normalize(svec2(st->x, st->y), res);
     b = svec2_one();
+    b = svec2_multiply_f(b, rb->scale);
     rad = rb->roundedness;
     r = svec4(rad, rad, rad, rad);
     d = sdf_rounded_box(p, b, r);
@@ -257,12 +260,14 @@ void gfxdrw_rounded_box(gfxbuf *gfx,
                         double w,
                         double h,
                         double r,
+                        double scale,
                         int clrpos)
 {
     struct rounded_box_d rb;
 
     rb.pix = gfxbuf_clrget(gfx, clrpos);
     rb.roundedness = r;
+    rb.scale = scale;
 
 
     gfxbuf_draw(gfx, (int)x, (int)y, (int)w, (int)h, rounded_box, &rb);
