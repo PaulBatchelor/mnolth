@@ -193,3 +193,39 @@ float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r)
     return out;
 }
 #+END_SRC
+* TODO Box
+* TODO Oriented Box
+* TODO Segment
+* TODO Rhombus
+* TODO Isosceles Trapezoid
+* TODO Parallelogram
+* TODO Equilateral Triangle
+* TODO Isosceles Triangle
+* TODO Triangle
+* TODO Uneven Capsule
+* TODO Regular Pentagon
+* TODO Regular Hexagon
+* TODO Regular Octogon
+* TODO Hexagram
+* TODO Star 5
+* TODO Regular Star
+* TODO Pie
+* TODO Cut Disk
+* TODO Arc
+* TODO Horseshoe
+* TODO Vesica
+* TODO Moon
+* TODO Circle Cross
+* TODO Egg
+* TODO Cross
+* TODO Rounded X
+* TODO Polygon
+* TODO Ellipse
+* TODO Parabola
+* TODO Parabola Segment
+* TODO Quadratic Bezier
+* TODO Bubbly Cross
+* TODO Tunnel
+* TODO Stairs
+* TODO Quadratic Circle
+* TODO Hyperbola
