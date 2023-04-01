@@ -268,6 +268,7 @@ require("lib/gestvm/config")
 require("util/config")
 require("util/samurai/config")
 require("lib/lsqlite3/config")
+require("lib/sdf2d/config")
 
 if config.mnodes then
     require("mnodes/config")
