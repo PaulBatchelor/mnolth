@@ -1,46 +1,12 @@
-#+TITLE: SDF functions
-2d Signed Distance Field (SDF), implemented in C using
-the mathc library.
-
-[[https://iquilezles.org/articles/distfunctions2d/]]
-* Tangled File
-#+NAME: sdf.c
-#+BEGIN_SRC c :tangle core/sdf.c
 #include <math.h>
 #include "mathc/mathc.h"
-<<funcs>>
-#+END_SRC
 
-#+NAME: sdf.h
-#+BEGIN_SRC c :tangle core/sdf.h
-#ifndef SK_MNOLTH_SDF_H
-#define SK_MNOLTH_SDF_H
-<<funcdefs>>
-#endif
-#+END_SRC
-* Sign
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_sign(float x);
-#+END_SRC
-
-#+NAME: funcs
-#+BEGIN_SRC c
 float sdf_sign(float x)
 {
     if (x == 0) return 0;
     return x < 0 ? -1 : 1;
 }
-#+END_SRC
-* Min/Max
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_min(float x, float y);
-float sdf_max(float x, float y);
-#+END_SRC
 
-#+NAME: funcs
-#+BEGIN_SRC c
 float sdf_min(float x, float y)
 {
     return x < y ? x : y;
@@ -50,33 +16,17 @@ float sdf_max(float x, float y)
 {
     return x > y ? x : y;
 }
-#+END_SRC
-* Circle
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_circle(struct vec2 p, float r);
-#+END_SRC
 
-#+NAME: funcs
-#+BEGIN_SRC c
 float sdf_circle(struct vec2 p, float r)
 {
     return svec2_length(p) - r;
 }
-#+END_SRC
-* Heart
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_heart(struct vec2 p);
-struct vec2 sdf_heart_center(struct vec2 pos, struct vec2 res);
-#+END_SRC
 
-#+NAME: funcs
-#+BEGIN_SRC c
 static float dot2(struct vec2 p)
 {
     return svec2_dot(p, p);
 }
+
 float sdf_heart(struct vec2 p)
 {
     p.x = fabs(p.x);
@@ -100,30 +50,14 @@ struct vec2 sdf_heart_center(struct vec2 pos, struct vec2 res)
     p.y += 0.5;
     return p;
 }
-#+END_SRC
-* Smoothstep
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_smoothstep(float e0, float e1, float x);
-#+END_SRC
 
-#+NAME: funcs
-#+BEGIN_SRC c
 float sdf_smoothstep(float e0, float e1, float x)
 {
     float t;
     t = clampf((x - e0) / (e1 - e0), 0.0, 1.0);
     return t * t * (3.0 - 2.0 * t);
 }
-#+END_SRC
-* Normalize
-#+NAME: funcdefs
-#+BEGIN_SRC c
-struct vec2 sdf_normalize(struct vec2 pos, struct vec2 res);
-#+END_SRC
 
-#+NAME: funcs
-#+BEGIN_SRC c
 struct vec2 sdf_normalize(struct vec2 pos, struct vec2 res)
 {
     struct vec2 p;
@@ -132,21 +66,7 @@ struct vec2 sdf_normalize(struct vec2 pos, struct vec2 res)
     p = svec2_divide_f(p, res.y);
     return p;
 }
-#+END_SRC
-* Rounded Box
-pos: xy position.
 
-b = width/height
-
-r = roundness (x: tr, y: br, z: tl, w: bl)
-
-#+NAME: funcdefs
-#+BEGIN_SRC c
-float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r);
-#+END_SRC
-
-#+NAME: funcs
-#+BEGIN_SRC c
 float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r)
 {
     struct vec2 q;
@@ -192,40 +112,3 @@ float sdf_rounded_box(struct vec2 pos, struct vec2 b, struct vec4 r)
 
     return out;
 }
-#+END_SRC
-* TODO Box
-* TODO Oriented Box
-* TODO Segment
-* TODO Rhombus
-* TODO Isosceles Trapezoid
-* TODO Parallelogram
-* TODO Equilateral Triangle
-* TODO Isosceles Triangle
-* TODO Triangle
-* TODO Uneven Capsule
-* TODO Regular Pentagon
-* TODO Regular Hexagon
-* TODO Regular Octogon
-* TODO Hexagram
-* TODO Star 5
-* TODO Regular Star
-* TODO Pie
-* TODO Cut Disk
-* TODO Arc
-* TODO Horseshoe
-* TODO Vesica
-* TODO Moon
-* TODO Circle Cross
-* TODO Egg
-* TODO Cross
-* TODO Rounded X
-* TODO Polygon
-* TODO Ellipse
-* TODO Parabola
-* TODO Parabola Segment
-* TODO Quadratic Bezier
-* TODO Bubbly Cross
-* TODO Tunnel
-* TODO Stairs
-* TODO Quadratic Circle
-* TODO Hyperbola
