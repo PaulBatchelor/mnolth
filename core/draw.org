@@ -6,7 +6,7 @@ Some basic drawing primitives, using =gfxbuf=.
 #include "mathc/mathc.h"
 #include "gfxbuf.h"
 #include "draw.h"
-#include "sdf.h"
+#include "sdf2d/sdf.h"
 <<funcs>>
 #+END_SRC
 

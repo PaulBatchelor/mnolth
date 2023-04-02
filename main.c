@@ -13,6 +13,7 @@ int samu_main(int argc, char *argv[]);
 int mno_lua_main_noloader(int argc, char *argv[]);
 int mno_lil_main_noloader(int argc, char *argv[]);
 int mno_scm_main_noloader(int argc, char *argv[]);
+int xmtowav_main(int argc, char** argv);
 
 #ifdef BUILD_MNORT
 int mno_rtserver(int argc, char *argv[]);
@@ -42,6 +43,7 @@ struct mnotil_cmd cmds[] = {
     {"client", mno_rtclient},
 #endif
     {"help", helper},
+    {"xmtowav", xmtowav_main},
 };
 
 

@@ -1,0 +1,15 @@
+add_objects {
+    "lib/libxm/context",
+    "lib/libxm/load",
+    "lib/libxm/play",
+    "lib/libxm/state"
+}
+
+add_c99objects {
+    "lib/libxm/xmtowav"
+}
+
+add_cflags {
+   "-DXM_LINEAR_INTERPOLATION=0",
+   "-DXM_DEBUG=0"
+}
