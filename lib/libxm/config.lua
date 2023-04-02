@@ -2,7 +2,8 @@ add_objects {
     "lib/libxm/context",
     "lib/libxm/load",
     "lib/libxm/play",
-    "lib/libxm/state"
+    "lib/libxm/state",
+    "lib/libxm/n_xm"
 }
 
 add_c99objects {
