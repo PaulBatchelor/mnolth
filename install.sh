@@ -53,6 +53,11 @@ cp $LIBPATH/lua/lualib.h $INSTALL_PATH/include/mnolth/lua
 cp $LIBPATH/lua/lauxlib.h $INSTALL_PATH/include/mnolth/lua
 cp $LIBPATH/lua/luaconf.h $INSTALL_PATH/include/mnolth/lua
 
+# sdf2d
+
+mkdir -p $INSTALL_PATH/include/mnolth/sdf2d
+cp $LIBPATH/sdf2d/sdf.h $INSTALL_PATH/include/mnolth/sdf2d
+
 # copy SCM files
 
 mkdir -p $INSTALL_PATH/share/mnolth

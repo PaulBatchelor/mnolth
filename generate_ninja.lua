@@ -7,10 +7,13 @@ for _,a in pairs(arg) do
         config.mnodes = true
     elseif (a == "monome") then
         config.monome = true
+    elseif (a == "x264") then
+        config.x264 = true
     elseif (a == "all") then
         config.monome = true
         config.mnodes = true
         config.mnort = true
+        config.x264 = true
     end
 end
 
@@ -133,8 +136,10 @@ libs = {
     -- "-lreadline",
 }
 
-table.insert(libs, "-lx264")
-add_cflags{"-DMNOLTH_X264"}
+if config.x264 == true then
+    table.insert(libs, "-lx264")
+    add_cflags{"-DMNOLTH_X264"}
+end
 
 add_cflags({"-Ilib", "-Icore"})
 
