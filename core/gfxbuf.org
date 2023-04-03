@@ -814,7 +814,7 @@ static void append(gfxbuf_vidwrt *vid);
 #+BEGIN_SRC c
 static void append(gfxbuf_vidwrt *vid)
 {
-#ifdef MNOLTH_h264
+#ifdef MNOLTH_X264
     int i_frame_size;
 
     if(vid->fp == NULL) return;
@@ -872,7 +872,7 @@ static void closevid(gfxbuf_vidwrt *vid);
 #+BEGIN_SRC c
 static void closevid(gfxbuf_vidwrt *vid)
 {
-#ifdef MNOLTH_h264
+#ifdef MNOLTH_X264
     int i_frame_size;
     if (vid->h == NULL) return;
     while (x264_encoder_delayed_frames(vid->h)) {
