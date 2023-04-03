@@ -5,7 +5,9 @@ LIBPATH=lib
 # typical binary/library install
 
 cp $MNOLTH_PATH/libmnolth.a $INSTALL_PATH/lib
-cp $MNOLTH_PATH/mnolth $INSTALL_PATH/bin
+
+# use install instead of cp because to avoid crashes on OSX
+install $MNOLTH_PATH/mnolth $INSTALL_PATH/bin
 
 # mathc
 
