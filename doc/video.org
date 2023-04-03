@@ -1,0 +1,47 @@
+#+TITLE: Video Generation
+
+After making @!(ref "gfxbuf" "graphics instance")!@, open
+up an file to write h264 video to with =gfxopen=.
+
+#+BEGIN_SRC lua
+lil([[
+gfxnew gfx 256 256
+grab gfx
+gfxopen test.h264
+]])
+#+END_SRC
+
+Draw the frame, then use =gfxtransfer= to copy it over
+to YUV frames. Then, append YUV frame to the h264 output
+with =gfxappend=. Note that gfxappend can be called
+multiple times. It will append a new frame with the same
+YUV data.
+
+#+BEGIN_SRC lua
+lil([[
+grab gfx
+gfxtransfer
+]])
+#+END_SRC
+
+When everything is completed, close the h264 file, then
+use =gfxmp4= to wrap the data inside of an mp4 file.
+
+#+BEGIN_SRC lua
+lil([[
+dup
+gfxclose
+gfxmp4 test.h264 test.mp4
+]])
+#+END_SRC
+
+Note that the h264 colorspace is YUV444, which isn't
+a playable format in quicktime, and won't be available
+in preview. To make it playable, it needs to be converted
+to the YUV420p format, which can be done with ffmpeg:
+
+#+BEGIN_SRC lua
+ffmpeg -i test.mp4 -pix_fmt yuv420p test420p.mp4
+#+END_SRC
+
+
