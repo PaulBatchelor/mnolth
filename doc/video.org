@@ -43,5 +43,3 @@ to the YUV420p format, which can be done with ffmpeg:
 #+BEGIN_SRC lua
 ffmpeg -i test.mp4 -pix_fmt yuv420p test420p.mp4
 #+END_SRC
-
-
