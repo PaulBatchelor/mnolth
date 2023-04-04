@@ -264,23 +264,37 @@ static int lilpop(lua_State *L)
 {
     lil_t lil;
     sk_core *core;
+    sk_stacklet *s;
     int rc;
-    float out;
+    sk_stack *stk;
 
     lua_getglobal(L, "__lil");
     lil = lua_touserdata(L, -1);
 
     core = lil_get_data(lil);
 
-    out = 0;
-    rc = sk_param_get_constant(core, &out);
+    /* rc = sk_param_get_constant(core, &out); */
+    stk = sk_core_stack(core);
+    rc = sk_stack_pop(stk, &s);
 
     if (rc) {
         luaL_error(L, "could not pop value\n");
     }
 
-    lua_pushnumber(L, out);
-    return 1;
+    if (sk_stacklet_isconstant(s)) {
+        float out;
+        out = sk_stacklet_constant(s);
+        lua_pushnumber(L, out);
+        return 1;
+    } else if (sk_stacklet_isgeneric(s)) {
+        void *ud;
+        ud = sk_stacklet_userdata(s);
+        lua_pushlightuserdata(L, ud);
+        return 1;
+    }
+
+    luaL_error(L, "Unknown data type\n");
+    return 0;
 }
 
 void gestvm_memops_lua(lua_State *L);
