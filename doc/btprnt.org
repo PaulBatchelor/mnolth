@@ -80,8 +80,24 @@ bprectf [bpget [grab bp] 0] x y w h
 =bptr= transfers a btprnt canvas to a
 @!(ref "gfxbuf")!@ instance. TODO: explain more.
 
+#+BEGIN_SRC lil
+bptr [grab bp] x y w h xoff yoff clr
+#+END_SRC
+
+=bpfill= fills a region. color: 0 is white, 1 is black.
+
+#+BEGIN_SRC lil
+bpfill [bpget [grab bp] 0] color
+#+END_SRC
+
+=bpcirc= draws a circle. 
+
+#+BEGIN_SRC lil
+bpcirc [bpget [grab bp] 0] cx cy r clr
+#+END_SRC
+
 Other words: =bpfnt_default=, =bptxtbox=, =bpchar=,
-=bpfill=, =bpline=.
+=bpline=.
 
 I ran out of time, I'll need to document
 these later. check the source code (lib/btprnt/l_btprnt.c).
