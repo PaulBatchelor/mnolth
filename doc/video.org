@@ -1,5 +1,11 @@
 #+TITLE: Video Generation
 
+These are notes for how to think about video generation
+with or without audio, with some useful code snippets.
+
+It may also be easier to see full programs. For that,
+check out the examples folder.
+
 After making @!(ref "gfxbuf" "graphics instance")!@, open
 up an file to write h264 video to with =gfxopen=.
 
@@ -42,4 +48,63 @@ to the YUV420p format, which can be done with ffmpeg:
 
 #+BEGIN_SRC lua
 ffmpeg -i test.mp4 -pix_fmt yuv420p test420p.mp4
+#+END_SRC
+
+Things get a little more interesting when synchronizing
+audio and video.
+
+With a sampling rate of 44100 samples per second and
+video rate of 60 frames per second, things evenly divide
+into 735 samples per frame. The workflow generally works by
+rendering a block of audio, then writing a frame.
+
+To get 735 SPF working, the block size in the audio engine
+needs to be adjusted. By default, the block size is set to
+be 64, which does not evenly divide into 735. The block
+size can be set to be 49 using =blkset= in LIL. This
+is the largest number that evenly divides into 735 that
+is smaller than 64 (it needs to be smaller than 64 to avoid
+re-allocating memory, which makes things simpler).
+
+This should get placed somewhere at the top
+of the program before any nodes are created:
+
+#+BEGIN_SRC lua
+lil("blksize 49")
+#+END_SRC
+
+To map audio signals to visual elements, use the "val"
+components, currently available in @!(ref "mnodes")!@.
+
+A new value called LFO is created with =valnew=.
+
+#+BEGIN_SRC lua
+lil("valnew LFO")
+#+END_SRC
+
+An LFO signal stored in register 0 can be saved to
+LFO using the =valset= node.
+
+#+BEGIN_SRC lua
+valset [grab LFO] [regget 0]
+#+END_SRC
+
+The LFO value can then be retrieved using
+the =valutil.get()= function, which can then be used
+inside of Lua:
+
+#+BEGIN_SRC lua
+radius = 32 + valutil.get("LFO") * 32
+lil(string.format("gfxcirc 128 128 %g 0", radius))
+#+END_SRC
+
+Now that audio + video is used, both will need to be
+combined into a single video file.
+
+This command combines =test.mp4= and =test.wav=
+into =combined.mp4= a video that can play in most video
+players, including quicktime on OSX.
+
+#+BEGIN_SRC
+ffmpeg -i test.mp4 -i test.wav -pix_fmt yuv420p -acodec aac combined.mp4
 #+END_SRC

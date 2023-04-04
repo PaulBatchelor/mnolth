@@ -1,0 +1,4 @@
+#+TITLE: MNODES
+
+Extra DSP nodes for mnolth. They don't quite fit in sndkit,
+and they shouldn't be in mnolth either.
