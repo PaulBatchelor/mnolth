@@ -101,3 +101,11 @@ Other words: =bpfnt_default=, =bptxtbox=, =bpchar=,
 
 I ran out of time, I'll need to document
 these later. check the source code (lib/btprnt/l_btprnt.c).
+
+=bpoutline= draws an outline around a region. It is one
+of the layout commands. =clr= will determine the outline
+color.
+
+#+BEGIN_SRC lil
+bpoutline [bpget [grab bp] 0] clr
+#+END_SRC
