@@ -24,6 +24,21 @@ struct lil_bpfont {
     int free;
 };
 
+btprnt_buf * lil_bpfont_buf(struct lil_bpfont *fnt)
+{
+    return fnt->buf;
+}
+
+int lil_bpfont_width(struct lil_bpfont *fnt)
+{
+    return fnt->w;
+}
+
+int lil_bpfont_height(struct lil_bpfont *fnt)
+{
+    return fnt->h;
+}
+
 static lil_value_t l_btphi(lil_t lil,
                            size_t argc,
                            lil_value_t *argv)
@@ -633,6 +648,34 @@ static lil_value_t l_bpoutline(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_bproundrect(lil_t lil,
+                                 size_t argc,
+                                 lil_value_t *argv)
+{
+    btprnt_region *reg;
+    int rc;
+    sk_core *core;
+    int x, y, w, h, r, clr;
+
+    SKLIL_ARITY_CHECK(lil, "bproundrect", argc, 7);
+    core = lil_get_data(lil);
+
+    rc = getreg(lil, core, &reg);
+
+    if (rc) return NULL;
+
+    x = lil_to_integer(argv[1]);
+    y = lil_to_integer(argv[2]);
+    w = lil_to_integer(argv[3]);
+    h = lil_to_integer(argv[4]);
+    r = lil_to_integer(argv[5]);
+    clr = lil_to_integer(argv[6]);
+
+    btprnt_draw_roundrect(reg, x, y, w, h, r, clr);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -652,6 +695,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpline", l_bpline);
     lil_register(lil, "bpcirc", l_bpcirc);
     lil_register(lil, "bpoutline", l_bpoutline);
+    lil_register(lil, "bproundrect", l_bproundrect);
 
 
     /* TODO */
