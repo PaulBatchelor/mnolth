@@ -610,6 +610,29 @@ static lil_value_t l_bpcirc(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_bpoutline(lil_t lil,
+                               size_t argc,
+                               lil_value_t *argv)
+{
+    btprnt_region *reg;
+    int rc;
+    sk_core *core;
+    int clr;
+
+    SKLIL_ARITY_CHECK(lil, "bpoutline", argc, 2);
+    core = lil_get_data(lil);
+
+    rc = getreg(lil, core, &reg);
+
+    if (rc) return NULL;
+
+    clr  = lil_to_integer(argv[1]);
+
+    btprnt_layout_outline(reg, clr);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -628,6 +651,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpfill", l_bpfill);
     lil_register(lil, "bpline", l_bpline);
     lil_register(lil, "bpcirc", l_bpcirc);
+    lil_register(lil, "bpoutline", l_bpoutline);
 
 
     /* TODO */
@@ -639,5 +663,4 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpborder", l_btphi);
     lil_register(lil, "bpinvert", l_btphi);
     lil_register(lil, "bpscrtxt", l_btphi);
-    lil_register(lil, "bpoutlin", l_btphi);
 }
