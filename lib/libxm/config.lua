@@ -11,6 +11,6 @@ add_c99objects {
 }
 
 add_cflags {
-   "-DXM_LINEAR_INTERPOLATION=0",
+   "-DXM_LINEAR_INTERPOLATION=1",
    "-DXM_DEBUG=0"
 }
