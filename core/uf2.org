@@ -80,43 +80,63 @@ int uf2_open(struct uf2_font *fnt, const char *filename)
     return 0;
 }
 #+END_SRC
-* Draw Line Text
+* Rendering
 #+NAME: funcdefs
 #+BEGIN_SRC c
 int btprnt_uf2_draw_textline(btprnt_region *r,
                              struct uf2_font *fnt,
+                             int xoff, int yoff,
                              const char *line);
+int btprnt_uf2_draw_bytes(btprnt_region *r,
+                          struct uf2_font *fnt,
+                          int xoff, int yoff,
+                          const unsigned char *buf,
+                          size_t len);
 #+END_SRC
-
+** Textline
+#+NAME: funcs
+#+BEGIN_SRC c
+int btprnt_uf2_draw_textline(btprnt_region *r,
+                             struct uf2_font *fnt,
+                             int xoff, int yoff,
+                             const char *line)
+{
+    return btprnt_uf2_draw_bytes(r,
+                                 fnt,
+                                 xoff, yoff,
+                                 (const unsigned char *)line,
+                                 strlen(line));
+}
+#+END_SRC
+** Buffer
 #+NAME: funcs
 #+BEGIN_SRC c
 <<write_block>>
-int btprnt_uf2_draw_textline(btprnt_region *r,
-                             struct uf2_font *fnt,
-                             const char *line)
+int btprnt_uf2_draw_bytes(btprnt_region *r,
+                          struct uf2_font *fnt,
+                          int xoff, int yoff,
+                          const unsigned char *buf,
+                          size_t len)
 {
-    int i;
-    int len;
-    int xoff;
+    size_t i;
 
-    len = strlen(line);
-    xoff = 0;
     for (i = 0; i < len; i++) {
         struct uf2_glyph *g;
         uint8_t c;
-        c = (uint8_t)line[i];
+        c = buf[i];
         g = &fnt->glyphs[c];
-        write_block(r, &g->tl, xoff + 0, 0);
-        write_block(r, &g->bl, xoff + 0, 8);
-        write_block(r, &g->tr, xoff + 8, 0);
-        write_block(r, &g->br, xoff + 8, 8);
+        write_block(r, &g->tl, xoff + 0, yoff);
+        write_block(r, &g->bl, xoff + 0, yoff + 8);
+        write_block(r, &g->tr, xoff + 8, yoff);
+        write_block(r, &g->br, xoff + 8, yoff + 8);
         xoff += fnt->widths[c];
     }
 
     return xoff;
 }
 #+END_SRC
-
+** Write a Single Block
+Fonts in UF2 are split up into 4 8x8 pixel blocks.
 #+NAME: write_block
 #+BEGIN_SRC c
 static void write_block(btprnt_region *r,
