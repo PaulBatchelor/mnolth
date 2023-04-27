@@ -1,0 +1,148 @@
+#+TITLE: UF2 font rendering
+UF2 is the uxn proportional width font format.
+* Tangled Files
+struct uf2_glyph {
+    struct uf2_block tl, bl, tr, br;
+};
+#+NAME: core/uf2.c
+#+BEGIN_SRC c :tangle core/uf2.c
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include "btprnt/btprnt.h"
+#define MNOLTH_UF2_PRIV
+#include "uf2.h"
+<<funcs>>
+#+END_SRC
+
+#+NAME: core/uf2.h
+#+BEGIN_SRC c :tangle core/uf2.h
+#ifndef MNOLTH_UF2_H
+#define MNOLTH_UF2_H
+#ifdef MNOLTH_UF2_PRIV
+<<structs>>
+#endif
+<<funcdefs>>
+#endif
+#+END_SRC
+* Core Structs
+** Block
+#+NAME: structs
+#+BEGIN_SRC c
+struct uf2_block {
+    uint8_t data[8];
+};
+#+END_SRC
+** Glyph
+#+NAME: structs
+#+BEGIN_SRC c
+struct uf2_glyph {
+    struct uf2_block tl, bl, tr, br;
+};
+#+END_SRC
+** Font
+#+NAME: structs
+#+BEGIN_SRC c
+struct uf2_font {
+    uint8_t widths[256];
+    struct uf2_glyph glyphs[256];
+};
+#+END_SRC
+* uf2 struct size
+Should be 8448 (256 header size + 8192 (256 * 32)
+bitmap data).
+#+NAME: funcdefs
+#+BEGIN_SRC c
+size_t uf2_size(void);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+size_t uf2_size(void)
+{
+    return sizeof(struct uf2_font);
+}
+#+END_SRC
+* Load A Font
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int uf2_open(struct uf2_font *fnt, const char *filename);
+#+END_SRC
+#+NAME: funcs
+#+BEGIN_SRC c
+int uf2_open(struct uf2_font *fnt, const char *filename)
+{
+    FILE *fp;
+    fp = fopen(filename, "rb");
+    if (fp == NULL) return 1;
+    fread(fnt, 1, sizeof(struct uf2_font), fp);
+    fclose(fp);
+    return 0;
+}
+#+END_SRC
+* Draw Line Text
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int btprnt_uf2_draw_textline(btprnt_region *r,
+                             struct uf2_font *fnt,
+                             const char *line);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<write_block>>
+int btprnt_uf2_draw_textline(btprnt_region *r,
+                             struct uf2_font *fnt,
+                             const char *line)
+{
+    int i;
+    int len;
+    int xoff;
+
+    len = strlen(line);
+    xoff = 0;
+    for (i = 0; i < len; i++) {
+        struct uf2_glyph *g;
+        uint8_t c;
+        c = (uint8_t)line[i];
+        g = &fnt->glyphs[c];
+        write_block(r, &g->tl, xoff + 0, 0);
+        write_block(r, &g->bl, xoff + 0, 8);
+        write_block(r, &g->tr, xoff + 8, 0);
+        write_block(r, &g->br, xoff + 8, 8);
+        xoff += fnt->widths[c];
+    }
+
+    return xoff;
+}
+#+END_SRC
+
+#+NAME: write_block
+#+BEGIN_SRC c
+static void write_block(btprnt_region *r,
+                        struct uf2_block *blk,
+                        int xoff, int yoff)
+{
+    int x, y;
+    uint8_t *dat;
+
+    dat = blk->data;
+    for (y = 0; y < 8; y++) {
+        for (x = 0; x < 8; x++) {
+            int c;
+            int row;
+            int qpos;
+            qpos = y;
+            row = dat[qpos];
+            if (row & (1 << x)) {
+                c = 1;
+            } else {
+                c = 0;
+            }
+
+            btprnt_region_draw(r, (7 - x) + xoff, y + yoff, c);
+        }
+    }
+
+}
+#+END_SRC
