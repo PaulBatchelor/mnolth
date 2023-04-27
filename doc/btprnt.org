@@ -90,7 +90,7 @@ bptr [grab bp] x y w h xoff yoff clr
 bpfill [bpget [grab bp] 0] color
 #+END_SRC
 
-=bpcirc= draws a circle. 
+=bpcirc= draws a circle.
 
 #+BEGIN_SRC lil
 bpcirc [bpget [grab bp] 0] cx cy r clr
