@@ -66,11 +66,11 @@ size_t uf2_size(void)
 * Load A Font
 #+NAME: funcdefs
 #+BEGIN_SRC c
-int uf2_open(struct uf2_font *fnt, const char *filename);
+int uf2_load(struct uf2_font *fnt, const char *filename);
 #+END_SRC
 #+NAME: funcs
 #+BEGIN_SRC c
-int uf2_open(struct uf2_font *fnt, const char *filename)
+int uf2_load(struct uf2_font *fnt, const char *filename)
 {
     FILE *fp;
     fp = fopen(filename, "rb");
@@ -108,7 +108,7 @@ int btprnt_uf2_draw_textline(btprnt_region *r,
                                  strlen(line));
 }
 #+END_SRC
-** Buffer
+*-* Buffer
 #+NAME: funcs
 #+BEGIN_SRC c
 <<write_block>>
@@ -149,18 +149,15 @@ static void write_block(btprnt_region *r,
     dat = blk->data;
     for (y = 0; y < 8; y++) {
         for (x = 0; x < 8; x++) {
-            int c;
             int row;
             int qpos;
             qpos = y;
             row = dat[qpos];
             if (row & (1 << x)) {
-                c = 1;
-            } else {
-                c = 0;
+                btprnt_region_draw(r, (7 - x) + xoff, y + yoff, 1);
             }
 
-            btprnt_region_draw(r, (7 - x) + xoff, y + yoff, c);
+            /* only draw for on bits */
         }
     }
 

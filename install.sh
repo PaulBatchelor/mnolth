@@ -25,6 +25,7 @@ mkdir -p $INSTALL_PATH/include/mnolth/gfxbuf
 cp $MNOLTH_PATH/core/gfxbuf.h $INSTALL_PATH/include/mnolth/gfxbuf
 cp $MNOLTH_PATH/core/draw.h $INSTALL_PATH/include/mnolth/gfxbuf
 cp $MNOLTH_PATH/core/hotswap.h $INSTALL_PATH/include/mnolth/
+cp $MNOLTH_PATH/core/uf2.h $INSTALL_PATH/include/mnolth/
 
 # tinyscheme
 
