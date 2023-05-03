@@ -22,12 +22,13 @@ function mkrule(name, command, description)
     return {name=name, command=command, description=description}
 end
 
-function mkbuild(outputs, rule, inputs, vars)
+function mkbuild(outputs, rule, inputs, vars, deps)
     return {
         outputs = outputs,
         rule = rule,
         inputs = inputs,
-        vars = vars
+        vars = vars,
+        deps = deps
     }
 end
 
@@ -91,7 +92,7 @@ function add_tangled_object(obj, header)
     end
 
     table.insert(build,
-        mkbuild(tangled_files, "worgle", obj .. ".org"))
+        mkbuild(tangled_files, "worgle", obj .. ".org", nil, "worglite"))
 
     table.insert(tangled, tangled_c)
 
@@ -210,7 +211,7 @@ function generate_ninja()
     table.insert(build, mkbuild("worglite",
         "phony", "util/worgle/worglite"))
 
-    table.insert(build, mkbuild("tangle", "phony", tangled))
+    table.insert(build, mkbuild("tangle", "phony", tangled, nil, "worglite"))
 
     fp:write("cflags = " .. table.concat(cflags, " ") .."\n")
     fp:write("libs = " .. table.concat(libs, " ") .."\n")
@@ -236,13 +237,24 @@ function generate_ninja()
         return table.concat(f, " ")
     end
 
+    function process_deps(deps)
+        if deps ~= nil then
+            -- process_files has the same logic we need
+            -- for implicit deps
+            return " || " .. process_files(deps)
+        end
+        return ""
+    end
+
     for _, v in pairs(build) do
         fp:write("build " ..
             process_files(v.outputs) ..
             ": " ..
             v.rule ..
             " " ..
-            process_files(v.inputs) .. "\n")
+            process_files(v.inputs) ..
+            process_deps(v.deps) ..
+            "\n")
         if v.vars ~= nil then
             for _, var in pairs(v.vars) do
                 fp:write("    " .. var .. "\n")
