@@ -287,6 +287,7 @@ require("util/samurai/config")
 require("lib/lsqlite3/config")
 require("lib/sdf2d/config")
 require("lib/libxm/config")
+require("lib/cmp/config")
 
 if config.mnodes then
     require("mnodes/config")
