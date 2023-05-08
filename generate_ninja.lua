@@ -288,6 +288,7 @@ require("lib/lsqlite3/config")
 require("lib/sdf2d/config")
 require("lib/libxm/config")
 require("lib/cmp/config")
+require("util/msgpack-dump/config")
 
 if config.mnodes then
     require("mnodes/config")
