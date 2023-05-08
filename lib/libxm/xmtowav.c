@@ -9,8 +9,13 @@
 #include "testprog.h"
 
 static const unsigned int channels = 2;
+/*
 static const unsigned int rate = 48000;
 static const size_t buffer_size = 48000;
+*/
+
+static const unsigned int rate = 44100;
+static const size_t buffer_size = 44100;
 
 #define XM_BIG_ENDIAN 0
 
