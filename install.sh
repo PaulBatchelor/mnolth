@@ -65,3 +65,8 @@ cp $LIBPATH/sdf2d/sdf.h $INSTALL_PATH/include/mnolth/sdf2d
 
 mkdir -p $INSTALL_PATH/share/mnolth
 cp $MNOLTH_PATH/scm/*.scm $INSTALL_PATH/share/mnolth
+
+# cmp
+
+mkdir -p $INSTALL_PATH/include/mnolth/cmp
+cp $LIBPATH/cmp/cmp.h $INSTALL_PATH/include/mnolth/cmp
