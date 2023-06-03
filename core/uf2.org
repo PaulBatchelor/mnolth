@@ -108,7 +108,7 @@ int btprnt_uf2_draw_textline(btprnt_region *r,
                                  strlen(line));
 }
 #+END_SRC
-*-* Buffer
+** Buffer
 #+NAME: funcs
 #+BEGIN_SRC c
 <<write_block>>
