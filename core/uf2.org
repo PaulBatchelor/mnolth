@@ -9,8 +9,12 @@ struct uf2_glyph {
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include "btprnt/btprnt.h"
 #include "sndkit/lil/lil.h"
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#include "sndkit/nodes/sklil.h"
 #define MNOLTH_UF2_PRIV
 #include "uf2.h"
 <<funcs>>
@@ -180,15 +184,65 @@ void lil_load_uf2(lil_t lil);
 
 #+NAME: funcs
 #+BEGIN_SRC c
+<<loadfuncs>>
 void lil_load_uf2(lil_t lil)
 {
     /* TODO: add entries */
+    <<entries>>
 }
 #+END_SRC
 ** TODO uf2load
 Loads a uf2 font into memory into a sndkit dictionary entry.
 
 Usage: uf2load key filename
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "uf2load", l_uf2load);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static void deluf2(void *ptr)
+{
+    struct uf2_font *fnt;
+
+    fnt = ptr;
+
+    free(fnt);
+    ptr = fnt = NULL;
+}
+
+static lil_value_t l_uf2load(lil_t lil,
+                             size_t argc,
+                             lil_value_t *argv)
+{
+    int rc;
+    const char *key;
+    const char *filename;
+    struct uf2_font *fnt;
+    sk_core *core;
+
+    SKLIL_ARITY_CHECK(lil, "uf2load", argc, 2);
+
+    core = lil_get_data(lil);
+
+    key = lil_to_string(argv[0]);
+    filename = lil_to_string(argv[1]);
+
+    fnt = malloc(uf2_size());
+
+    /* TODO: handle what happens if load files */
+    uf2_load(fnt, filename);
+
+    rc = sk_core_append(core, key, strlen(key),
+                        fnt, deluf2);
+
+    SKLIL_ERROR_CHECK(lil, rc, "uf2load didn't work out.");
+
+    return NULL;
+}
+#+END_SRC
 ** TODO uf2textline
 Wrapper for =btprnt_uf2_draw_textline=.
 
