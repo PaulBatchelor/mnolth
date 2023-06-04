@@ -10,6 +10,7 @@ struct uf2_glyph {
 #include <stdint.h>
 #include <string.h>
 #include "btprnt/btprnt.h"
+#include "sndkit/lil/lil.h"
 #define MNOLTH_UF2_PRIV
 #include "uf2.h"
 <<funcs>>
@@ -163,3 +164,38 @@ static void write_block(btprnt_region *r,
 
 }
 #+END_SRC
+* TODO Buffer
+LIL doesn't have a great way of handling blocks memory,
+which is needed for =btprnt_uf2_draw_bytes=. The idea
+is to construct a pre-allocated chunk of memory that LIL
+can read from. The idea is that LIL would run inside of
+Lua, and Lua would be able to fill the chunk of memory
+before making the call.
+* TODO LIL
+** TODO Loader
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void lil_load_uf2(lil_t lil);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void lil_load_uf2(lil_t lil)
+{
+    /* TODO: add entries */
+}
+#+END_SRC
+** TODO uf2load
+Loads a uf2 font into memory into a sndkit dictionary entry.
+
+Usage: uf2load key filename
+** TODO uf2textline
+Wrapper for =btprnt_uf2_draw_textline=.
+
+Usage: uf2textline region font x y text
+** TODO uf2bytes
+This is a wrapper for =btprnt_uf2_draw_bytes=.
+
+Reads from a pre-allocated buffer (not yet invented yet).
+
+Usage: uf2bytes region font x y buffer
