@@ -1,0 +1,44 @@
+#+TITLE: uf2 font format.
+* Overview
+The uf2 format is part of Uxn's ufx font standard. It
+is a simple bitmap format for variable width fonts that
+are up to 16x16 in size.
+
+In mnolth, it is possible for to use uf2 fonts with btprnt
+via a mix of Lua and LIL.
+
+At the time of writing, none of this actually exists yet,
+but should soon!
+* WIP Loading uf2 fonts into memory
+A font can be loaded into memory with the =uf2load= word
+in LIL:
+
+#+BEGIN_SRC lil
+uf2load key filename
+#+END_SRC
+* WIP Writing Strings of Text
+A single line of text is drawn with the =uf2textline=
+command:
+
+#+BEGIN_SRC lil
+uf2textline region font x y text
+#+END_SRC
+* WIP Writing a Buffer
+In some cases, it is better to treat the uf2 as more
+of a variable-width tilemap and to draw text using tiles.
+This is particularly useful if the font being used has
+several symbols in it.
+
+Bytes can be written to a btprnt buffer using the =uf2bytes=
+word:
+
+#+BEGIN_SRC lil
+uf2bytes region font x y buffer
+#+END_SRC
+
+(Note: the buffer construct needs to be invented as well).
+
+(When it is implemented), the buffer will contain information
+about how many bytes are in the buffer.
+
+In order to write bytes, Lua will be used.
