@@ -191,7 +191,7 @@ void lil_load_uf2(lil_t lil)
     <<entries>>
 }
 #+END_SRC
-** TODO uf2load
+** uf2load
 Loads a uf2 font into memory into a sndkit dictionary entry.
 
 Usage: uf2load key filename
@@ -243,10 +243,26 @@ static lil_value_t l_uf2load(lil_t lil,
     return NULL;
 }
 #+END_SRC
-** TODO uf2textline
+** TODO uf2txtln
 Wrapper for =btprnt_uf2_draw_textline=.
 
-Usage: uf2textline region font x y text
+Usage: uf2txtln region font x y text
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "uf2txtln", l_uf2txtln);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_uf2txtln(lil_t lil,
+                              size_t argc,
+                              lil_value_t *argv)
+{
+    /* TODO implement */
+    return NULL;
+}
+#+END_SRC
 ** TODO uf2bytes
 This is a wrapper for =btprnt_uf2_draw_bytes=.
 
