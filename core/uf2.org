@@ -276,16 +276,18 @@ static int buffer_append(lua_State *L)
     buf = lua_touserdata(L, 1);
 
     if (lua_istable(L, 2)) {
-        printf("table\n");
-    }
+        lua_pushnil(L);
 
-    lua_pushnil(L);
-
-    while (lua_next(L, 2)) {
+        while (lua_next(L, 2)) {
+            unsigned char byte;
+            byte = (unsigned char)lua_tointeger(L, -1) & 0xFF;
+            mno_buffer_appendbyte(buf, byte);
+            lua_pop(L, 1);
+        }
+    } else {
         unsigned char byte;
-        byte = (unsigned char)lua_tointeger(L, -1) & 0xFF;
+        byte = (unsigned char)lua_tointeger(L, 2) & 0xFF;
         mno_buffer_appendbyte(buf, byte);
-        lua_pop(L, 1);
     }
 
     return 0;
@@ -363,7 +365,7 @@ size_t mno_buffer_length(mno_buffer *buf)
 }
 #+END_SRC
 * TODO LIL
-** TODO Loader
+** Loader
 #+NAME: funcdefs
 #+BEGIN_SRC c
 void lil_load_uf2(lil_t lil);
@@ -489,9 +491,55 @@ static lil_value_t l_uf2txtln(lil_t lil,
     return NULL;
 }
 #+END_SRC
-** TODO uf2bytes
+** uf2bytes
 This is a wrapper for =btprnt_uf2_draw_bytes=.
 
 Reads from a pre-allocated buffer (not yet invented yet).
 
-Usage: uf2bytes region font x y buffer
+Usage: uf2bytes region font buffer x y
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "uf2bytes", l_uf2bytes);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static lil_value_t l_uf2bytes(lil_t lil,
+                              size_t argc,
+                              lil_value_t *argv)
+{
+    int x, y;
+    int rc;
+    sk_core *core;
+    btprnt_region *reg;
+    struct uf2_font *fnt;
+    mno_buffer *buf;
+    void *ud;
+
+    SKLIL_ARITY_CHECK(lil, "uf2bytes", argc, 5);
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ud);
+    if (rc) {
+        printf("could not get buffer\n");
+        return NULL;
+    }
+    buf = ud;
+
+    rc = getuf2(lil, core, &fnt);
+    if (rc) return NULL;
+
+    rc = lil_btprnt_region(lil, core, &reg);
+    if (rc) return NULL;
+
+    x = lil_to_integer(argv[3]);
+    y = lil_to_integer(argv[4]);
+
+    btprnt_uf2_draw_bytes(reg, fnt, x, y, buf->buf, buf->len);
+
+    if (rc) return NULL;
+
+    return NULL;
+}
+#+END_SRC
