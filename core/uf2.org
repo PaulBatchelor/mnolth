@@ -26,6 +26,7 @@ int lil_btprnt_region(lil_t lil, sk_core *core, btprnt_region **reg);
 #+BEGIN_SRC c :tangle core/uf2.h
 #ifndef MNOLTH_UF2_H
 #define MNOLTH_UF2_H
+<<typedefs>>
 #ifdef MNOLTH_UF2_PRIV
 <<structs>>
 #endif
@@ -170,13 +171,144 @@ static void write_block(btprnt_region *r,
 
 }
 #+END_SRC
-* TODO Buffer
+* Buffer
 LIL doesn't have a great way of handling blocks memory,
 which is needed for =btprnt_uf2_draw_bytes=. The idea
 is to construct a pre-allocated chunk of memory that LIL
 can read from. The idea is that LIL would run inside of
 Lua, and Lua would be able to fill the chunk of memory
 before making the call.
+** Struct Declaration
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct mno_buffer mno_buffer;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC
+struct mno_buffer {
+    unsigned char *buf;
+    size_t len;
+    size_t cap;
+};
+#+END_SRC
+** Creating a new buffer (bufnew via LIL)
+The =bufnew= will create a new named buffer in sndkit
+pre-allocated to user-defined max capacity (in bytes).
+
+#+BEGIN_SRC lil
+bufnew buf 256
+#+END_SRC
+
+#+NAME: entries
+#+BEGIN_SRC c
+lil_register(lil, "bufnew", l_bufnew);
+#+END_SRC
+
+#+NAME: loadfuncs
+#+BEGIN_SRC c
+static void delbuf(void *ptr)
+{
+    mno_buffer *buf;
+
+    buf = ptr;
+
+    free(buf->buf);
+    free(buf);
+    ptr = buf = NULL;
+}
+
+static lil_value_t l_bufnew(lil_t lil,
+                            size_t argc,
+                            lil_value_t *argv)
+{
+    int rc;
+    const char *key;
+    size_t cap;
+    mno_buffer *buf;
+    sk_core *core;
+
+    SKLIL_ARITY_CHECK(lil, "bufnew", argc, 2);
+
+    core = lil_get_data(lil);
+
+    key = lil_to_string(argv[0]);
+    cap = lil_to_integer(argv[1]);
+
+    buf = malloc(sizeof(mno_buffer));
+    buf->buf = calloc(1, cap);
+    buf->cap = cap;
+    buf->len = 0;
+
+    rc = sk_core_append(core, key, strlen(key), buf, delbuf);
+
+    SKLIL_ERROR_CHECK(lil, rc, "bufnew didn't work out.");
+
+    return NULL;
+}
+#+END_SRC
+** Appending Bytes
+*** Appending Bytes in C
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_buffer_appendbyte(mno_buffer *buf, unsigned char c);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int mno_buffer_appendbyte(mno_buffer *buf, unsigned char c)
+{
+    if (buf->len >= buf->cap) return 0;
+    buf->buf[buf->len] = c;
+    buf->len++;
+    return 1;
+}
+#+END_SRC
+*** TODO Appending Bytes in Lua
+TODO.
+** Clearing the Buffer
+This will reset the buffer to zero
+*** Clearing the Buffer in C
+The =mno_buffer_clear= function will reset the buffer
+position to be zero, but it will *not* zero out the
+contents.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void mno_buffer_clear(mno_buffer *buf);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void mno_buffer_clear(mno_buffer *buf)
+{
+    buf->len = 0;
+}
+#+END_SRC
+*** TODO Clearing the Buffer in Lua
+TODO.
+** Reading the Buffer
+For now, just gets for buffer and size are all that
+is needed.
+
+#+NAME: funcdefs
+#+BEGIN_SRC c
+unsigned char * mno_buffer_data(mno_buffer *buf);
+size_t mno_buffer_length(mno_buffer *buf);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+unsigned char * mno_buffer_data(mno_buffer *buf)
+{
+    return buf->buf;
+}
+
+size_t mno_buffer_length(mno_buffer *buf)
+{
+    return buf->len;
+}
+#+END_SRC
 * TODO LIL
 ** TODO Loader
 #+NAME: funcdefs
