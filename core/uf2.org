@@ -17,6 +17,8 @@ struct uf2_glyph {
 #include "sndkit/nodes/sklil.h"
 #define MNOLTH_UF2_PRIV
 #include "uf2.h"
+
+int lil_btprnt_region(lil_t lil, sk_core *core, btprnt_region **reg);
 <<funcs>>
 #+END_SRC
 
@@ -187,7 +189,6 @@ void lil_load_uf2(lil_t lil);
 <<loadfuncs>>
 void lil_load_uf2(lil_t lil)
 {
-    /* TODO: add entries */
     <<entries>>
 }
 #+END_SRC
@@ -243,7 +244,7 @@ static lil_value_t l_uf2load(lil_t lil,
     return NULL;
 }
 #+END_SRC
-** TODO uf2txtln
+** uf2txtln
 Wrapper for =btprnt_uf2_draw_textline=.
 
 Usage: uf2txtln region font x y text
@@ -255,11 +256,51 @@ lil_register(lil, "uf2txtln", l_uf2txtln);
 
 #+NAME: loadfuncs
 #+BEGIN_SRC c
+/* TODO: move getuf2 to a better spot */
+static int getuf2(lil_t lil, sk_core *core, struct uf2_font **fnt)
+{
+
+    void *ud;
+    int rc;
+
+    rc = sk_core_generic_pop(core, &ud);
+
+    if (rc) {
+        lil_set_error(lil, "Could not get uf2 font");
+        return 1;
+    }
+
+    *fnt = (struct uf2_font *)ud;
+    return 0;
+}
 static lil_value_t l_uf2txtln(lil_t lil,
                               size_t argc,
                               lil_value_t *argv)
 {
-    /* TODO implement */
+    int x, y;
+    int rc;
+    sk_core *core;
+    const char *str;
+    btprnt_region *reg;
+    struct uf2_font *fnt;
+
+    SKLIL_ARITY_CHECK(lil, "uf2txtln", argc, 5);
+    core = lil_get_data(lil);
+
+    rc = getuf2(lil, core, &fnt);
+    if (rc) return NULL;
+
+    rc = lil_btprnt_region(lil, core, &reg);
+    if (rc) return NULL;
+
+    x = lil_to_integer(argv[2]);
+    y = lil_to_integer(argv[3]);
+    str = lil_to_string(argv[4]);
+
+    btprnt_uf2_draw_textline(reg, fnt, x, y, str);
+
+    if (rc) return NULL;
+
     return NULL;
 }
 #+END_SRC
