@@ -9,19 +9,33 @@ via a mix of Lua and LIL.
 
 At the time of writing, none of this actually exists yet,
 but should soon!
-* WIP Loading uf2 fonts into memory
+* Loading uf2 fonts into memory
 A font can be loaded into memory with the =uf2load= word
 in LIL:
 
 #+BEGIN_SRC lil
 uf2load key filename
 #+END_SRC
-* WIP Writing Strings of Text
+* Writing Strings of Text
 A single line of text is drawn with the =uf2textline=
 command:
 
 #+BEGIN_SRC lil
 uf2textline region font x y text
+#+END_SRC
+
+Here's a small example.
+
+#+BEGIN_SRC lil
+bpnew bp 128 128
+
+bpset [grab bp] 0 0 0 128 128
+
+uf2load fnt chicago12.uf2
+
+uf2txtln [bpget [grab bp] 0] [grab fnt] 0 0 hello 
+
+bppbm [grab bp] out.pbm
 #+END_SRC
 * WIP Writing a Buffer
 In some cases, it is better to treat the uf2 as more

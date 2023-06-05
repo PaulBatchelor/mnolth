@@ -122,6 +122,11 @@ static int getreg(lil_t lil, sk_core *core, btprnt_region **reg)
     return 0;
 }
 
+int lil_btprnt_region(lil_t lil, sk_core *core, btprnt_region **reg)
+{
+    return getreg(lil, core, reg);
+}
+
 static int getfont(lil_t lil, sk_core *core, struct lil_bpfont **fnt)
 {
 
