@@ -1,0 +1,24 @@
+#+TITLE: Buffer
+Buffers in mnolth. A construct used to make using
+symbols with @!(ref "uf2")!@ easier in LIL. Designed
+to be with LIL inside of Lua.
+
+Make a new buffer in LIL with =bufnew=.
+
+#+BEGIN_SRC lil
+bufnew buf 256
+#+END_SRC
+
+Add bytes to it in Lua with =mnobuf.append=.
+
+#+BEGIN_SRC lua
+lil("grab bp")
+buf = pop()
+mnobuf.append(buf, {1, 1, 2, 3, 5, 8})
+#+END_SRC
+
+In LIL, use something like =uf2bytes= to read the buffer.
+
+#+BEGIN_SRC lil
+uf2bytes [bpget [grab bp] 0] [grab fnt] [grab buf] 0 0
+#+END_SRC

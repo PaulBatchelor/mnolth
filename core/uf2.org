@@ -15,6 +15,9 @@ struct uf2_glyph {
 #include "sndkit/graforge/graforge.h"
 #include "sndkit/core.h"
 #include "sndkit/nodes/sklil.h"
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
 #define MNOLTH_UF2_PRIV
 #include "uf2.h"
 
@@ -264,8 +267,30 @@ int mno_buffer_appendbyte(mno_buffer *buf, unsigned char c)
     return 1;
 }
 #+END_SRC
-*** TODO Appending Bytes in Lua
-TODO.
+*** Appending Bytes in Lua
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int buffer_append(lua_State *L)
+{
+    mno_buffer *buf;
+    buf = lua_touserdata(L, 1);
+
+    if (lua_istable(L, 2)) {
+        printf("table\n");
+    }
+
+    lua_pushnil(L);
+
+    while (lua_next(L, 2)) {
+        unsigned char byte;
+        byte = (unsigned char)lua_tointeger(L, -1) & 0xFF;
+        mno_buffer_appendbyte(buf, byte);
+        lua_pop(L, 1);
+    }
+
+    return 0;
+}
+#+END_SRC
 ** Clearing the Buffer
 This will reset the buffer to zero
 *** Clearing the Buffer in C
@@ -285,8 +310,36 @@ void mno_buffer_clear(mno_buffer *buf)
     buf->len = 0;
 }
 #+END_SRC
-*** TODO Clearing the Buffer in Lua
-TODO.
+*** Clearing the Buffer in Lua
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int buffer_clear(lua_State *L)
+{
+    mno_buffer *buf;
+    buf = lua_touserdata(L, 1);
+    mno_buffer_clear(buf);
+    return 0;
+}
+#+END_SRC
+** Lua Loader
+(Note that this isn't forward-declared, this is done to
+avoid needing to include lua headers everywhere uf2 is
+used.)
+#+NAME: funcs
+#+BEGIN_SRC c
+<<lua_funcs>>
+static const luaL_Reg buffer_lib[] = {
+    {"append", buffer_append},
+    {"clear", buffer_clear},
+    {NULL, NULL}
+};
+
+int luaopen_mnobuf(lua_State *L)
+{
+    luaL_newlib(L, buffer_lib);
+    return 1;
+}
+#+END_SRC
 ** Reading the Buffer
 For now, just gets for buffer and size are all that
 is needed.
