@@ -364,7 +364,7 @@ size_t mno_buffer_length(mno_buffer *buf)
     return buf->len;
 }
 #+END_SRC
-* TODO LIL
+* LIL
 ** Loader
 #+NAME: funcdefs
 #+BEGIN_SRC c
