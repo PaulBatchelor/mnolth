@@ -17,6 +17,7 @@
 (ww-add-link "fennel_mnort" "fennel_mnort.org")
 (ww-add-link "crate" "crate.org")
 (ww-add-link "uf2" "uf2.org")
+(ww-add-link "buffer" "buffer.org")
 
 # sync and close
 
