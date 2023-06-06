@@ -282,14 +282,18 @@ static lil_value_t l_bppbm(lil_t lil,
     sk_core *core;
     const char *filename;
 
-    SKLIL_ARITY_CHECK(lil, "bppbm", argc, 2);
+    SKLIL_ARITY_CHECK(lil, "bppbm", argc, 1);
     core = lil_get_data(lil);
 
     rc = getlbp(lil, core, &lbp);
 
     if (rc) return NULL;
 
-    filename = lil_to_string(argv[1]);
+    if (argc >= 2) {
+        filename = lil_to_string(argv[1]);
+    } else {
+        filename = NULL;
+    }
 
     btprnt_buf_pbm(btprnt_buf_get(lbp->bp), filename);
 
