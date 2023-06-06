@@ -5,16 +5,16 @@
 typedef struct btprnt btprnt;
 #line 158 "btprnt.org"
 typedef struct btprnt_buf btprnt_buf;
-#line 475 "btprnt.org"
+#line 496 "btprnt.org"
 typedef struct btprnt_region btprnt_region;
-#line 720 "btprnt.org"
+#line 741 "btprnt.org"
 typedef struct btprnt_canvas btprnt_canvas;
-#line 2574 "btprnt.org"
+#line 2595 "btprnt.org"
 enum {
     BTPRNT_OK,
     BTPRNT_NOT_OK
 };
-#line 491 "btprnt.org"
+#line 512 "btprnt.org"
 struct btprnt_region {
     btprnt_canvas *c;
     int w, h;
@@ -43,92 +43,95 @@ void btprnt_buf_write(btprnt_buf *b, int x, int y, int c);
 #line 346 "btprnt.org"
 int btprnt_buf_width(btprnt_buf *buf);
 int btprnt_buf_height(btprnt_buf *buf);
-#line 368 "btprnt.org"
+#line 367 "btprnt.org"
+size_t btprnt_buf_size(btprnt_buf *buf);
+unsigned char * btprnt_buf_data(btprnt_buf *buf);
+#line 389 "btprnt.org"
 void btprnt_buf_pbm(btprnt_buf *buf, const char *filename);
-#line 413 "btprnt.org"
+#line 434 "btprnt.org"
 void btprnt_pbm(btprnt *bp, const char *filename);
-#line 430 "btprnt.org"
+#line 451 "btprnt.org"
 void btprnt_buf_xbm(btprnt_buf *buf,
                     const char *name,
                     const char *filename);
-#line 502 "btprnt.org"
+#line 523 "btprnt.org"
 btprnt_region * btprnt_region_new(btprnt_canvas *c,
                                   int x, int y,
                                   int w, int h);
-#line 529 "btprnt.org"
+#line 550 "btprnt.org"
 void btprnt_region_del(btprnt_region **r);
-#line 548 "btprnt.org"
+#line 569 "btprnt.org"
 void btprnt_region_init(btprnt_canvas *c,
                         btprnt_region *r,
                         int x, int y,
                         int w, int h);
-#line 573 "btprnt.org"
+#line 594 "btprnt.org"
 void btprnt_region_xpos_set(btprnt_region *r, int x);
 void btprnt_region_ypos_set(btprnt_region *r, int y);
 void btprnt_region_width_set(btprnt_region *r, int w);
 void btprnt_region_height_set(btprnt_region *r, int h);
-#line 609 "btprnt.org"
+#line 630 "btprnt.org"
 void btprnt_region_draw(btprnt_region *r,
                         int x, int y,
                         int c);
-#line 646 "btprnt.org"
+#line 667 "btprnt.org"
 void btprnt_region_draw_wrap(btprnt_region *r,
                              int x, int y,
                              int c);
-#line 691 "btprnt.org"
+#line 712 "btprnt.org"
 int btprnt_region_read(btprnt_region *r, int x, int y);
-#line 728 "btprnt.org"
+#line 749 "btprnt.org"
 btprnt_canvas * btprnt_canvas_new(btprnt_buf *buf);
-#line 750 "btprnt.org"
+#line 771 "btprnt.org"
 void btprnt_canvas_offx_set(btprnt_canvas *c, int x);
 void btprnt_canvas_offy_set(btprnt_canvas *c, int y);
-#line 769 "btprnt.org"
+#line 790 "btprnt.org"
 void btprnt_canvas_del(btprnt_canvas **c);
-#line 896 "btprnt.org"
+#line 917 "btprnt.org"
 void btprnt_draw_tile(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
                       int mx, int my,
                       int w, int h,
                       int scale, int color);
-#line 926 "btprnt.org"
+#line 947 "btprnt.org"
 void btprnt_draw_tile_wrap(btprnt_region *reg,
                            btprnt_buf *map,
                            int xpos, int ypos,
                            int mx, int my,
                            int w, int h,
                            int scale, int color);
-#line 963 "btprnt.org"
+#line 984 "btprnt.org"
 void btprnt_draw_char(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
                       int w, int h,
                       char c, int scale, int color);
-#line 1002 "btprnt.org"
+#line 1023 "btprnt.org"
 void btprnt_draw_char_wrap(btprnt_region *reg,
                            btprnt_buf *map,
                            int xpos, int ypos,
                            int w, int h,
                            char c, int scale, int color);
-#line 1041 "btprnt.org"
+#line 1062 "btprnt.org"
 void btprnt_draw_text(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
                       int w, int h,
                       const char *str);
-#line 1074 "btprnt.org"
+#line 1095 "btprnt.org"
 void btprnt_draw_scrolling_text(btprnt_region *reg,
                                 btprnt_buf *map,
                                 int xpos, int ypos,
                                 int w, int h,
                                 const char *str);
-#line 1107 "btprnt.org"
+#line 1128 "btprnt.org"
 void btprnt_draw_wraptext(btprnt_region *reg,
                           btprnt_buf *map,
                           int xpos, int ypos,
                           int w, int h,
                           const char *str);
-#line 1159 "btprnt.org"
+#line 1180 "btprnt.org"
 void btprnt_draw_textbox(btprnt_region *reg,
                          btprnt_buf *map,
                          int xpos, int ypos,
@@ -136,28 +139,28 @@ void btprnt_draw_textbox(btprnt_region *reg,
                          const char *str,
                          int scale,
                          int color);
-#line 1303 "btprnt.org"
+#line 1324 "btprnt.org"
 void btprnt_fill(btprnt_region *reg, int clr);
-#line 1322 "btprnt.org"
+#line 1343 "btprnt.org"
 void btprnt_draw_hline(btprnt_region *r,
                        int x, int y,
                        int sz, int clr);
-#line 1343 "btprnt.org"
+#line 1364 "btprnt.org"
 void btprnt_draw_vline(btprnt_region *r,
                        int x, int y,
                        int sz, int clr);
-#line 1365 "btprnt.org"
+#line 1386 "btprnt.org"
 void btprnt_draw_line(btprnt_region *reg,
                       int x0, int y0,
                       int x1, int y1,
                       int clr);
-#line 1430 "btprnt.org"
+#line 1451 "btprnt.org"
 void btprnt_draw_thickline(btprnt_region *reg,
                            int x0, int y0,
                            int x1, int y1,
                            int thick,
                            int clr);
-#line 1492 "btprnt.org"
+#line 1513 "btprnt.org"
 void btprnt_draw_slopeline(btprnt_region *r,
                            int xstart,
                            int ystart,
@@ -167,50 +170,50 @@ void btprnt_draw_slopeline(btprnt_region *r,
                            int clr,
                            int *xlast,
                            int *ylast);
-#line 1564 "btprnt.org"
+#line 1585 "btprnt.org"
 void btprnt_draw_rect(btprnt_region *r,
                       int x, int y,
                       int w, int h,
                       int clr);
-#line 1585 "btprnt.org"
+#line 1606 "btprnt.org"
 void btprnt_draw_rect_filled(btprnt_region *r,
                              int xpos, int ypos,
                              int w, int h,
                              int clr);
-#line 1626 "btprnt.org"
+#line 1647 "btprnt.org"
 void btprnt_draw_circ(btprnt_region *r,
                       int cx, int cy,
                       int rad,
                       int clr);
-#line 1684 "btprnt.org"
+#line 1705 "btprnt.org"
 void btprnt_draw_circ_filled(btprnt_region *r,
                       int cx, int cy,
                       int rad,
                       int clr);
-#line 1755 "btprnt.org"
+#line 1776 "btprnt.org"
 void btprnt_draw_thickcirc(btprnt_region *r,
                            int cx, int cy,
                            int rad, int thick,
                            int clr);
-#line 1813 "btprnt.org"
+#line 1834 "btprnt.org"
 void btprnt_draw_roundrect(btprnt_region *reg,
                            int x, int y,
                            int w, int h,
                            int r,
                            int clr);
-#line 1893 "btprnt.org"
+#line 1914 "btprnt.org"
 void btprnt_draw_roundrect_filled(btprnt_region *r,
                                   int x, int y,
                                   int w, int h,
                                   int rad,
                                   int clr);
-#line 1999 "btprnt.org"
+#line 2020 "btprnt.org"
 void btprnt_draw_triangle(btprnt_region *r,
                           int v1x, int v1y,
                           int v2x, int v2y,
                           int v3x, int v3y,
                           int c);
-#line 2230 "btprnt.org"
+#line 2251 "btprnt.org"
 void btprnt_draw_arrow(btprnt_region *r,
                        int start_x, int start_y,
                        int end_x, int end_y,
@@ -218,13 +221,13 @@ void btprnt_draw_arrow(btprnt_region *r,
                        int arrow_end,
                        int draw_line,
                        int c);
-#line 2325 "btprnt.org"
+#line 2346 "btprnt.org"
 void btprnt_draw_bezier(btprnt_region *reg,
                         int x0, int y0,
                         int x1, int y1,
                         int x2, int y2,
                         int c);
-#line 2464 "btprnt.org"
+#line 2485 "btprnt.org"
 void btprnt_draw_bezier_arrow(btprnt_region *r,
                               int start_x, int start_y,
                               int end_x, int end_y,
@@ -232,35 +235,35 @@ void btprnt_draw_bezier_arrow(btprnt_region *r,
                               int arrow_start,
                               int arrow_end,
                               int c);
-#line 2514 "btprnt.org"
+#line 2535 "btprnt.org"
 void btprnt_draw_tinytile(btprnt_region *r,
                           int xpos,
                           int ypos,
                           int b0,
                           int b1,
                           int b2);
-#line 2595 "btprnt.org"
+#line 2616 "btprnt.org"
 void btprnt_layout_outline(btprnt_region *r, int c);
-#line 2619 "btprnt.org"
+#line 2640 "btprnt.org"
 int btprnt_layout_centerbox(btprnt_region *r,
                             int w, int h,
                             btprnt_region *s);
-#line 2661 "btprnt.org"
+#line 2682 "btprnt.org"
 int btprnt_layout_border(btprnt_region *r,
                          int border,
                          btprnt_region *s);
-#line 2691 "btprnt.org"
+#line 2712 "btprnt.org"
 int btprnt_layout_grid(btprnt_region *r,
                        int nrows,
                        int ncols,
                        int row,
                        int col,
                        btprnt_region *s);
-#line 2748 "btprnt.org"
+#line 2769 "btprnt.org"
 void btprnt_invert(btprnt_region *r,
                    int xoff, int yoff,
                    int w, int h);
-#line 2789 "btprnt.org"
+#line 2810 "btprnt.org"
 void btprnt_bitrow(btprnt_region *reg,
                    int x, int y,
                    int nbits,
@@ -284,12 +287,12 @@ struct btprnt_buf {
     unsigned char free;
     unsigned char *data;
 };
-#line 790 "btprnt.org"
+#line 811 "btprnt.org"
 struct btprnt_canvas {
     btprnt_buf *buf;
     int offx, offy;
 };
-#line 833 "btprnt.org"
+#line 854 "btprnt.org"
 static void draw_tile(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
@@ -445,7 +448,17 @@ int btprnt_buf_height(btprnt_buf *buf)
 {
     return buf->h;
 }
-#line 372 "btprnt.org"
+#line 373 "btprnt.org"
+size_t btprnt_buf_size(btprnt_buf *buf)
+{
+    return buf->h * buf->stride;
+}
+
+unsigned char * btprnt_buf_data(btprnt_buf *buf)
+{
+    return buf->data;
+}
+#line 393 "btprnt.org"
 void btprnt_buf_pbm(btprnt_buf *buf, const char *filename)
 {
     FILE *fp;
@@ -480,12 +493,12 @@ void btprnt_buf_pbm(btprnt_buf *buf, const char *filename)
 
     fclose(fp);
 }
-#line 418 "btprnt.org"
+#line 439 "btprnt.org"
 void btprnt_pbm(btprnt *bp, const char *filename)
 {
     btprnt_buf_pbm(bp->buf, filename);
 }
-#line 436 "btprnt.org"
+#line 457 "btprnt.org"
 void btprnt_buf_xbm(btprnt_buf *buf,
                     const char *name,
                     const char *filename)
@@ -518,7 +531,7 @@ void btprnt_buf_xbm(btprnt_buf *buf,
 
     fclose(fp);
 }
-#line 509 "btprnt.org"
+#line 530 "btprnt.org"
 btprnt_region * btprnt_region_new(btprnt_canvas *c,
                                   int x, int y,
                                   int w, int h)
@@ -533,14 +546,14 @@ btprnt_region * btprnt_region_new(btprnt_canvas *c,
 
     return r;
 }
-#line 534 "btprnt.org"
+#line 555 "btprnt.org"
 void btprnt_region_del(btprnt_region **r)
 {
     if (*r == NULL) return;
     free(*r);
     *r = NULL;
 }
-#line 555 "btprnt.org"
+#line 576 "btprnt.org"
 void btprnt_region_init(btprnt_canvas *c,
                         btprnt_region *r,
                         int x, int y,
@@ -552,7 +565,7 @@ void btprnt_region_init(btprnt_canvas *c,
     btprnt_region_height_set(r, h);
     r->c = c;
 }
-#line 581 "btprnt.org"
+#line 602 "btprnt.org"
 void btprnt_region_xpos_set(btprnt_region *r, int x)
 {
     r->x = x;
@@ -572,7 +585,7 @@ void btprnt_region_height_set(btprnt_region *r, int h)
 {
     r->h = h;
 }
-#line 620 "btprnt.org"
+#line 641 "btprnt.org"
 void btprnt_region_draw(btprnt_region *r,
                         int x, int y,
                         int c)
@@ -592,7 +605,7 @@ void btprnt_region_draw(btprnt_region *r,
 
     btprnt_buf_write(cv->buf, gx, gy, c);
 }
-#line 662 "btprnt.org"
+#line 683 "btprnt.org"
 void btprnt_region_draw_wrap(btprnt_region *r,
                              int x, int y,
                              int c)
@@ -615,7 +628,7 @@ void btprnt_region_draw_wrap(btprnt_region *r,
 
     btprnt_buf_write(cv->buf, gx, gy, c);
 }
-#line 696 "btprnt.org"
+#line 717 "btprnt.org"
 int btprnt_region_read(btprnt_region *r, int x, int y)
 {
     btprnt_canvas *cv;
@@ -633,7 +646,7 @@ int btprnt_region_read(btprnt_region *r, int x, int y)
 
     return btprnt_buf_read(cv->buf, gx, gy);
 }
-#line 733 "btprnt.org"
+#line 754 "btprnt.org"
 btprnt_canvas * btprnt_canvas_new(btprnt_buf *buf)
 {
     btprnt_canvas *c;
@@ -647,7 +660,7 @@ btprnt_canvas * btprnt_canvas_new(btprnt_buf *buf)
     btprnt_canvas_offy_set(c, 0);
     return c;
 }
-#line 756 "btprnt.org"
+#line 777 "btprnt.org"
 void btprnt_canvas_offx_set(btprnt_canvas *c, int x)
 {
     c->offx = x;
@@ -657,14 +670,14 @@ void btprnt_canvas_offy_set(btprnt_canvas *c, int y)
 {
     c->offy = y;
 }
-#line 774 "btprnt.org"
+#line 795 "btprnt.org"
 void btprnt_canvas_del(btprnt_canvas **c)
 {
     if (*c == NULL) return;
     free(*c);
     *c = NULL;
 }
-#line 852 "btprnt.org"
+#line 873 "btprnt.org"
 static void draw_tile(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
@@ -705,7 +718,7 @@ static void draw_tile(btprnt_region *reg,
         }
     }
 }
-#line 906 "btprnt.org"
+#line 927 "btprnt.org"
 void btprnt_draw_tile(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
@@ -720,7 +733,7 @@ void btprnt_draw_tile(btprnt_region *reg,
               scale, color,
               btprnt_region_draw);
 }
-#line 936 "btprnt.org"
+#line 957 "btprnt.org"
 void btprnt_draw_tile_wrap(btprnt_region *reg,
                            btprnt_buf *map,
                            int xpos, int ypos,
@@ -735,7 +748,7 @@ void btprnt_draw_tile_wrap(btprnt_region *reg,
               scale, color,
               btprnt_region_draw_wrap);
 }
-#line 972 "btprnt.org"
+#line 993 "btprnt.org"
 void btprnt_draw_char(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
@@ -759,7 +772,7 @@ void btprnt_draw_char(btprnt_region *reg,
                      w, h,
                      scale, color);
 }
-#line 1011 "btprnt.org"
+#line 1032 "btprnt.org"
 void btprnt_draw_char_wrap(btprnt_region *reg,
                            btprnt_buf *map,
                            int xpos, int ypos,
@@ -783,7 +796,7 @@ void btprnt_draw_char_wrap(btprnt_region *reg,
                           w, h,
                           scale, color);
 }
-#line 1050 "btprnt.org"
+#line 1071 "btprnt.org"
 void btprnt_draw_text(btprnt_region *reg,
                       btprnt_buf *map,
                       int xpos, int ypos,
@@ -801,7 +814,7 @@ void btprnt_draw_text(btprnt_region *reg,
                          str[n], 1, 1);
     }
 }
-#line 1083 "btprnt.org"
+#line 1104 "btprnt.org"
 void btprnt_draw_scrolling_text(btprnt_region *reg,
                                 btprnt_buf *map,
                                 int xpos, int ypos,
@@ -819,7 +832,7 @@ void btprnt_draw_scrolling_text(btprnt_region *reg,
                               str[n], 1, 1);
     }
 }
-#line 1116 "btprnt.org"
+#line 1137 "btprnt.org"
 void btprnt_draw_wraptext(btprnt_region *reg,
                           btprnt_buf *map,
                           int xpos, int ypos,
@@ -852,7 +865,7 @@ void btprnt_draw_wraptext(btprnt_region *reg,
         c++;
     }
 }
-#line 1197 "btprnt.org"
+#line 1218 "btprnt.org"
 void btprnt_draw_textbox(btprnt_region *reg,
                          btprnt_buf *map,
                          int xpos, int ypos,
@@ -954,7 +967,7 @@ void btprnt_draw_textbox(btprnt_region *reg,
         nchars = 0;
     }
 }
-#line 1307 "btprnt.org"
+#line 1328 "btprnt.org"
 void btprnt_fill(btprnt_region *reg, int clr)
 {
     int x, y;
@@ -964,7 +977,7 @@ void btprnt_fill(btprnt_region *reg, int clr)
         }
     }
 }
-#line 1328 "btprnt.org"
+#line 1349 "btprnt.org"
 void btprnt_draw_hline(btprnt_region *r,
                        int x, int y,
                        int sz, int clr)
@@ -975,7 +988,7 @@ void btprnt_draw_hline(btprnt_region *r,
         btprnt_region_draw(r, x + n, y, clr);
     }
 }
-#line 1349 "btprnt.org"
+#line 1370 "btprnt.org"
 void btprnt_draw_vline(btprnt_region *r,
                        int x, int y,
                        int sz, int clr)
@@ -986,7 +999,7 @@ void btprnt_draw_vline(btprnt_region *r,
         btprnt_region_draw(r, x, y + n, clr);
     }
 }
-#line 1373 "btprnt.org"
+#line 1394 "btprnt.org"
 static void swap(int *a, int *b)
 {
     int tmp;
@@ -1036,7 +1049,7 @@ void btprnt_draw_line(btprnt_region *reg,
         }
     }
 }
-#line 1439 "btprnt.org"
+#line 1460 "btprnt.org"
 void btprnt_draw_thickline(btprnt_region *reg,
                            int x0, int y0,
                            int x1, int y1,
@@ -1079,7 +1092,7 @@ void btprnt_draw_thickline(btprnt_region *reg,
         }
     }
 }
-#line 1505 "btprnt.org"
+#line 1526 "btprnt.org"
 void btprnt_draw_slopeline(btprnt_region *r,
                            int xstart,
                            int ystart,
@@ -1130,7 +1143,7 @@ void btprnt_draw_slopeline(btprnt_region *r,
     if (xlast != NULL) *xlast = xp;
     if (ylast != NULL) *ylast = yp;
 }
-#line 1571 "btprnt.org"
+#line 1592 "btprnt.org"
 void btprnt_draw_rect(btprnt_region *r,
                       int x, int y,
                       int w, int h,
@@ -1141,7 +1154,7 @@ void btprnt_draw_rect(btprnt_region *r,
     btprnt_draw_vline(r, x, y, h, clr);
     btprnt_draw_vline(r, x + (w - 1), y, h, clr);
 }
-#line 1592 "btprnt.org"
+#line 1613 "btprnt.org"
 void btprnt_draw_rect_filled(btprnt_region *r,
                              int xpos, int ypos,
                              int w, int h,
@@ -1158,7 +1171,7 @@ void btprnt_draw_rect_filled(btprnt_region *r,
         }
     }
 }
-#line 1633 "btprnt.org"
+#line 1654 "btprnt.org"
 static void circ_pixel(btprnt_region *r,
                        int cx, int cy,
                        int x, int y,
@@ -1202,7 +1215,7 @@ void btprnt_draw_circ(btprnt_region *r,
         circ_pixel(r, cx, cy, x, y, clr);
     }
 }
-#line 1693 "btprnt.org"
+#line 1714 "btprnt.org"
 static void circ_line(btprnt_region *r,
                        int cx, int cy,
                        int x, int y,
@@ -1255,7 +1268,7 @@ void btprnt_draw_circ_filled(btprnt_region *r,
         circ_line(r, cx, cy, x, y, clr);
     }
 }
-#line 1763 "btprnt.org"
+#line 1784 "btprnt.org"
 static void circ_dots(btprnt_region *r,
                        int cx, int cy,
                        int x, int y,
@@ -1299,7 +1312,7 @@ void btprnt_draw_thickcirc(btprnt_region *r,
         circ_dots(r, cx, cy, x, y, clr, thick);
     }
 }
-#line 1822 "btprnt.org"
+#line 1843 "btprnt.org"
 static void quadcirc(btprnt_region *reg,
                      int x0, int y0,
                      int r,
@@ -1367,7 +1380,7 @@ void btprnt_draw_roundrect(btprnt_region *reg,
     quadcirc(reg, x + w - r - 1, y + h - r - 1, r, 4, clr);
     quadcirc(reg, x + r, y + h - r - 1, r, 8, clr);
 }
-#line 1902 "btprnt.org"
+#line 1923 "btprnt.org"
 static void quadcirc_filled(btprnt_region *reg,
                             int x0, int y0, int r,
                             int corner, int delta,
@@ -1451,7 +1464,7 @@ void btprnt_draw_roundrect_filled(btprnt_region *reg,
                   x + r, y + r,
                   r, 2, h - 2 * r - 1, clr);
 }
-#line 2058 "btprnt.org"
+#line 2079 "btprnt.org"
 static int signum(int x)
 {
     if (x < 0) return -1;
@@ -1561,7 +1574,7 @@ static void bresenham_fill(btprnt_region *r,
     }
 
 }
-#line 2198 "btprnt.org"
+#line 2219 "btprnt.org"
 
 void btprnt_draw_triangle(btprnt_region *r,
                           int v1x, int v1y,
@@ -1569,7 +1582,7 @@ void btprnt_draw_triangle(btprnt_region *r,
                           int v3x, int v3y,
                           int c)
 {
-#line 2011 "btprnt.org"
+#line 2032 "btprnt.org"
 {
     int tmpx;
     int tmpy;
@@ -1607,7 +1620,7 @@ void btprnt_draw_triangle(btprnt_region *r,
         v3x = tmpx;
     }
 }
-#line 2206 "btprnt.org"
+#line 2227 "btprnt.org"
     if (v2y == v3y) {
         bresenham_fill(r,
                        v1x, v1y,
@@ -1621,7 +1634,7 @@ void btprnt_draw_triangle(btprnt_region *r,
                        v2x, v2y,
                        c);
     } else {
-#line 2175 "btprnt.org"
+#line 2196 "btprnt.org"
 int v4x, v4y;
 
 v4x = (v1x +
@@ -1640,11 +1653,11 @@ bresenham_fill(r,
                v2x, v2y,
                v4x, v4y,
                c);
-#line 2220 "btprnt.org"
+#line 2241 "btprnt.org"
     }
 
 }
-#line 2244 "btprnt.org"
+#line 2265 "btprnt.org"
 void btprnt_draw_arrow(btprnt_region *r,
                        int start_x, int start_y,
                        int end_x, int end_y,
@@ -1718,7 +1731,7 @@ void btprnt_draw_arrow(btprnt_region *r,
 
     }
 }
-#line 2380 "btprnt.org"
+#line 2401 "btprnt.org"
 static void bezierseg(btprnt_region *r,
                       int x0, int y0,
                       int x1, int y1,
@@ -1797,7 +1810,7 @@ static void bezierseg(btprnt_region *r,
 
     btprnt_draw_line(r, x0, y0, x2, y2, c);
 }
-#line 2335 "btprnt.org"
+#line 2356 "btprnt.org"
 void btprnt_draw_bezier(btprnt_region *reg,
                         int x0, int y0,
                         int x1, int y1,
@@ -1839,7 +1852,7 @@ void btprnt_draw_bezier(btprnt_region *reg,
 
     bezierseg(reg, x0, y0, x1, y1, x2, y2, c);
 }
-#line 2479 "btprnt.org"
+#line 2500 "btprnt.org"
 void btprnt_draw_bezier_arrow(btprnt_region *r,
                               int start_x, int start_y,
                               int end_x, int end_y,
@@ -1864,7 +1877,7 @@ void btprnt_draw_bezier_arrow(btprnt_region *r,
                        end_x, end_y,
                        c);
 }
-#line 2524 "btprnt.org"
+#line 2545 "btprnt.org"
 void btprnt_draw_tinytile(btprnt_region *r,
                           int xpos,
                           int ypos,
@@ -1908,7 +1921,7 @@ void btprnt_draw_tinytile(btprnt_region *r,
         }
     }
 }
-#line 2600 "btprnt.org"
+#line 2621 "btprnt.org"
 void btprnt_layout_outline(btprnt_region *r, int c)
 {
     btprnt_region o;
@@ -1919,7 +1932,7 @@ void btprnt_layout_outline(btprnt_region *r, int c)
     o.h += 2;
     btprnt_draw_rect(&o, 0, 0, o.w, o.h, c);
 }
-#line 2626 "btprnt.org"
+#line 2647 "btprnt.org"
 int btprnt_layout_centerbox(btprnt_region *r,
                             int w, int h,
                             btprnt_region *s)
@@ -1948,7 +1961,7 @@ int btprnt_layout_centerbox(btprnt_region *r,
 
     return BTPRNT_OK;
 }
-#line 2668 "btprnt.org"
+#line 2689 "btprnt.org"
 int btprnt_layout_border(btprnt_region *r,
                          int border,
                          btprnt_region *s)
@@ -1965,7 +1978,7 @@ int btprnt_layout_border(btprnt_region *r,
 
     return BTPRNT_OK;
 }
-#line 2701 "btprnt.org"
+#line 2722 "btprnt.org"
 int btprnt_layout_grid(btprnt_region *r,
                        int nrows,
                        int ncols,
@@ -2003,7 +2016,7 @@ int btprnt_layout_grid(btprnt_region *r,
 
     return BTPRNT_OK;
 }
-#line 2757 "btprnt.org"
+#line 2778 "btprnt.org"
 void btprnt_invert(btprnt_region *r,
                    int xoff, int yoff,
                    int w, int h)
@@ -2027,7 +2040,7 @@ void btprnt_invert(btprnt_region *r,
     }
 
 }
-#line 2797 "btprnt.org"
+#line 2818 "btprnt.org"
 void btprnt_bitrow(btprnt_region *reg,
                    int x, int y,
                    int nbits,
