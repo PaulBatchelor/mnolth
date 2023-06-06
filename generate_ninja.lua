@@ -39,10 +39,7 @@ objects = {}
 
 tangled = {}
 
-cflags = {"-Wall", "-pedantic", "-O3"}
-
--- mac hacks
-table.insert(cflags, "-I/opt/homebrew/include")
+cflags = {"-Wall", "-pedantic", "-O3", "-g"}
 
 function add_object(obj)
     obj_o = obj .. ".o"
@@ -298,5 +295,7 @@ if config.monome then
     require("monome/config")
 end
 
+-- mac hacks
+table.insert(cflags, "-I/opt/homebrew/include")
 
 generate_ninja()
