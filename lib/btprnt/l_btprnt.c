@@ -10,6 +10,8 @@
 #include "gfxbuf.h"
 #include "font.xbm"
 
+#include "sndkit/extra/verify/md5.h"
+
 #define BP_REGPOOL_PRIV
 #include "regpool.h"
 
@@ -685,6 +687,80 @@ static lil_value_t l_bproundrect(lil_t lil,
     return NULL;
 }
 
+static char nibble(int x)
+{
+    char out;
+
+    out = '0';
+    x &= 0xf;
+
+    if (x >= 0x0 && x <= 0x9) {
+        out = '0' + x;
+    } else if (x >= 0xa && x <= 0xf) {
+        out = 'a' + (x - 0xa);
+    }
+
+    return out;
+}
+
+static lil_value_t l_bpverify(lil_t lil,
+                              size_t argc,
+                              lil_value_t *argv)
+{
+    struct lil_btprnt *lbp;
+    int rc;
+    sk_core *core;
+    md5_state_t state;
+    md5_byte_t digest[16];
+    char out[33];
+    btprnt_buf *buf;
+    int n;
+    size_t buflen;
+    const char *cmp;
+
+    SKLIL_ARITY_CHECK(lil, "bpverify", argc, 1);
+    core = lil_get_data(lil);
+
+    rc = getlbp(lil, core, &lbp);
+
+    if (rc) return NULL;
+
+    md5_init(&state);
+
+    buf = btprnt_buf_get(lbp->bp);
+    buflen = btprnt_buf_size(buf);
+
+    md5_append(&state,
+               (const md5_byte_t *)btprnt_buf_data(buf),
+               buflen);
+    md5_finish(&state, digest);
+
+    for (n = 0; n < 16; n++) {
+        out[2*n + 1] = nibble(digest[n]);
+        out[2*n] = nibble(digest[n]>>4);
+    }
+
+    out[32] = '\0';
+
+    if (argc == 1) {
+        printf("%s\n", out);
+        return NULL;
+    }
+
+    cmp = lil_to_string(argv[1]);
+
+    if (strcmp(cmp, out)) {
+        /* technically not secure. try not to stack smash this. */
+        char str[128];
+        sprintf(str, "expected %s, got %s", cmp, out);
+        lil_set_error(lil, str);
+        lil_set_errcode(1);
+        return NULL;
+    }
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -705,6 +781,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpcirc", l_bpcirc);
     lil_register(lil, "bpoutline", l_bpoutline);
     lil_register(lil, "bproundrect", l_bproundrect);
+    lil_register(lil, "bpverify", l_bpverify);
 
 
     /* TODO */
