@@ -297,6 +297,24 @@ static int lilpop(lua_State *L)
     return 0;
 }
 
+static int mnoreset(lua_State *L)
+{
+    lil_t lil;
+
+    lua_getglobal(L, "__lil");
+    lil = lua_touserdata(L, -1);
+
+    mno_clean(lil);
+    lil_free(lil);
+
+    lil = lil_new();
+    mno_load(lil);
+
+    lua_pushlightuserdata(L, lil);
+    lua_setglobal(L, "__lil");
+    return 0;
+}
+
 void gestvm_memops_lua(lua_State *L);
 int luaopen_lpeg(lua_State *L);
 int luaopen_lsqlite3(lua_State *L);
@@ -316,6 +334,7 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     lua_setglobal(L, "__lil");
     lua_register(L, "lil", lvler);
     lua_register(L, "pop", lilpop);
+    lua_register(L, "mnoreset", mnoreset);
     gestvm_memops_lua(L);
     luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
     luaL_requiref(L, "lsqlite3", luaopen_lsqlite3, 1);
