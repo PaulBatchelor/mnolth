@@ -1,6 +1,8 @@
 #include <math.h>
 #include "mathc/mathc.h"
 
+#include <stdio.h> /* debugging */
+
 float sdf_sign(float x)
 {
     if (x == 0) return 0;
@@ -391,19 +393,37 @@ float sdf_egg(struct vec2 p, float ra, float rb)
     return out - rb;
 }
 
+#define EPS 0.000001
+
 float sdf_ellipse(struct vec2 p, struct vec2 ab)
 {
-    float l;
-    float m, m2;
-    float n, n2;
-    float c, c3;
-    float q;
-    float d;
-    float g;
-    float co;
+    double l;
+    double m, m2;
+    double n, n2;
+    double c, c3;
+    double q;
+    double d;
+    double g;
+    double co;
     struct vec2 r;
 
+    if (ab.x == ab.y) {
+        return svec2_length(p) - ab.x;
+    }
+
     p = svec2_abs(p);
+
+    if (p.x == 0) {
+        /* printf("px is exactly 0\n"); */
+        p.x += EPS;
+        p.y += EPS;
+    }
+
+    if (p.y == 0) {
+        /* printf("py is exactly 0\n"); */
+        p.x += EPS;
+        p.y += EPS;
+    }
 
     if (p.x > p.y) {
         p = svec2(p.y, p.x);
@@ -411,6 +431,13 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     l = ab.y*ab.y - ab.x*ab.x;
+/*
+    if (fabs(l) < EPS) {
+        if (l > 0) l = -EPS;
+        else l = EPS;
+    }
+*/
+
     m = ab.x*p.x / l;
     m2 = m*m;
     n = ab.y*p.y / l;
@@ -422,11 +449,11 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     g = m + m*n2;
 
     if (d < 0.0) {
-        float h;
-        float s;
-        float t;
-        float rx;
-        float ry;
+        double h;
+        double s;
+        double t;
+        double rx;
+        double ry;
 
         h = acos(q/c3)/3.0;
         s = cos(h);
@@ -434,13 +461,14 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
         rx = sqrt(-c*(s + t + 2.0) + m2);
         ry = sqrt(-c*(s - t + 2.0) + m2);
         co = (ry + sdf_sign(l)*rx + fabs(g)/(rx*ry) - m)*0.5;
+
     } else {
-        float h;
-        float s;
-        float u;
-        float rx;
-        float ry;
-        float rm;
+        double h;
+        double s;
+        double u;
+        double rx;
+        double ry;
+        double rm;
 
         h = 2.0*m*n*sqrt(d);
         s = sdf_sign(q+h)*pow(fabs(q+h), 1.0/3.0);
@@ -452,7 +480,14 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     r = svec2_multiply(ab, svec2(co, sqrt(1.0-co*co)));
-    return svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
+    {
+        float out;
+        out = svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
+
+
+
+        return out;
+    }
 }
 
 float sdf_moon(struct vec2 p, float d, float ra, float rb)
