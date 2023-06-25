@@ -170,6 +170,10 @@ void mno_load(lil_t lil);
 void mnort_loader(lil_t lil)
 {
     mno_load(lil);
+
+    /* adding these to mno_load... not needed anymore? */
+#if 0    
     lil_load_hotswap(lil);
     lil_load_rt(lil);
+#endif
 }

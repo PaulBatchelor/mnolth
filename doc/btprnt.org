@@ -115,3 +115,10 @@ To draw a rounded rectangle, use =bproundrect=.
 #+BEGIN_SRC lil
 bproundrect [bpget [grab bp] 0] 0 0 50 50 10
 #+END_SRC
+
+Fonts, text:
+
+#+BEGIN_SRC lil
+bpfnt_default fnt
+bptxtbox [bpget [grab bp] 0] 0 0 hello
+#+END_SRC
