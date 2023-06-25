@@ -286,7 +286,7 @@ static int lilpop(lua_State *L)
         out = sk_stacklet_constant(s);
         lua_pushnumber(L, out);
         return 1;
-    } else if (sk_stacklet_isgeneric(s)) {
+    } else if (sk_stacklet_isgeneric(s) || sk_stacklet_istable(s)) {
         void *ud;
         ud = sk_stacklet_userdata(s);
         lua_pushlightuserdata(L, ud);

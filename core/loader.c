@@ -26,6 +26,9 @@ void lil_load_uf2(lil_t lil);
 void sklil_load_mnodes(lil_t lil);
 #endif
 
+#ifdef BUILD_MNORT
+    void lil_load_hotswap(lil_t lil);
+#endif
 void mno_load(lil_t lil)
 {
     sklil_loader_withextra(lil);
@@ -47,6 +50,11 @@ void mno_load(lil_t lil)
 
 #ifdef MNODES
     sklil_load_mnodes(lil);
+#endif
+
+#ifdef BUILD_MNORT
+    lil_load_hotswap(lil);
+    lil_load_rt(lil);
 #endif
 }
 

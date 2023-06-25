@@ -111,6 +111,7 @@ static int grid_close(lua_State *L)
 static int grid_get_input_events(lua_State *L)
 {
     monome_grid_data *md;
+    int top;
     md = lua_touserdata(L, 1);
 
     lua_newtable(L);
