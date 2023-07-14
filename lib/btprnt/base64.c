@@ -50,6 +50,41 @@ static char decoding_table[] = {
 
 static int mod_table[] = {0, 2, 1};
 
+uint32_t base64_encode_segment(const unsigned char *data, int input_length)
+{
+    uint32_t octet_a, octet_b, octet_c, triple, out;
+    unsigned char encoded_data[4];
+    int i, j;
+    uint32_t output_length;
+
+    i = 0;
+    j = 0;
+
+    output_length = 4 * ((input_length + 2) / 3);
+
+    octet_a = i < input_length ? (unsigned char)data[i++] : 0;
+    octet_b = i < input_length ? (unsigned char)data[i++] : 0;
+    octet_c = i < input_length ? (unsigned char)data[i++] : 0;
+
+    triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+
+    encoded_data[j++] = encoding_table[(triple >> 3 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 2 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 1 * 6) & 0x3F];
+    encoded_data[j++] = encoding_table[(triple >> 0 * 6) & 0x3F];
+
+    for (i = 0; i < mod_table[input_length % 3]; i++)
+        encoded_data[output_length - 1 - i] = '=';
+
+    out =
+        (encoded_data[0] << 24) |
+        (encoded_data[1] << 16) |
+        (encoded_data[2] << 8) |
+        (encoded_data[3]);
+
+    return out;
+}
+
 char *base64_encode(const unsigned char *data,
                     size_t input_length,
                     size_t *output_length)
@@ -83,6 +118,32 @@ char *base64_encode(const unsigned char *data,
     return encoded_data;
 }
 
+uint32_t base64_triple(const unsigned char * data)
+{
+    uint32_t sextet_a, sextet_b, sextet_c, sextet_d, triple;
+
+    int i;
+    i = 0;
+    sextet_a =
+        data[i] == '=' ? 0 & i++ :
+        decoding_table[data[i++]];
+    sextet_b =
+        data[i] == '=' ? 0 & i++ :
+        decoding_table[data[i++]];
+    sextet_c =
+        data[i] == '=' ? 0 & i++ :
+        decoding_table[data[i++]];
+    sextet_d =
+        data[i] == '=' ? 0 & i++ :
+        decoding_table[data[i++]];
+
+    triple = (sextet_a << 3 * 6)
+    + (sextet_b << 2 * 6)
+    + (sextet_c << 1 * 6)
+    + (sextet_d << 0 * 6);
+
+    return triple;
+}
 
 unsigned char *base64_decode(const unsigned char *data,
                              size_t input_length,
