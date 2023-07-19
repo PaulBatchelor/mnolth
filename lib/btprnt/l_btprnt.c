@@ -15,6 +15,8 @@
 #define BP_REGPOOL_PRIV
 #include "regpool.h"
 
+void btprnt_png(btprnt *bp, const char *out);
+
 struct lil_btprnt {
     btprnt *bp;
     btprnt_regpool pool;
@@ -761,6 +763,33 @@ static lil_value_t l_bpverify(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_bppng(lil_t lil,
+                           size_t argc,
+                           lil_value_t *argv)
+{
+    struct lil_btprnt *lbp;
+    int rc;
+    sk_core *core;
+    const char *filename;
+
+    SKLIL_ARITY_CHECK(lil, "bppng", argc, 1);
+    core = lil_get_data(lil);
+
+    rc = getlbp(lil, core, &lbp);
+
+    if (rc) return NULL;
+
+    if (argc >= 2) {
+        filename = lil_to_string(argv[1]);
+    } else {
+        filename = NULL;
+    }
+
+    btprnt_png(lbp->bp, filename);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -782,7 +811,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpoutline", l_bpoutline);
     lil_register(lil, "bproundrect", l_bproundrect);
     lil_register(lil, "bpverify", l_bpverify);
-
+    lil_register(lil, "bppng", l_bppng);
 
     /* TODO */
     lil_register(lil, "bpfnt_cherry", l_btphi);
