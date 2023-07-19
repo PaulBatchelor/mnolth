@@ -337,7 +337,7 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     lua_register(L, "mnoreset", mnoreset);
     gestvm_memops_lua(L);
     luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
-    luaL_requiref(L, "lsqlite3", luaopen_lsqlite3, 1);
+    luaL_requiref(L, "sqlite3", luaopen_lsqlite3, 1);
 #ifdef MONOME_GRID
     luaL_requiref(L, "monome_grid", luaopen_monome_grid, 1);
 #endif
