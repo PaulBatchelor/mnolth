@@ -70,3 +70,8 @@ cp $MNOLTH_PATH/scm/*.scm $INSTALL_PATH/share/mnolth
 
 mkdir -p $INSTALL_PATH/include/mnolth/cmp
 cp $LIBPATH/cmp/cmp.h $INSTALL_PATH/include/mnolth/cmp
+
+# miniz 
+
+mkdir -p $INSTALL_PATH/include/mnolth/miniz
+cp $LIBPATH/miniz/miniz.h $INSTALL_PATH/include/mnolth/miniz
