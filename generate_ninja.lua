@@ -106,19 +106,20 @@ function add_tangled_objects(obj)
     end
 end
 
+cc="gcc"
 table.insert(rules,
     mkrule("worgle", "util/worgle/worglite -Werror -g $in"))
 table.insert(rules,
     mkrule("c89",
-        "gcc -std=c89 -c $cflags $in -o $out",
+        cc .. " -std=c89 -c $cflags $in -o $out",
         "c89 $in"))
 table.insert(rules,
     mkrule("c99",
-        "gcc -std=c99 -c $cflags $in -o $out",
+        cc .. " -std=c99 -c $cflags $in -o $out",
         "c99 $in"))
 table.insert(rules,
     mkrule("link",
-        "gcc $cflags $in -o $out $ldflags $libs",
+        cc .. " $cflags $in -o $out $ldflags $libs",
         "creating $out"))
 table.insert(rules,
     mkrule("ar", "ar rcs $out $in", "creating $out"))
