@@ -95,7 +95,6 @@ and free with =gfxbuf_del=.
 #+NAME: funcdefs
 #+BEGIN_SRC c
 gfxbuf *gfxbuf_new(int w, int h);
-void gfxbuf_init(gfxbuf *gfx, int w, int h);
 void gfxbuf_del(gfxbuf *gfx);
 #+END_SRC
 
