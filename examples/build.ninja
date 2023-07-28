@@ -1,0 +1,9 @@
+cflags = -Wall -pedantic -I/usr/local/include/mnolth
+libs = -lmnolth -lx264 -lmonome -ljack
+
+rule cc
+   command = gcc $cflags $in -o $out $libs
+
+build ripples: cc ripples.c
+
+default ripples
