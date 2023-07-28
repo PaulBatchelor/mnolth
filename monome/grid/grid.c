@@ -12,6 +12,8 @@ typedef struct {
 	lua_State *L;
     uint8_t quadL[8];
     uint8_t quadR[8];
+
+    uint8_t map[4][64];
 } monome_grid_data;
 
 static void pos2lua(lua_State *L, int x, int y, int s)
@@ -111,7 +113,6 @@ static int grid_close(lua_State *L)
 static int grid_get_input_events(lua_State *L)
 {
     monome_grid_data *md;
-    int top;
     md = lua_touserdata(L, 1);
 
     lua_newtable(L);
@@ -155,6 +156,51 @@ static int grid_update(lua_State *L)
     return 0;
 }
 
+/* like grid_udpate, only for the zero. renders to bottom
+ * quads.
+ */
+static int grid_update_zero(lua_State *L)
+{
+    monome_grid_data *md;
+    int i, k;
+    uint8_t *left, *right;
+    md = lua_touserdata(L, 1);
+
+    left = md->map[2];
+    right = md->map[3];
+
+    for (i = 0; i < 8; i++) {
+        int val;
+        lua_pushinteger(L, i + 1);
+        lua_gettable(L, 2);
+        val = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        for (k = 0; k < 8; k++) {
+            uint8_t b;
+            b = (val & (1<<k)) > 0;
+            b *= 0xF;
+            left[i*8 + k] = b;
+        }
+
+        lua_pushinteger(L, i + 1);
+        lua_gettable(L, 3);
+        val = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        for (k = 0; k < 8; k++) {
+            uint8_t b;
+            b = (val & (1<<k)) > 0;
+            b *= 0xF;
+            right[i*8 + k] = b;
+        }
+    }
+
+    monome_led_level_map(md->monome, 0, 8, left);
+    monome_led_level_map(md->monome, 8, 8, right);
+    return 0;
+}
+
 static double now_sec(void)
 {
     struct timeval tv;
@@ -178,6 +224,7 @@ static const luaL_Reg grid_lib[] = {
     {"get_input_events", grid_get_input_events},
     {"usleep", grid_usleep},
     {"update", grid_update},
+    {"update_zero", grid_update_zero},
     {"now", grid_now},
     {NULL, NULL}
 };
