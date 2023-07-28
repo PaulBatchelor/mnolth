@@ -7,7 +7,7 @@
 #endif
 #line 128 "bigverb.org"
 typedef struct sk_bigverb sk_bigverb;
-#line 502 "bigverb.org"
+#line 501 "bigverb.org"
 typedef struct sk_bigverb_delay sk_bigverb_delay;
 #line 109 "bigverb.org"
 #line 146 "bigverb.org"
@@ -26,30 +26,30 @@ void sk_bigverb_tick(sk_bigverb *bv,
 
 #ifdef SK_BIGVERB_PRIV
 #line 128 "bigverb.org"
-#line 507 "bigverb.org"
+#line 506 "bigverb.org"
 struct sk_bigverb_delay {
-#line 538 "bigverb.org"
+#line 537 "bigverb.org"
 SKFLT *buf;
 size_t sz;
-#line 552 "bigverb.org"
+#line 551 "bigverb.org"
 int wpos;
-#line 567 "bigverb.org"
+#line 566 "bigverb.org"
 int irpos;
 int frpos;
-#line 576 "bigverb.org"
+#line 575 "bigverb.org"
 int rng;
-#line 886 "bigverb.org"
+#line 885 "bigverb.org"
 int inc;
 int counter;
-#line 938 "bigverb.org"
+#line 937 "bigverb.org"
 int maxcount;
-#line 981 "bigverb.org"
+#line 980 "bigverb.org"
 SKFLT dels;
-#line 991 "bigverb.org"
+#line 990 "bigverb.org"
 SKFLT drift;
-#line 1042 "bigverb.org"
+#line 1041 "bigverb.org"
 SKFLT y;
-#line 509 "bigverb.org"
+#line 508 "bigverb.org"
 };
 #line 134 "bigverb.org"
 struct sk_bigverb {
@@ -61,9 +61,9 @@ SKFLT cutoff;
 SKFLT pcutoff;
 #line 270 "bigverb.org"
 SKFLT filt;
-#line 400 "bigverb.org"
+#line 399 "bigverb.org"
 SKFLT *buf;
-#line 474 "bigverb.org"
+#line 473 "bigverb.org"
 sk_bigverb_delay delay[8];
 #line 137 "bigverb.org"
 };
