@@ -26,28 +26,28 @@ static const struct bigverb_paramset params[8] = {
     {0x078d, 0x06, 0xc95, 0x3851}
 };
 #line 93 "bigverb.org"
-#line 857 "bigverb.org"
+#line 856 "bigverb.org"
 #define FRACSCALE 0x10000000
-#line 867 "bigverb.org"
+#line 866 "bigverb.org"
 #define FRACMASK 0xFFFFFFF
-#line 875 "bigverb.org"
+#line 874 "bigverb.org"
 #define FRACNBITS 28
 #line 93 "bigverb.org"
-#line 437 "bigverb.org"
+#line 436 "bigverb.org"
 static int get_delay_size(const struct bigverb_paramset *p, int sr);
-#line 514 "bigverb.org"
+#line 513 "bigverb.org"
 static void delay_init(sk_bigverb_delay *d,
                        const struct bigverb_paramset *p,
                        SKFLT *buf,
                        size_t sz,
                        int sr);
-#line 622 "bigverb.org"
+#line 621 "bigverb.org"
 static SKFLT delay_compute(sk_bigverb_delay *d,
                            SKFLT in,
                            SKFLT fdbk,
                            SKFLT filt,
                            int sr);
-#line 902 "bigverb.org"
+#line 901 "bigverb.org"
 static void generate_next_line(sk_bigverb_delay *d, int sr);
 #line 93 "bigverb.org"
 #line 151 "bigverb.org"
@@ -66,10 +66,10 @@ sk_bigverb_cutoff(bv, 10000.0);
 bv->pcutoff = -1;
 #line 275 "bigverb.org"
 bv->filt = 1.0;
-#line 405 "bigverb.org"
+#line 404 "bigverb.org"
 bv->buf = NULL;
 #line 151 "bigverb.org"
-#line 410 "bigverb.org"
+#line 409 "bigverb.org"
 {
 unsigned long total_size;
 int i;
@@ -77,16 +77,16 @@ SKFLT *buf;
 
 total_size = 0;
 buf = NULL;
-#line 452 "bigverb.org"
+#line 451 "bigverb.org"
 for (i = 0; i < 8; i++) {
     total_size += get_delay_size(&params[i], sr);
 }
-#line 410 "bigverb.org"
-#line 463 "bigverb.org"
+#line 409 "bigverb.org"
+#line 462 "bigverb.org"
 buf = calloc(1, sizeof(SKFLT) * total_size);
 bv->buf = buf;
-#line 410 "bigverb.org"
-#line 479 "bigverb.org"
+#line 409 "bigverb.org"
+#line 478 "bigverb.org"
 {
     unsigned long bufpos;
     bufpos = 0;
@@ -99,7 +99,7 @@ bv->buf = buf;
         bufpos += sz;
     }
 }
-#line 420 "bigverb.org"
+#line 419 "bigverb.org"
 }
 #line 160 "bigverb.org"
 
@@ -108,7 +108,7 @@ bv->buf = buf;
 #line 175 "bigverb.org"
 void sk_bigverb_del(sk_bigverb *bv)
 {
-#line 469 "bigverb.org"
+#line 468 "bigverb.org"
 free(bv->buf);
 #line 178 "bigverb.org"
     free(bv);
@@ -129,20 +129,19 @@ void sk_bigverb_tick(sk_bigverb *bv,
                      SKFLT inL, SKFLT inR,
                      SKFLT *outL, SKFLT *outR)
 {
-    /* TODO: implement */
     SKFLT lsum, rsum;
 
     lsum = 0;
     rsum = 0;
 
-#line 332 "bigverb.org"
+#line 331 "bigverb.org"
 if (bv->pcutoff != bv->cutoff) {
     bv->pcutoff = bv->cutoff;
     bv->filt = 2.0 - cos(bv->pcutoff * 2 * M_PI / bv->sr);
     bv->filt = bv->filt - sqrt(bv->filt * bv->filt - 1.0);
 }
 #line 299 "bigverb.org"
-#line 347 "bigverb.org"
+#line 346 "bigverb.org"
 {
     int i;
     SKFLT jp;
@@ -159,7 +158,7 @@ if (bv->pcutoff != bv->cutoff) {
     inR = jp + inR;
 }
 #line 299 "bigverb.org"
-#line 373 "bigverb.org"
+#line 372 "bigverb.org"
 {
     int i;
     for (i = 0; i < 8; i++) {
@@ -180,19 +179,19 @@ if (bv->pcutoff != bv->cutoff) {
 }
 rsum *= 0.35f;
 lsum *= 0.35f;
-#line 312 "bigverb.org"
+#line 311 "bigverb.org"
 
     *outL = lsum;
     *outR = rsum;
 }
-#line 442 "bigverb.org"
+#line 441 "bigverb.org"
 static int get_delay_size(const struct bigverb_paramset *p, int sr)
 {
     SKFLT sz;
     sz = (SKFLT)p->delay/44100 + (p->drift * 0.0001) * 1.125;
     return floor(16 + sz*sr);
 }
-#line 523 "bigverb.org"
+#line 522 "bigverb.org"
 static void delay_init(sk_bigverb_delay *d,
                        const struct bigverb_paramset *p,
                        SKFLT *buf,
@@ -200,37 +199,37 @@ static void delay_init(sk_bigverb_delay *d,
                        int sr)
 {
     SKFLT readpos;
-#line 544 "bigverb.org"
+#line 543 "bigverb.org"
 d->buf = buf;
 d->sz = sz;
-#line 557 "bigverb.org"
+#line 556 "bigverb.org"
 d->wpos = 0;
-#line 581 "bigverb.org"
+#line 580 "bigverb.org"
 d->rng = p->seed;
-#line 595 "bigverb.org"
+#line 594 "bigverb.org"
 readpos = ((SKFLT)p->delay / 44100);
 readpos += d->rng * (p->drift * 0.0001) / 32768.0;
 readpos = sz - (readpos * sr);
 d->irpos = floor(readpos);
 d->frpos = floor((readpos - d->irpos) * FRACSCALE);
-#line 581 "bigverb.org"
-#line 595 "bigverb.org"
-#line 892 "bigverb.org"
+#line 580 "bigverb.org"
+#line 594 "bigverb.org"
+#line 891 "bigverb.org"
 d->inc = 0;
 d->counter = 0;
-#line 948 "bigverb.org"
+#line 947 "bigverb.org"
 d->maxcount = floor((sr / ((SKFLT)p->randfreq * 0.001)));
-#line 986 "bigverb.org"
+#line 985 "bigverb.org"
 d->dels = p->delay / 44100.0;
-#line 996 "bigverb.org"
+#line 995 "bigverb.org"
 d->drift = p->drift;
-#line 607 "bigverb.org"
+#line 606 "bigverb.org"
 generate_next_line(d, sr);
-#line 1047 "bigverb.org"
+#line 1046 "bigverb.org"
 d->y = 0.0;
-#line 531 "bigverb.org"
+#line 530 "bigverb.org"
 }
-#line 631 "bigverb.org"
+#line 630 "bigverb.org"
 static SKFLT delay_compute(sk_bigverb_delay *del,
                            SKFLT in,
                            SKFLT fdbk,
@@ -242,26 +241,26 @@ static SKFLT delay_compute(sk_bigverb_delay *del,
     SKFLT a, b, c, d;
     SKFLT s[4];
     out = 0;
-#line 669 "bigverb.org"
+#line 668 "bigverb.org"
 del->buf[del->wpos] = in - del->y;
-#line 631 "bigverb.org"
-#line 677 "bigverb.org"
+#line 630 "bigverb.org"
+#line 676 "bigverb.org"
 del->wpos++;
 if (del->wpos >= del->sz) del->wpos -= del->sz;
-#line 631 "bigverb.org"
-#line 689 "bigverb.org"
+#line 630 "bigverb.org"
+#line 688 "bigverb.org"
 if (del->frpos >= FRACSCALE) {
     del->irpos += del->frpos >> FRACNBITS;
     del->frpos &= FRACMASK;
 }
-#line 631 "bigverb.org"
-#line 699 "bigverb.org"
+#line 630 "bigverb.org"
+#line 698 "bigverb.org"
 if (del->irpos >= del->sz) del->irpos -= del->sz;
-#line 631 "bigverb.org"
-#line 708 "bigverb.org"
+#line 630 "bigverb.org"
+#line 707 "bigverb.org"
 frac_norm = del->frpos / (SKFLT)FRACSCALE;
-#line 631 "bigverb.org"
-#line 721 "bigverb.org"
+#line 630 "bigverb.org"
+#line 720 "bigverb.org"
 {
     SKFLT tmp[2];
     d = ((frac_norm * frac_norm) - 1) / 6.0;
@@ -271,8 +270,8 @@ frac_norm = del->frpos / (SKFLT)FRACSCALE;
     c = tmp[0] - tmp[1];
     b = tmp[1] - frac_norm;
 }
-#line 631 "bigverb.org"
-#line 740 "bigverb.org"
+#line 630 "bigverb.org"
+#line 739 "bigverb.org"
 {
     int n;
     SKFLT *x;
@@ -296,56 +295,56 @@ frac_norm = del->frpos / (SKFLT)FRACSCALE;
         }
     }
 }
-#line 631 "bigverb.org"
-#line 778 "bigverb.org"
+#line 630 "bigverb.org"
+#line 777 "bigverb.org"
 out = (a*s[0] + b*s[1] + c*s[2] + d*s[3]) * frac_norm + s[1];
-#line 631 "bigverb.org"
-#line 786 "bigverb.org"
+#line 630 "bigverb.org"
+#line 785 "bigverb.org"
 del->frpos += del->inc;
-#line 631 "bigverb.org"
-#line 796 "bigverb.org"
+#line 630 "bigverb.org"
+#line 795 "bigverb.org"
 out *= fdbk;
 out += (del->y - out) * filt;
 del->y = out;
-#line 631 "bigverb.org"
-#line 823 "bigverb.org"
+#line 630 "bigverb.org"
+#line 822 "bigverb.org"
 del->counter--;
 if (del->counter <= 0) {
     generate_next_line(del, sr);
 }
-#line 653 "bigverb.org"
+#line 652 "bigverb.org"
     return out;
 }
-#line 1021 "bigverb.org"
+#line 1020 "bigverb.org"
 static void generate_next_line(sk_bigverb_delay *d, int sr)
 {
     SKFLT curdel;
     SKFLT nxtdel;
     SKFLT inc;
-#line 923 "bigverb.org"
+#line 922 "bigverb.org"
 if (d->rng < 0) d->rng += 0x10000;
 /* 5^6 = 15625 */
 d->rng = (1 + d->rng * 0x3d09);
 d->rng &= 0xFFFF;
 if (d->rng >= 0x8000) d->rng -= 0x10000;
-#line 1021 "bigverb.org"
-#line 953 "bigverb.org"
+#line 1020 "bigverb.org"
+#line 952 "bigverb.org"
 d->counter = d->maxcount;
-#line 1021 "bigverb.org"
-#line 963 "bigverb.org"
+#line 1020 "bigverb.org"
+#line 962 "bigverb.org"
 curdel = d->wpos -
     (d->irpos + (d->frpos/(SKFLT)FRACSCALE));
 while (curdel < 0) curdel += d->sz;
 curdel /= sr;
-#line 974 "bigverb.org"
+#line 973 "bigverb.org"
 nxtdel = (d->rng * (d->drift * 0.0001) / 32768.0) + d->dels;
-#line 1021 "bigverb.org"
-#line 1007 "bigverb.org"
+#line 1020 "bigverb.org"
+#line 1006 "bigverb.org"
 inc = ((curdel - nxtdel) / (SKFLT)d->counter)*sr;
 inc += 1;
-#line 1021 "bigverb.org"
-#line 1016 "bigverb.org"
+#line 1020 "bigverb.org"
+#line 1015 "bigverb.org"
 d->inc = floor(inc * FRACSCALE);
-#line 1031 "bigverb.org"
+#line 1030 "bigverb.org"
 }
 #line 93 "bigverb.org"
