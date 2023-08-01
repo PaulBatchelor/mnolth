@@ -201,6 +201,50 @@ static int grid_update_zero(lua_State *L)
     return 0;
 }
 
+static int grid_level_map(lua_State *L)
+{
+    monome_grid_data *md;
+    int i;
+    md = lua_touserdata(L, 1);
+
+    for (i = 0; i < 256; i++) {
+        int val, x, y;
+        uint8_t *map;
+        lua_pushinteger(L, i + 1);
+        lua_gettable(L, 2);
+        val = lua_tointeger(L, -1);
+        lua_pop(L, 1);
+
+        x = i % 16;
+        y = i / 16;
+
+        if (y < 8) {
+            if (x < 8) {
+                map = md->map[0];
+            } else {
+                x -= 8;
+                map = md->map[1];
+            }
+        } else {
+            y -= 8;
+            if (x < 8) {
+                map = md->map[2];
+            } else {
+                x -= 8;
+                map = md->map[3];
+            }
+        }
+
+        map[y*8 + x] = val & 0xF;
+    }
+
+    monome_led_level_map(md->monome, 0, 0, md->map[0]);
+    monome_led_level_map(md->monome, 8, 0, md->map[1]);
+    monome_led_level_map(md->monome, 0, 8, md->map[2]);
+    monome_led_level_map(md->monome, 8, 8, md->map[3]);
+    return 0;
+}
+
 static double now_sec(void)
 {
     struct timeval tv;
@@ -225,6 +269,7 @@ static const luaL_Reg grid_lib[] = {
     {"usleep", grid_usleep},
     {"update", grid_update},
     {"update_zero", grid_update_zero},
+    {"level_map", grid_level_map},
     {"now", grid_now},
     {NULL, NULL}
 };
