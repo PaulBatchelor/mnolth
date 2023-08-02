@@ -15,6 +15,10 @@
 #define BP_REGPOOL_PRIV
 #include "regpool.h"
 
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
+
 void btprnt_png(btprnt *bp, const char *out);
 
 struct lil_btprnt {
@@ -822,4 +826,28 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpborder", l_btphi);
     lil_register(lil, "bpinvert", l_btphi);
     lil_register(lil, "bpscrtxt", l_btphi);
+}
+
+static int lua_draw(lua_State *L)
+{
+    btprnt_region *reg;
+    int x, y, s;
+    reg = lua_touserdata(L, 1);
+    x = lua_tointeger(L, 2);
+    y = lua_tointeger(L, 3);
+    s = lua_tointeger(L, 4);
+
+    btprnt_region_draw(reg, x, y, s);
+    return 0;
+}
+
+static const luaL_Reg btprnt_lib[] = {
+    {"draw", lua_draw},
+    {NULL, NULL}
+};
+
+int luaopen_btprnt(lua_State *L)
+{
+    luaL_newlib(L, btprnt_lib);
+    return 1;
 }
