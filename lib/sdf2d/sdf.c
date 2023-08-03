@@ -1,8 +1,6 @@
 #include <math.h>
 #include "mathc/mathc.h"
 
-#include <stdio.h> /* debugging */
-
 float sdf_sign(float x)
 {
     if (x == 0) return 0;
@@ -393,37 +391,19 @@ float sdf_egg(struct vec2 p, float ra, float rb)
     return out - rb;
 }
 
-#define EPS 0.000001
-
 float sdf_ellipse(struct vec2 p, struct vec2 ab)
 {
-    double l;
-    double m, m2;
-    double n, n2;
-    double c, c3;
-    double q;
-    double d;
-    double g;
-    double co;
+    float l;
+    float m, m2;
+    float n, n2;
+    float c, c3;
+    float q;
+    float d;
+    float g;
+    float co;
     struct vec2 r;
 
-    if (ab.x == ab.y) {
-        return svec2_length(p) - ab.x;
-    }
-
     p = svec2_abs(p);
-
-    if (p.x == 0) {
-        /* printf("px is exactly 0\n"); */
-        p.x += EPS;
-        p.y += EPS;
-    }
-
-    if (p.y == 0) {
-        /* printf("py is exactly 0\n"); */
-        p.x += EPS;
-        p.y += EPS;
-    }
 
     if (p.x > p.y) {
         p = svec2(p.y, p.x);
@@ -431,13 +411,6 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     l = ab.y*ab.y - ab.x*ab.x;
-/*
-    if (fabs(l) < EPS) {
-        if (l > 0) l = -EPS;
-        else l = EPS;
-    }
-*/
-
     m = ab.x*p.x / l;
     m2 = m*m;
     n = ab.y*p.y / l;
@@ -449,11 +422,11 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     g = m + m*n2;
 
     if (d < 0.0) {
-        double h;
-        double s;
-        double t;
-        double rx;
-        double ry;
+        float h;
+        float s;
+        float t;
+        float rx;
+        float ry;
 
         h = acos(q/c3)/3.0;
         s = cos(h);
@@ -461,14 +434,13 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
         rx = sqrt(-c*(s + t + 2.0) + m2);
         ry = sqrt(-c*(s - t + 2.0) + m2);
         co = (ry + sdf_sign(l)*rx + fabs(g)/(rx*ry) - m)*0.5;
-
     } else {
-        double h;
-        double s;
-        double u;
-        double rx;
-        double ry;
-        double rm;
+        float h;
+        float s;
+        float u;
+        float rx;
+        float ry;
+        float rm;
 
         h = 2.0*m*n*sqrt(d);
         s = sdf_sign(q+h)*pow(fabs(q+h), 1.0/3.0);
@@ -480,14 +452,7 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     r = svec2_multiply(ab, svec2(co, sqrt(1.0-co*co)));
-    {
-        float out;
-        out = svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
-
-
-
-        return out;
-    }
+    return svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
 }
 
 float sdf_moon(struct vec2 p, float d, float ra, float rb)
@@ -511,4 +476,58 @@ float sdf_moon(struct vec2 p, float d, float ra, float rb)
     }
 
     return out;
+}
+
+float sdf_polygon(struct vec2 *v, int N, struct vec2 p)
+{
+    float d;
+    float s;
+    int i;
+    int j;
+
+    /* d = dot(p - v[0], p - v[0]) */
+    d = dot2(svec2_subtract(p, v[0]));
+    s = 1.0;
+
+    for (i=0, j=N-1; i < N; j=i, i++) {
+        struct vec2 e;
+        struct vec2 w;
+        struct vec2 b;
+        struct vec3 c;
+        int all, none;
+        float tmpf;
+
+        /* vec2 e = v[j] - v[i] */
+        e = svec2_subtract(v[j], v[i]);
+
+        /* vec2 w = p - v[i] */
+        w = svec2_subtract(p, v[i]);
+
+        /* vec2 b = w - e*clamp( dot(w, e) / dot(e, e), 0.0, 1.0) */
+        tmpf = svec2_dot(e, e);
+        if (tmpf != 0) {
+            tmpf = svec2_dot(w, e) / tmpf;
+        }
+        if (tmpf < 0.0) tmpf = 0.0;
+        else if (tmpf > 1.0) tmpf = 1.0;
+        b = svec2_multiply_f(e, tmpf);
+        b = svec2_subtract(w, b);
+
+        /* d = min(d, dot(b,b)) */
+        tmpf = dot2(b);
+        if (tmpf < d) d = tmpf;
+
+        /* bvec3 c = bvec3(p.y>=v[i].y,p.y<v[j].y,e.x*w.y>e.y*w.x); */
+        c = svec3(p.y>=v[i].y,
+                  p.y<v[j].y,
+                  e.x*w.y>e.y*w.x);
+
+        /* if ( all(c) || all(not(c))) s *= -1.0; */
+
+        all = (c.x > 0) && (c.y > 0) && (c.z > 0);
+        none = (c.x < 1) && (c.y < 1) && (c.z < 1);
+        if (all || none) s = -s;
+    }
+
+    return s * sqrt(d);
 }

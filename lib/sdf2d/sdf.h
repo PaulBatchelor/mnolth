@@ -22,4 +22,5 @@ float sdf_vesica(struct vec2 p, float r, float d);
 float sdf_egg(struct vec2 p, float ra, float rb);
 float sdf_ellipse(struct vec2 p, struct vec2 ab);
 float sdf_moon(struct vec2 p, float d, float ra, float rb);
+float sdf_polygon(struct vec2 *v, int N, struct vec2 p);
 #endif
