@@ -24,7 +24,28 @@ struct sdfvm_stacklet {
 
 struct sdfvm {
     sdfvm_stacklet stack[SDFVM_STACKSIZE];
+    struct vec2 p;
+    struct vec3 color;
     int stackpos;
+};
+
+enum {
+    SDF_OP_NONE,
+    SDF_OP_POINT,
+    SDF_OP_COLOR,
+    SDF_OP_SCALAR,
+    SDF_OP_VEC2,
+    SDF_OP_VEC3,
+    SDF_OP_CIRCLE,
+    SDF_OP_POLY4,
+    SDF_OP_ROUNDNESS,
+    SDF_OP_FEATHER,
+    SDF_OP_LERP3,
+    SDF_OP_MUL,
+    SDF_OP_LERP,
+    SDF_OP_GTZ,
+    SDF_OP_NORMALIZE,
+    SDF_OP_END
 };
 #endif
 
@@ -33,6 +54,10 @@ void sdfvm_init(sdfvm *vm);
 int sdfvm_push_scalar(sdfvm *vm, float s);
 int sdfvm_push_vec2(sdfvm *vm, struct vec2 v);
 int sdfvm_push_vec3(sdfvm *vm, struct vec3 v);
+void sdfvm_point_set(sdfvm *vm, struct vec2 p);
+struct vec2 sdfvm_point_get(sdfvm *vm);
+void sdfvm_color_set(sdfvm *vm, struct vec3 color);
+struct vec3 sdfvm_color_get(sdfvm *vm);
 
 int sdfvm_pop_scalar(sdfvm *vm, float *s);
 int sdfvm_pop_vec2(sdfvm *vm, struct vec2 *v);
@@ -47,5 +72,9 @@ int sdfvm_mul(sdfvm *vm);
 int sdfvm_lerp(sdfvm *vm);
 int sdfvm_gtz(sdfvm *vm);
 int sdfvm_normalize(sdfvm *vm);
+
+int sdfvm_execute(sdfvm *vm,
+                  const uint8_t *program,
+                  size_t sz);
 
 #endif

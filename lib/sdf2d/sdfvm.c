@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "mathc/mathc.h"
 #include "sdf.h"
 #define SDF2D_SDFVM_PRIV
@@ -25,6 +26,9 @@ void sdfvm_init(sdfvm *vm)
         s->data.v2 = svec2_zero();
         s->data.v3 = svec3_zero();
     }
+
+    vm->p = svec2_zero();
+    vm->color = svec3_zero();
 }
 
 static int get_stacklet(sdfvm *vm, sdfvm_stacklet **sp)
@@ -305,4 +309,157 @@ int sdfvm_normalize(sdfvm *vm)
     if (rc) return rc;
 
     return 0;
+}
+
+static int get_float(const uint8_t *program,
+                     size_t sz,
+                     size_t *n,
+                     float *out)
+{
+    uint8_t tmp[4];
+    uint8_t pos;
+    float *f;
+    int i;
+
+    pos = *n;
+    if ((sz - pos) < 4) return 1;
+
+    for (i = 0; i < 4; i++) {
+        tmp[i] = program[pos + i];
+    }
+
+    f = (float *)tmp;
+
+    *n = pos + 4;
+    *out = *f;
+    return 0;
+}
+
+int sdfvm_execute(sdfvm *vm,
+                  const uint8_t *program,
+                  size_t sz)
+{
+    size_t n;
+    float f[3];
+
+    if (sz <= 0) return 2;
+
+    n = 0;
+    f[0] = f[1] = f[2] = 0;
+    while (n < sz) {
+        uint8_t c;
+        int rc;
+
+        c = program[n];
+
+        switch(c) {
+            case SDF_OP_POINT:
+                n++;
+                rc = sdfvm_push_vec2(vm, sdfvm_point_get(vm));
+                if (rc) return rc;
+                break;
+            case SDF_OP_COLOR:
+                n++;
+                rc = sdfvm_push_vec3(vm, sdfvm_color_get(vm));
+                if (rc) return rc;
+                break;
+            case SDF_OP_SCALAR:
+                n++;
+                rc = get_float(program, sz, &n, &f[0]);
+                if (rc) return rc;
+                rc = sdfvm_push_scalar(vm, f[0]);
+                if (rc) return rc;
+                break;
+            case SDF_OP_VEC2:
+                n++;
+                rc = get_float(program, sz, &n, &f[0]);
+                if (rc) return rc;
+                rc = get_float(program, sz, &n, &f[1]);
+                if (rc) return rc;
+                rc = sdfvm_push_vec2(vm, svec2(f[0], f[1]));
+                if (rc) return rc;
+                break;
+            case SDF_OP_VEC3:
+                n++;
+                rc = get_float(program, sz, &n, &f[0]);
+                if (rc) return rc;
+                rc = get_float(program, sz, &n, &f[1]);
+                if (rc) return rc;
+                rc = get_float(program, sz, &n, &f[2]);
+                if (rc) return rc;
+                rc = sdfvm_push_vec3(vm, svec3(f[0], f[1], f[2]));
+                if (rc) return rc;
+                break;
+            case SDF_OP_CIRCLE:
+                n++;
+                rc = sdfvm_circle(vm);
+                if (rc) return rc;
+                break;
+                break;
+            case SDF_OP_POLY4:
+                n++;
+                rc = sdfvm_poly4(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_ROUNDNESS:
+                n++;
+                rc = sdfvm_roundness(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_FEATHER:
+                n++;
+                rc = sdfvm_feather(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_LERP3:
+                n++;
+                rc = sdfvm_lerp3(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_MUL:
+                n++;
+                rc = sdfvm_mul(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_LERP:
+                n++;
+                rc = sdfvm_lerp(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_GTZ:
+                n++;
+                rc = sdfvm_gtz(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_NORMALIZE:
+                n++;
+                rc = sdfvm_normalize(vm);
+                if (rc) return rc;
+                break;
+            default:
+                return 1;
+        }
+    }
+
+    return 0;
+}
+
+void sdfvm_point_set(sdfvm *vm, struct vec2 p)
+{
+    vm->p = p;
+}
+
+struct vec2 sdfvm_point_get(sdfvm *vm)
+{
+    return vm->p;
+}
+
+void sdfvm_color_set(sdfvm *vm, struct vec3 color)
+{
+    vm->color = color;
+}
+
+struct vec3 sdfvm_color_get(sdfvm *vm)
+{
+    return vm->color;
 }
