@@ -7,5 +7,5 @@ fi
 SDF2D_PATH=$1
 CURDIR=$(pwd)
 cd $SDF2D_PATH
-rsync -rvt sdf.c sdf.h $CURDIR
+rsync -rvt sdf.c sdf.h sdfvm.c sdfvm.h $CURDIR
 cd $CURDIR
