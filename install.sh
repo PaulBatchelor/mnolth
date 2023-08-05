@@ -60,6 +60,7 @@ cp $LIBPATH/lua/luaconf.h $INSTALL_PATH/include/mnolth/lua
 
 mkdir -p $INSTALL_PATH/include/mnolth/sdf2d
 cp $LIBPATH/sdf2d/sdf.h $INSTALL_PATH/include/mnolth/sdf2d
+cp $LIBPATH/sdf2d/sdfvm.h $INSTALL_PATH/include/mnolth/sdf2d
 
 # copy SCM files
 
