@@ -174,7 +174,7 @@ static void write_block(btprnt_region *r,
 
 }
 #+END_SRC
-* Buffer
+* Buffer (mno_buffer)
 LIL doesn't have a great way of handling blocks memory,
 which is needed for =btprnt_uf2_draw_bytes=. The idea
 is to construct a pre-allocated chunk of memory that LIL
@@ -323,6 +323,62 @@ static int buffer_clear(lua_State *L)
     return 0;
 }
 #+END_SRC
+** Appending Floating Point values
+Floats are tricky to convert to serialized binary.
+So, this handles it for us.
+
+Note that this is needed because buffers are going to
+be used to store sdfvm programs.
+*** Appending a Floating Point value in C
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_buffer_appendfloat(mno_buffer *buf, float f);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int mno_buffer_appendfloat(mno_buffer *buf, float f)
+{
+    uint8_t fdata[4];
+    float *fptr;
+    int i;
+
+    if (buf->len >= (buf->cap - 4)) return 0;
+    fptr = (float *)&fdata;
+    *fptr = f;
+    for (i = 0; i < 4; i++) {
+        buf->buf[buf->len] = fdata[i];
+    }
+    buf->len+=4;
+    return 1;
+}
+#+END_SRC
+*** Appending a Floating Point value in Lua
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int buffer_append_float(lua_State *L)
+{
+    mno_buffer *buf;
+    buf = lua_touserdata(L, 1);
+
+    if (lua_istable(L, 2)) {
+        lua_pushnil(L);
+
+        while (lua_next(L, 2)) {
+            float f;
+            f = lua_tonumber(L, -1);
+            mno_buffer_appendfloat(buf, f);
+            lua_pop(L, 1);
+        }
+    } else {
+        float f;
+        f = lua_tonumber(L, 2);
+        mno_buffer_appendfloat(buf, f);
+    }
+
+    return 0;
+}
+#+END_SRC
 ** Lua Loader
 (Note that this isn't forward-declared, this is done to
 avoid needing to include lua headers everywhere uf2 is
@@ -332,6 +388,7 @@ used.)
 <<lua_funcs>>
 static const luaL_Reg buffer_lib[] = {
     {"append", buffer_append},
+    {"append_float", buffer_append_float},
     {"clear", buffer_clear},
     {NULL, NULL}
 };

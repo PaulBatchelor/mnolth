@@ -29,6 +29,8 @@ void sdfvm_init(sdfvm *vm)
 
     vm->p = svec2_zero();
     vm->color = svec3_zero();
+    vm->registers = NULL;
+    vm->nregisters = 0;
 }
 
 static int get_stacklet(sdfvm *vm, sdfvm_stacklet **sp)
@@ -358,6 +360,11 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_push_vec2(vm, sdfvm_point_get(vm));
                 if (rc) return rc;
                 break;
+            case SDF_OP_REGISTER:
+                n++;
+                rc = sdfvm_register(vm);
+                if (rc) return rc;
+                break;
             case SDF_OP_COLOR:
                 n++;
                 rc = sdfvm_push_vec3(vm, sdfvm_color_get(vm));
@@ -462,4 +469,98 @@ void sdfvm_color_set(sdfvm *vm, struct vec3 color)
 struct vec3 sdfvm_color_get(sdfvm *vm)
 {
     return vm->color;
+}
+
+void sdfvm_registers(sdfvm *vm, sdfvm_stacklet *reg, int nreg)
+{
+    vm->registers = reg;
+    vm->nregisters = nreg;
+}
+
+int sdfvm_regget(sdfvm *vm, int pos, sdfvm_stacklet *out)
+{
+    if (pos < 0 || pos >= vm->nregisters) return 1;
+    *out = vm->registers[pos];
+    return 0;
+}
+
+int sdfvm_regset(sdfvm *vm, int pos, sdfvm_stacklet reg)
+{
+    if (pos < 0 || pos >= vm->nregisters) return 1;
+    vm->registers[pos] = reg;
+    return 0;
+}
+
+int sdfvm_regset_scalar(sdfvm *vm, int pos, float s)
+{
+    sdfvm_stacklet stk;
+
+    stk.type = SDFVM_SCALAR;
+    stk.data.s = s;
+
+    return sdfvm_regset(vm, pos, stk);
+}
+
+int sdfvm_regset_vec2(sdfvm *vm, int pos, struct vec2 v)
+{
+    sdfvm_stacklet stk;
+
+    stk.type = SDFVM_VEC2;
+    stk.data.v2 = v;
+
+    return sdfvm_regset(vm, pos, stk);
+}
+
+int sdfvm_regset_vec3(sdfvm *vm, int pos, struct vec3 v)
+{
+    sdfvm_stacklet stk;
+
+    stk.type = SDFVM_VEC3;
+    stk.data.v3 = v;
+
+    return sdfvm_regset(vm, pos, stk);
+}
+
+int sdfvm_register(sdfvm *vm)
+{
+    float fpos;
+    int pos;
+    sdfvm_stacklet *stk;
+    int rc;
+
+    pos = fpos = 0;
+    rc = sdfvm_pop_scalar(vm, &fpos);
+    if (rc) return rc;
+    pos = (int)fpos;
+
+    rc = get_stacklet(vm, &stk);
+    if (rc) return rc;
+    rc = sdfvm_regget(vm, pos, stk);
+    if (rc) return rc;
+
+    return 0;
+}
+
+void sdfvm_print_lookup_table(FILE *fp)
+{
+    if (fp == NULL) fp = stdout;
+    fprintf(fp, "{\n");
+    fprintf(fp, "    \"none\": %d,\n", SDF_OP_NONE);
+    fprintf(fp, "    \"point\": %d,\n", SDF_OP_POINT);
+    fprintf(fp, "    \"color\": %d,\n", SDF_OP_COLOR);
+    fprintf(fp, "    \"scalar\": %d,\n", SDF_OP_SCALAR);
+    fprintf(fp, "    \"vec2\": %d,\n", SDF_OP_VEC2);
+    fprintf(fp, "    \"vec3\": %d,\n", SDF_OP_VEC3);
+    fprintf(fp, "    \"register\": %d,\n", SDF_OP_REGISTER);
+    fprintf(fp, "    \"circle\": %d,\n", SDF_OP_CIRCLE);
+    fprintf(fp, "    \"poly4\": %d,\n", SDF_OP_POLY4);
+    fprintf(fp, "    \"roundness\": %d,\n", SDF_OP_ROUNDNESS);
+    fprintf(fp, "    \"feather\": %d,\n", SDF_OP_FEATHER);
+    fprintf(fp, "    \"lerp3\": %d,\n", SDF_OP_LERP3);
+    fprintf(fp, "    \"mul\": %d,\n", SDF_OP_MUL);
+    fprintf(fp, "    \"lerp\": %d,\n", SDF_OP_LERP);
+    fprintf(fp, "    \"gtz\": %d,\n", SDF_OP_GTZ);
+    fprintf(fp, "    \"normalize\": %d,\n", SDF_OP_NORMALIZE);
+    fprintf(fp, "    \"end\": %d\n", SDF_OP_END);
+    fprintf(fp, "}\n");
 }
