@@ -1,0 +1,22 @@
+#+TITLE: BTPRNT + SDFVM
+* Overview
+Use SDFVM to render 1-bit shapes to a BTPRNT region.
+#+NAME: bpsdf.c
+#+BEGIN_SRC c :tangle core/bpsdf.c
+#+END_SRC
+* Creating an Instance of SDFVM
+Not only does this instantiate SDFVM, but components for
+a multi-threaded rendering pipeline. This consists of a
+threadpool, with each threadpool getting their own instance
+of SDFVM. A set of registers is allocated to be shared
+amongst all the instances (this is intended to be used for
+read-only purposes).
+* Core Rendering Callback
+* The bpsdf command
+The =bpsdf= command takes in the follow arguments:
+an instance of a btprnt register, an instance
+of SDFVM, and a mnolth buffer containing
+the SDF shader program. bpsdf packages these together
+and sends them through the rendering pipeline.
+* LIL Loader
+Loads the =bpsdf= and =sdfvmnew= words.
