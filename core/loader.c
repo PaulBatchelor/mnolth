@@ -21,6 +21,7 @@ void load_gestvm(lil_t lil);
 void load_gestlive(lil_t lil);
 void gestvm_memops_lil(lil_t lil);
 void lil_load_uf2(lil_t lil);
+void lil_load_bpsdf(lil_t lil);
 
 #ifdef MNODES
 void sklil_load_mnodes(lil_t lil);
@@ -47,6 +48,7 @@ void mno_load(lil_t lil)
     load_gestlive(lil);
     gestvm_memops_lil(lil);
     lil_load_uf2(lil);
+    lil_load_bpsdf(lil);
 
 #ifdef MNODES
     sklil_load_mnodes(lil);
