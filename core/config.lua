@@ -6,6 +6,7 @@ add_tangled_object("core/var")
 add_tangled_object("core/misc", false)
 add_tangled_object("core/uf2")
 add_tangled_object("core/bpsdf")
+add_tangled_object("core/buffer")
 
 add_object("core/loader")
 add_object("core/l_var")
