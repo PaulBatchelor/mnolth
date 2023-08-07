@@ -272,7 +272,40 @@ static lil_value_t l_bpsdf(lil_t lil,
 {
     btprnt_region *reg;
     sdfvm_threadpool *vmthrp;
-    /* mno_buffer *buf; */
+    mno_buffer *buf;
+    sk_core *core;
+    void *ud;
+    uint8_t *program;
+    size_t sz;
+    int rc;
+
+    SKLIL_ARITY_CHECK(lil, "bpsdf", argc, 3);
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ud);
+    if (rc) {
+        printf("could not get buffer\n");
+        return NULL;
+    }
+    buf = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    if (rc) {
+        printf("could not get sdfvm\n");
+        return NULL;
+    }
+    vmthrp = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    if (rc) {
+        printf("could not get btprnt region\n");
+        return NULL;
+    }
+    reg = ud;
+
+    program = mno_buffer_data(buf);
+    sz = mno_buffer_length(buf);
+    btprnt_sdf(reg, vmthrp, program, sz);
 
     return NULL;
 }
