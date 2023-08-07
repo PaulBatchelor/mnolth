@@ -7,8 +7,12 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "sndkit/lil/lil.h"
+#include "sndkit/graforge/graforge.h"
+#include "sndkit/core.h"
+#include "sndkit/nodes/sklil.h"
 #include "btprnt/btprnt.h"
 
 #ifndef M_PI
@@ -21,7 +25,8 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 #define SDF2D_SDFVM_PRIV
 #include "sdf2d/sdfvm.h"
 
-#define US_MAXTHREADS 8
+#define BPSDF_PRIV
+#include "bpsdf.h"
 
 <<static_funcdefs>>
 <<funcs>>
@@ -31,8 +36,9 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 #+BEGIN_SRC c :tangle core/bpsdf.h
 #ifndef BPSDF_H
 #define BPSDF_H
+<<typedefs>>
 #ifdef BPSDF_PRIV
-
+<<structs>>
 #endif
 <<funcdefs>>
 #endif
@@ -44,7 +50,56 @@ threadpool, with each threadpool getting their own instance
 of SDFVM. A set of registers is allocated to be shared
 amongst all the instances (this is intended to be used for
 read-only purposes).
+** Struct
+#+NAME: typedefs
+#+BEGIN_SRC c
+typedef struct sdfvm_threadpool sdfvm_threadpool;
+#+END_SRC
+
+#+NAME: structs
+#+BEGIN_SRC c
+struct sdfvm_thread {
+    pthread_t thread;
+    sdfvm vm;
+    int id;
+    sdfvm_threadpool *pool;
+};
+
+#define BPSDF_MAXTHREADS 8
+#define BPSDF_NREGISTERS 16
+struct sdfvm_threadpool {
+    struct sdfvm_thread threads[BPSDF_MAXTHREADS];
+    sdfvm_stacklet registers[BPSDF_NREGISTERS];
+    void *userdata;
+};
+
+struct bpsdf_args {
+    btprnt_region *bpreg;
+    uint8_t *program;
+    size_t sz;
+};
+#+END_SRC
 ** C function
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp)
+{
+    int i;
+    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
+        struct sdfvm_thread *th;
+        th = &vmthrp->threads[i];
+        sdfvm_init(&th->vm);
+        sdfvm_registers(&th->vm, vmthrp->registers, BPSDF_NREGISTERS);
+        th->pool = vmthrp;
+        th->id = i;
+    }
+}
+#+END_SRC
 ** LIL function
 #+NAME: static_funcdefs
 #+BEGIN_SRC c
@@ -54,11 +109,32 @@ static lil_value_t l_sdfvmnew(lil_t lil,
 #+END_SRC
 #+NAME: funcs
 #+BEGIN_SRC c
+static void delsdfvm(void *ptr)
+{
+    free(ptr);
+    ptr = NULL;
+}
 static lil_value_t l_sdfvmnew(lil_t lil,
                               size_t argc,
                               lil_value_t *argv)
 {
-    /* TODO: implement */
+    int rc;
+    const char *key;
+    sdfvm_threadpool *vmthrp;
+    sk_core *core;
+
+    SKLIL_ARITY_CHECK(lil, "bufnew", argc, 2);
+
+    core = lil_get_data(lil);
+
+    key = lil_to_string(argv[0]);
+
+    vmthrp = malloc(sizeof(sdfvm_threadpool));
+    sdfvm_threadpool_init(vmthrp);
+    rc = sk_core_append(core, key, strlen(key), vmthrp, delsdfvm);
+
+    SKLIL_ERROR_CHECK(lil, rc, "sdfvmnew didn't work out.");
+
     return NULL;
 }
 #+END_SRC
@@ -70,6 +146,115 @@ of SDFVM, and a mnolth buffer containing
 the SDF shader program. bpsdf packages these together
 and sends them through the rendering pipeline.
 ** C function
+#+NAME: funcdefs
+#+BEGIN_SRC c
+void btprnt_sdf(btprnt_region *r,
+                sdfvm_threadpool *vmthrp,
+                uint8_t *program,
+                size_t sz);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<draw_thread>>
+void btprnt_sdf(btprnt_region *r,
+                sdfvm_threadpool *vmthrp,
+                uint8_t *program,
+                size_t sz)
+{
+    struct bpsdf_args args;
+    int i;
+    args.program = program;
+    args.sz = sz;
+    args.bpreg = r;
+    vmthrp->userdata = &args;
+
+    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
+        struct sdfvm_thread *th;
+        th = &vmthrp->threads[i];
+        pthread_create(&th->thread, NULL, draw_thread, th);
+    }
+
+    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
+        struct sdfvm_thread *th;
+        th = &vmthrp->threads[i];
+        pthread_join(th->thread, NULL);
+    }
+}
+#+END_SRC
+
+Each drawing thread needs to know about itself (thread ID),
+and have the ability to read data shared across threads.
+Data for a thread is passed in as a void pointer, this
+is converted to data instantiated for this particular
+thread. Inside thread data is a reference to the pool it
+belongs to. The pool has a generic pointer, which in
+this case will get resolved to an instance of BPSDF args.
+
+The threadpool design breaks up a btprnt region into rows,
+and coordinates each thread to render particular rows.
+
+#+NAME: draw_thread
+#+BEGIN_SRC c
+static void *draw_thread(void *data)
+{
+    struct sdfvm_thread *th;
+    sdfvm_threadpool *pool;
+    struct bpsdf_args *args;
+    int x, y;
+    int xstart, ystart;
+    int xend, yend;
+    int nthreads;
+    btprnt_region *reg;
+    sdfvm *vm;
+
+    th = (struct sdfvm_thread *)data;
+    pool = th->pool;
+    args = (struct bpsdf_args *)pool->userdata;
+    reg = args->bpreg;
+    vm = &th->vm;
+
+    ystart = th->id;
+    xstart = 0;
+    xend = reg->w;
+    yend = reg->h;
+
+    /* hard-coded for now */
+    nthreads = BPSDF_MAXTHREADS;
+
+    for (y = ystart; y < yend; y+=nthreads) {
+        for(x = xstart; x < xend; x++) {
+            float c;
+            int bit;
+            struct vec3 gray;
+            struct vec2 p, res;
+
+            res = svec2(reg->w, reg->h);
+
+            sdfvm_push_vec2(vm, svec2(x, y));
+            sdfvm_push_vec2(vm, res);
+            sdfvm_normalize(vm);
+            sdfvm_pop_vec2(vm, &p);
+            p.y = p.y*-1;
+
+            c = 1.0;
+            gray = svec3_one();
+            sdfvm_point_set(vm, p);
+            sdfvm_color_set(vm, gray);
+            sdfvm_execute(vm, args->program, args->sz);
+            sdfvm_pop_vec3(vm, &gray);
+
+            c = gray.x;
+
+            /* flipped because in btprnt 1 is black, 0 white */
+            bit = c < 0.5 ? 1 : 0;
+            btprnt_region_draw(reg, x, y, bit);
+        }
+    }
+
+    return NULL;
+}
+#+END_SRC
 ** LIL function
 #+NAME: static_funcdefs
 #+BEGIN_SRC c
