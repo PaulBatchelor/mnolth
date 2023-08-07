@@ -28,6 +28,8 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 #define BPSDF_PRIV
 #include "bpsdf.h"
 
+#include "buffer.h"
+
 <<static_funcdefs>>
 <<funcs>>
 #+END_SRC
@@ -268,7 +270,10 @@ static lil_value_t l_bpsdf(lil_t lil,
                            size_t argc,
                            lil_value_t *argv)
 {
-    /* TODO: implement */
+    btprnt_region *reg;
+    sdfvm_threadpool *vmthrp;
+    /* mno_buffer *buf; */
+
     return NULL;
 }
 #+END_SRC
