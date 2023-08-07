@@ -402,7 +402,6 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_circle(vm);
                 if (rc) return rc;
                 break;
-                break;
             case SDF_OP_POLY4:
                 n++;
                 rc = sdfvm_poly4(vm);

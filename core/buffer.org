@@ -211,7 +211,7 @@ int mno_buffer_appendfloat(mno_buffer *buf, float f)
     fptr = (float *)&fdata;
     *fptr = f;
     for (i = 0; i < 4; i++) {
-        buf->buf[buf->len] = fdata[i];
+        buf->buf[buf->len + i] = fdata[i];
     }
     buf->len+=4;
     return 1;
