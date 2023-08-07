@@ -30,6 +30,10 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 
 #include "buffer.h"
 
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
+
 <<static_funcdefs>>
 <<funcs>>
 #+END_SRC
@@ -72,6 +76,7 @@ struct sdfvm_thread {
 struct sdfvm_threadpool {
     struct sdfvm_thread threads[BPSDF_MAXTHREADS];
     sdfvm_stacklet registers[BPSDF_NREGISTERS];
+    int err;
     void *userdata;
 };
 
@@ -97,9 +102,11 @@ void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp)
         th = &vmthrp->threads[i];
         sdfvm_init(&th->vm);
         sdfvm_registers(&th->vm, vmthrp->registers, BPSDF_NREGISTERS);
+        sdfvm_color_set(&th->vm, svec3(0, 0, 0));
         th->pool = vmthrp;
         th->id = i;
     }
+    vmthrp->err = 0;
 }
 #+END_SRC
 ** LIL function
@@ -125,7 +132,7 @@ static lil_value_t l_sdfvmnew(lil_t lil,
     sdfvm_threadpool *vmthrp;
     sk_core *core;
 
-    SKLIL_ARITY_CHECK(lil, "bufnew", argc, 2);
+    SKLIL_ARITY_CHECK(lil, "bufnew", argc, 1);
 
     core = lil_get_data(lil);
 
@@ -150,19 +157,19 @@ and sends them through the rendering pipeline.
 ** C function
 #+NAME: funcdefs
 #+BEGIN_SRC c
-void btprnt_sdf(btprnt_region *r,
-                sdfvm_threadpool *vmthrp,
-                uint8_t *program,
-                size_t sz);
+int btprnt_sdf(btprnt_region *r,
+               sdfvm_threadpool *vmthrp,
+               uint8_t *program,
+               size_t sz);
 #+END_SRC
 
 #+NAME: funcs
 #+BEGIN_SRC c
 <<draw_thread>>
-void btprnt_sdf(btprnt_region *r,
-                sdfvm_threadpool *vmthrp,
-                uint8_t *program,
-                size_t sz)
+int btprnt_sdf(btprnt_region *r,
+               sdfvm_threadpool *vmthrp,
+               uint8_t *program,
+               size_t sz)
 {
     struct bpsdf_args args;
     int i;
@@ -171,6 +178,7 @@ void btprnt_sdf(btprnt_region *r,
     args.bpreg = r;
     vmthrp->userdata = &args;
 
+    vmthrp->err = 0;
     for (i = 0; i < BPSDF_MAXTHREADS; i++) {
         struct sdfvm_thread *th;
         th = &vmthrp->threads[i];
@@ -182,6 +190,8 @@ void btprnt_sdf(btprnt_region *r,
         th = &vmthrp->threads[i];
         pthread_join(th->thread, NULL);
     }
+
+    return vmthrp->err;
 }
 #+END_SRC
 
@@ -228,8 +238,10 @@ static void *draw_thread(void *data)
         for(x = xstart; x < xend; x++) {
             float c;
             int bit;
-            struct vec3 gray;
             struct vec2 p, res;
+            int rc;
+
+            if (pool->err) break;
 
             res = svec2(reg->w, reg->h);
 
@@ -240,13 +252,19 @@ static void *draw_thread(void *data)
             p.y = p.y*-1;
 
             c = 1.0;
-            gray = svec3_one();
             sdfvm_point_set(vm, p);
-            sdfvm_color_set(vm, gray);
-            sdfvm_execute(vm, args->program, args->sz);
-            sdfvm_pop_vec3(vm, &gray);
+            rc = sdfvm_execute(vm, args->program, args->sz);
+            if (rc) {
+                pool->err = 1;
+                break;
+            }
 
-            c = gray.x;
+            rc = sdfvm_pop_scalar(vm, &c);
+
+            if (rc) {
+                pool->err = 2;
+                break;
+            }
 
             /* flipped because in btprnt 1 is black, 0 white */
             bit = c < 0.5 ? 1 : 0;
@@ -305,7 +323,12 @@ static lil_value_t l_bpsdf(lil_t lil,
 
     program = mno_buffer_data(buf);
     sz = mno_buffer_length(buf);
-    btprnt_sdf(reg, vmthrp, program, sz);
+
+    rc = btprnt_sdf(reg, vmthrp, program, sz);
+
+    if (rc) {
+        printf("bpsdf error\n");
+    }
 
     return NULL;
 }
@@ -324,5 +347,132 @@ void lil_load_bpsdf(lil_t lil)
 {
     lil_register(lil, "sdfvmnew", l_sdfvmnew);
     lil_register(lil, "bpsdf", l_bpsdf);
+}
+#+END_SRC
+* Lua Loader
+This is really for SDFVM, not specifically bpsdf. If
+someday this were to be used for more than btprnt, it'll
+be moved out (along with the SDFVM specific code here).
+
+#+NAME: funcs
+#+BEGIN_SRC c
+<<lua_funcs>>
+static const luaL_Reg buffer_lib[] = {
+    <<lua_entries>>
+    {NULL, NULL}
+};
+
+int luaopen_sdfvm(lua_State *L)
+{
+    luaL_newlib(L, buffer_lib);
+    return 1;
+}
+#+END_SRC
+** regset_scalar
+Usage:
+
+#+BEGIN_SRC lua
+regset_scalar(vm, pos, x)
+#+END_SRC
+
+Sets the register at position =pos= to be scalar value =x=.
+
+#+NAME: lua_entries
+#+BEGIN_SRC c
+{"regset_scalar", regset_scalar_lua},
+#+END_SRC
+
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int regset_scalar_lua(lua_State *L)
+{
+    sdfvm_threadpool *vmthrp;
+    float val;
+    int pos;
+
+    vmthrp = lua_touserdata(L, 1);
+    pos = lua_tointeger(L, 2);
+    val = lua_tonumber(L, 3);
+
+    if (pos < 0 || pos >= BPSDF_NREGISTERS) {
+        luaL_error(L, "position out of range: %d", pos);
+    }
+
+    vmthrp->registers[pos].type = SDFVM_SCALAR;
+    vmthrp->registers[pos].data.s = val;
+    return 0;
+}
+#+END_SRC
+** regset_vec2
+Usage:
+
+#+BEGIN_SRC lua
+regset_vec2(vm, pos, x, y)
+#+END_SRC
+
+Sets the register at position =pos= to be 2d vector =(x, y)=.
+
+#+NAME: lua_entries
+#+BEGIN_SRC c
+{"regset_vec2", regset_vec2_lua},
+#+END_SRC
+
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int regset_vec2_lua(lua_State *L)
+{
+    sdfvm_threadpool *vmthrp;
+    float x, y;
+    int pos;
+
+    vmthrp = lua_touserdata(L, 1);
+    pos = lua_tointeger(L, 2);
+    x = lua_tonumber(L, 3);
+    y = lua_tonumber(L, 4);
+
+    if (pos < 0 || pos >= BPSDF_NREGISTERS) {
+        luaL_error(L, "position out of range: %d", pos);
+    }
+
+    vmthrp->registers[pos].type = SDFVM_VEC2;
+    vmthrp->registers[pos].data.v2 = svec2(x, y);
+    return 0;
+}
+#+END_SRC
+** regset_vec3
+Usage:
+
+#+BEGIN_SRC lua
+regset_vec3(vm, pos, x, y, z)
+#+END_SRC
+
+Sets the register at position =pos= to be 3d vector =(x, y, z)=.
+
+#+NAME: lua_entries
+#+BEGIN_SRC c
+{"regset_vec3", regset_vec3_lua},
+#+END_SRC
+
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int regset_vec3_lua(lua_State *L)
+{
+    sdfvm_threadpool *vmthrp;
+    float x, y, z;
+    int pos;
+
+    vmthrp = lua_touserdata(L, 1);
+    pos = lua_tointeger(L, 2);
+    x = lua_tonumber(L, 3);
+    y = lua_tonumber(L, 4);
+    z = lua_tonumber(L, 5);
+
+    if (pos < 0 || pos >= BPSDF_NREGISTERS) {
+        luaL_error(L, "position out of range: %d", pos);
+    }
+
+    vmthrp->registers[pos].type = SDFVM_VEC3;
+    vmthrp->registers[pos].data.v3 = svec3(x, y, z);
+    return 0;
 }
 #+END_SRC

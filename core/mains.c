@@ -320,6 +320,7 @@ int luaopen_lpeg(lua_State *L);
 int luaopen_lsqlite3(lua_State *L);
 int luaopen_mnobuf(lua_State *L);
 int luaopen_btprnt(lua_State *L);
+int luaopen_sdfvm(lua_State *L);
 
 #ifdef MONOME_GRID
 int luaopen_monome_grid(lua_State *L);
@@ -339,6 +340,7 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     gestvm_memops_lua(L);
     luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
     luaL_requiref(L, "sqlite3", luaopen_lsqlite3, 1);
+    luaL_requiref(L, "sdfvm", luaopen_sdfvm, 1);
 #ifdef MONOME_GRID
     luaL_requiref(L, "monome_grid", luaopen_monome_grid, 1);
 #endif
