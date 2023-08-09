@@ -43,6 +43,7 @@ void gestvm_memops_lil(lil_t lil);
 void gestvm_memops_lua(lua_State *L)
 {
     lua_register(L, "gestvm_compile", gestvm_compile);
+    lua_register(L, "gestvm_last_values", gestvm_last_values);
 }
 #+END_SRC
 
@@ -367,7 +368,7 @@ static lil_value_t l_gmemcpy(lil_t lil,
     rc = sk_core_generic_pop(core, &ud);
     SKLIL_ERROR_CHECK(lil, rc, "could not get memory");
     mem = ud;
-    
+
     rc = load(gu, mem);
 
     SKLIL_ERROR_CHECK(lil, rc, "could not copy.");
@@ -413,5 +414,35 @@ static int load(gestvm_uxn *gu, gestvm_membuf *rom)
                   rom,
                   &pos);
 	return 0;
+}
+#+END_SRC
+* GestVM Get Last Values (via Lua)
+(At the time of writing, there was really no place to put
+this. Memops already had a entry point for gestvm stuff,
+so good enough).
+
+Given an instance of GestVM (call =gestvmlast= from LIL
+and then =pop()= it from Lua), return the state of
+the current, next, and interpolation values.
+
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static int gestvm_last_values(lua_State *L);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static int gestvm_last_values(lua_State *L)
+{
+    gestvm *gvm;
+    SKFLT x, y, a;
+    gvm = lua_touserdata(L, 1);
+    x = y = a = 0.0;
+    gestvm_get_last_values(gvm, &x, &y, &a);
+    lua_pushnumber(L, x);
+    lua_pushnumber(L, y);
+    lua_pushnumber(L, a);
+    return 3;
 }
 #+END_SRC
