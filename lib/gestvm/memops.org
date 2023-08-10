@@ -425,7 +425,6 @@ Given an instance of GestVM (call =gestvmlast= from LIL
 and then =pop()= it from Lua), return the state of
 the current, next, and interpolation values.
 
-
 #+NAME: static_funcdefs
 #+BEGIN_SRC c
 static int gestvm_last_values(lua_State *L);
