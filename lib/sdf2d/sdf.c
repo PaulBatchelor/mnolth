@@ -531,3 +531,28 @@ float sdf_polygon(struct vec2 *v, int N, struct vec2 p)
 
     return s * sqrt(d);
 }
+
+float sdf_onion(float d, float r)
+{
+    return fabs(d) - r;
+}
+
+float sdf_union(float d1, float d2)
+{
+    return sdf_min(d1, d2);
+}
+
+float sdf_union_smooth(float d1, float d2, float k)
+{
+    float h;
+    float mix;
+
+    if (k == 0) return 0;
+
+    h = clampf(0.5 + 0.5*(d2-d1)/k, 0.0, 1.0);
+
+    mix = d2*(1.0-h) + d1*h;
+
+    mix -= k*h*(1.0 - h);
+    return mix;
+}

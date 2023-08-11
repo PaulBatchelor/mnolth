@@ -262,6 +262,39 @@ int sdfvm_mul(sdfvm *vm)
     return 0;
 }
 
+int sdfvm_add2(sdfvm *vm) 
+{
+    struct vec2 x, y, out;
+    int rc;
+
+    rc = sdfvm_pop_vec2(vm, &y);
+    if (rc) return rc;
+    rc = sdfvm_pop_vec2(vm, &x);
+    if (rc) return rc;
+
+    out = svec2_add(x, y);
+    rc = sdfvm_push_vec2(vm, out);
+    if (rc) return rc;
+
+    return 0;
+}
+
+int sdfvm_add(sdfvm *vm) 
+{
+    float x, y;
+    int rc;
+
+    rc = sdfvm_pop_scalar(vm, &y);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &x);
+    if (rc) return rc;
+
+    rc = sdfvm_push_scalar(vm, x * y);
+    if (rc) return rc;
+
+    return 0;
+}
+
 int sdfvm_lerp(sdfvm *vm) 
 {
     float x, y, a, out;
@@ -308,6 +341,59 @@ int sdfvm_normalize(sdfvm *vm)
     out = sdf_normalize(x, y);
 
     rc = sdfvm_push_vec2(vm, out);
+    if (rc) return rc;
+
+    return 0;
+}
+
+int sdfvm_onion(sdfvm *vm)
+{
+    int rc;
+    float r, d, out;
+
+    rc = sdfvm_pop_scalar(vm, &r);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &d);
+    if (rc) return rc;
+
+    out = sdf_onion(d, r);
+    rc = sdfvm_push_scalar(vm, out);
+    if (rc) return rc;
+
+    return 0;
+}
+
+int sdfvm_union(sdfvm *vm)
+{
+    int rc;
+    float d1, d2, out;
+
+    rc = sdfvm_pop_scalar(vm, &d2);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &d1);
+    if (rc) return rc;
+
+    out = sdf_union(d1, d2);
+    rc = sdfvm_push_scalar(vm, out);
+    if (rc) return rc;
+
+    return 0;
+}
+
+int sdfvm_union_smooth(sdfvm *vm)
+{
+    int rc;
+    float d1, d2, k, out;
+
+    rc = sdfvm_pop_scalar(vm, &k);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &d2);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &d1);
+    if (rc) return rc;
+
+    out = sdf_union_smooth(d1, d2, k);
+    rc = sdfvm_push_scalar(vm, out);
     if (rc) return rc;
 
     return 0;
@@ -427,6 +513,16 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_mul(vm);
                 if (rc) return rc;
                 break;
+            case SDF_OP_ADD:
+                n++;
+                rc = sdfvm_add(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_ADD2:
+                n++;
+                rc = sdfvm_add2(vm);
+                if (rc) return rc;
+                break;
             case SDF_OP_LERP:
                 n++;
                 rc = sdfvm_lerp(vm);
@@ -440,6 +536,21 @@ int sdfvm_execute(sdfvm *vm,
             case SDF_OP_NORMALIZE:
                 n++;
                 rc = sdfvm_normalize(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_ONION:
+                n++;
+                rc = sdfvm_onion(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_UNION:
+                n++;
+                rc = sdfvm_union(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_UNION_SMOOTH:
+                n++;
+                rc = sdfvm_union_smooth(vm);
                 if (rc) return rc;
                 break;
             default:
@@ -557,9 +668,14 @@ void sdfvm_print_lookup_table(FILE *fp)
     fprintf(fp, "    \"feather\": %d,\n", SDF_OP_FEATHER);
     fprintf(fp, "    \"lerp3\": %d,\n", SDF_OP_LERP3);
     fprintf(fp, "    \"mul\": %d,\n", SDF_OP_MUL);
+    fprintf(fp, "    \"add\": %d,\n", SDF_OP_ADD);
+    fprintf(fp, "    \"add2\": %d,\n", SDF_OP_ADD2);
     fprintf(fp, "    \"lerp\": %d,\n", SDF_OP_LERP);
     fprintf(fp, "    \"gtz\": %d,\n", SDF_OP_GTZ);
     fprintf(fp, "    \"normalize\": %d,\n", SDF_OP_NORMALIZE);
+    fprintf(fp, "    \"onion\": %d,\n", SDF_OP_ONION);
+    fprintf(fp, "    \"union\": %d,\n", SDF_OP_UNION);
+    fprintf(fp, "    \"union_smooth\": %d,\n", SDF_OP_UNION_SMOOTH);
     fprintf(fp, "    \"end\": %d\n", SDF_OP_END);
     fprintf(fp, "}\n");
 }
