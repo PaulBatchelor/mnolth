@@ -45,9 +45,14 @@ enum {
     SDF_OP_FEATHER,
     SDF_OP_LERP3,
     SDF_OP_MUL,
+    SDF_OP_ADD,
+    SDF_OP_ADD2,
     SDF_OP_LERP,
     SDF_OP_GTZ,
     SDF_OP_NORMALIZE,
+    SDF_OP_ONION,
+    SDF_OP_UNION,
+    SDF_OP_UNION_SMOOTH,
     SDF_OP_END
 };
 #endif
@@ -80,9 +85,13 @@ int sdfvm_roundness(sdfvm *vm);
 int sdfvm_feather(sdfvm *vm);
 int sdfvm_lerp3(sdfvm *vm);
 int sdfvm_mul(sdfvm *vm);
+int sdfvm_add(sdfvm *vm);
 int sdfvm_lerp(sdfvm *vm);
 int sdfvm_gtz(sdfvm *vm);
 int sdfvm_normalize(sdfvm *vm);
+int sdfvm_onion(sdfvm *vm);
+int sdfvm_union(sdfvm *vm);
+int sdfvm_union_smooth(sdfvm *vm);
 
 int sdfvm_execute(sdfvm *vm,
                   const uint8_t *program,
