@@ -556,3 +556,8 @@ float sdf_union_smooth(float d1, float d2, float k)
     mix -= k*h*(1.0 - h);
     return mix;
 }
+
+float sdf_subtract(float d1, float d2)
+{
+    return sdf_max(-d1, d2);
+}

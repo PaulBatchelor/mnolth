@@ -29,8 +29,8 @@ void sdfvm_init(sdfvm *vm)
 
     vm->p = svec2_zero();
     vm->color = svec3_zero();
-    vm->registers = NULL;
-    vm->nregisters = 0;
+    vm->uniforms = NULL;
+    vm->nuniforms = 0;
 }
 
 static int get_stacklet(sdfvm *vm, sdfvm_stacklet **sp)
@@ -124,6 +124,18 @@ int sdfvm_pop_vec3(sdfvm *vm, struct vec3 *v)
 
     *v = stk->data.v3;
     vm->stackpos--;
+    return 0;
+}
+
+int sdfvm_swap(sdfvm *vm)
+{
+    sdfvm_stacklet a, b;
+    if (vm->stackpos < 2) return 1;
+    a = vm->stack[vm->stackpos - 1];
+    b = vm->stack[vm->stackpos - 2];
+
+    vm->stack[vm->stackpos - 1] = b;
+    vm->stack[vm->stackpos - 2] = a;
     return 0;
 }
 
@@ -399,6 +411,23 @@ int sdfvm_union_smooth(sdfvm *vm)
     return 0;
 }
 
+int sdfvm_subtract(sdfvm *vm)
+{
+    int rc;
+    float d1, d2, out;
+
+    rc = sdfvm_pop_scalar(vm, &d2);
+    if (rc) return rc;
+    rc = sdfvm_pop_scalar(vm, &d1);
+    if (rc) return rc;
+
+    out = sdf_subtract(d1, d2);
+    rc = sdfvm_push_scalar(vm, out);
+    if (rc) return rc;
+
+    return 0;
+}
+
 static int get_float(const uint8_t *program,
                      size_t sz,
                      size_t *n,
@@ -446,9 +475,14 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_push_vec2(vm, sdfvm_point_get(vm));
                 if (rc) return rc;
                 break;
-            case SDF_OP_REGISTER:
+            case SDF_OP_SWAP:
                 n++;
-                rc = sdfvm_register(vm);
+                rc = sdfvm_swap(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_UNIFORM:
+                n++;
+                rc = sdfvm_uniform(vm);
                 if (rc) return rc;
                 break;
             case SDF_OP_COLOR:
@@ -553,6 +587,11 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_union_smooth(vm);
                 if (rc) return rc;
                 break;
+            case SDF_OP_SUBTRACT:
+                n++;
+                rc = sdfvm_subtract(vm);
+                if (rc) return rc;
+                break;
             default:
                 return 1;
         }
@@ -581,57 +620,57 @@ struct vec3 sdfvm_color_get(sdfvm *vm)
     return vm->color;
 }
 
-void sdfvm_registers(sdfvm *vm, sdfvm_stacklet *reg, int nreg)
+void sdfvm_uniforms(sdfvm *vm, sdfvm_stacklet *reg, int nreg)
 {
-    vm->registers = reg;
-    vm->nregisters = nreg;
+    vm->uniforms = reg;
+    vm->nuniforms = nreg;
 }
 
-int sdfvm_regget(sdfvm *vm, int pos, sdfvm_stacklet *out)
+int sdfvm_uniget(sdfvm *vm, int pos, sdfvm_stacklet *out)
 {
-    if (pos < 0 || pos >= vm->nregisters) return 1;
-    *out = vm->registers[pos];
+    if (pos < 0 || pos >= vm->nuniforms) return 1;
+    *out = vm->uniforms[pos];
     return 0;
 }
 
-int sdfvm_regset(sdfvm *vm, int pos, sdfvm_stacklet reg)
+int sdfvm_uniset(sdfvm *vm, int pos, sdfvm_stacklet reg)
 {
-    if (pos < 0 || pos >= vm->nregisters) return 1;
-    vm->registers[pos] = reg;
+    if (pos < 0 || pos >= vm->nuniforms) return 1;
+    vm->uniforms[pos] = reg;
     return 0;
 }
 
-int sdfvm_regset_scalar(sdfvm *vm, int pos, float s)
+int sdfvm_uniset_scalar(sdfvm *vm, int pos, float s)
 {
     sdfvm_stacklet stk;
 
     stk.type = SDFVM_SCALAR;
     stk.data.s = s;
 
-    return sdfvm_regset(vm, pos, stk);
+    return sdfvm_uniset(vm, pos, stk);
 }
 
-int sdfvm_regset_vec2(sdfvm *vm, int pos, struct vec2 v)
+int sdfvm_uniset_vec2(sdfvm *vm, int pos, struct vec2 v)
 {
     sdfvm_stacklet stk;
 
     stk.type = SDFVM_VEC2;
     stk.data.v2 = v;
 
-    return sdfvm_regset(vm, pos, stk);
+    return sdfvm_uniset(vm, pos, stk);
 }
 
-int sdfvm_regset_vec3(sdfvm *vm, int pos, struct vec3 v)
+int sdfvm_uniset_vec3(sdfvm *vm, int pos, struct vec3 v)
 {
     sdfvm_stacklet stk;
 
     stk.type = SDFVM_VEC3;
     stk.data.v3 = v;
 
-    return sdfvm_regset(vm, pos, stk);
+    return sdfvm_uniset(vm, pos, stk);
 }
 
-int sdfvm_register(sdfvm *vm)
+int sdfvm_uniform(sdfvm *vm)
 {
     float fpos;
     int pos;
@@ -645,7 +684,7 @@ int sdfvm_register(sdfvm *vm)
 
     rc = get_stacklet(vm, &stk);
     if (rc) return rc;
-    rc = sdfvm_regget(vm, pos, stk);
+    rc = sdfvm_uniget(vm, pos, stk);
     if (rc) return rc;
 
     return 0;
@@ -661,7 +700,7 @@ void sdfvm_print_lookup_table(FILE *fp)
     fprintf(fp, "    \"scalar\": %d,\n", SDF_OP_SCALAR);
     fprintf(fp, "    \"vec2\": %d,\n", SDF_OP_VEC2);
     fprintf(fp, "    \"vec3\": %d,\n", SDF_OP_VEC3);
-    fprintf(fp, "    \"register\": %d,\n", SDF_OP_REGISTER);
+    fprintf(fp, "    \"uniform\": %d,\n", SDF_OP_UNIFORM);
     fprintf(fp, "    \"circle\": %d,\n", SDF_OP_CIRCLE);
     fprintf(fp, "    \"poly4\": %d,\n", SDF_OP_POLY4);
     fprintf(fp, "    \"roundness\": %d,\n", SDF_OP_ROUNDNESS);
@@ -676,6 +715,8 @@ void sdfvm_print_lookup_table(FILE *fp)
     fprintf(fp, "    \"onion\": %d,\n", SDF_OP_ONION);
     fprintf(fp, "    \"union\": %d,\n", SDF_OP_UNION);
     fprintf(fp, "    \"union_smooth\": %d,\n", SDF_OP_UNION_SMOOTH);
+    fprintf(fp, "    \"subtract\": %d,\n", SDF_OP_SUBTRACT);
+    fprintf(fp, "    \"swap\": %d,\n", SDF_OP_SWAP);
     fprintf(fp, "    \"end\": %d\n", SDF_OP_END);
     fprintf(fp, "}\n");
 }

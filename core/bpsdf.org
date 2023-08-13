@@ -53,7 +53,7 @@ Use SDFVM to render 1-bit shapes to a BTPRNT region.
 Not only does this instantiate SDFVM, but components for
 a multi-threaded rendering pipeline. This consists of a
 threadpool, with each threadpool getting their own instance
-of SDFVM. A set of registers is allocated to be shared
+of SDFVM. A set of uniforms is allocated to be shared
 amongst all the instances (this is intended to be used for
 read-only purposes).
 ** Struct
@@ -75,7 +75,7 @@ struct sdfvm_thread {
 #define BPSDF_NREGISTERS 16
 struct sdfvm_threadpool {
     struct sdfvm_thread threads[BPSDF_MAXTHREADS];
-    sdfvm_stacklet registers[BPSDF_NREGISTERS];
+    sdfvm_stacklet uniforms[BPSDF_NREGISTERS];
     int err;
     void *userdata;
 };
@@ -101,7 +101,7 @@ void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp)
         struct sdfvm_thread *th;
         th = &vmthrp->threads[i];
         sdfvm_init(&th->vm);
-        sdfvm_registers(&th->vm, vmthrp->registers, BPSDF_NREGISTERS);
+        sdfvm_uniforms(&th->vm, vmthrp->uniforms, BPSDF_NREGISTERS);
         sdfvm_color_set(&th->vm, svec3(0, 0, 0));
         th->pool = vmthrp;
         th->id = i;
@@ -150,7 +150,7 @@ static lil_value_t l_sdfvmnew(lil_t lil,
 * Core Rendering Callback
 * The bpsdf command
 The =bpsdf= command takes in the follow arguments:
-an instance of a btprnt register, an instance
+an instance of a btprnt uniform, an instance
 of SDFVM, and a mnolth buffer containing
 the SDF shader program. bpsdf packages these together
 and sends them through the rendering pipeline.
@@ -368,23 +368,23 @@ int luaopen_sdfvm(lua_State *L)
     return 1;
 }
 #+END_SRC
-** regset_scalar
+** uniset_scalar
 Usage:
 
 #+BEGIN_SRC lua
-regset_scalar(vm, pos, x)
+uniset_scalar(vm, pos, x)
 #+END_SRC
 
-Sets the register at position =pos= to be scalar value =x=.
+Sets the uniform at position =pos= to be scalar value =x=.
 
 #+NAME: lua_entries
 #+BEGIN_SRC c
-{"regset_scalar", regset_scalar_lua},
+{"uniset_scalar", uniset_scalar_lua},
 #+END_SRC
 
 #+NAME: lua_funcs
 #+BEGIN_SRC c
-static int regset_scalar_lua(lua_State *L)
+static int uniset_scalar_lua(lua_State *L)
 {
     sdfvm_threadpool *vmthrp;
     float val;
@@ -398,28 +398,28 @@ static int regset_scalar_lua(lua_State *L)
         luaL_error(L, "position out of range: %d", pos);
     }
 
-    vmthrp->registers[pos].type = SDFVM_SCALAR;
-    vmthrp->registers[pos].data.s = val;
+    vmthrp->uniforms[pos].type = SDFVM_SCALAR;
+    vmthrp->uniforms[pos].data.s = val;
     return 0;
 }
 #+END_SRC
-** regset_vec2
+** uniset_vec2
 Usage:
 
 #+BEGIN_SRC lua
-regset_vec2(vm, pos, x, y)
+uniset_vec2(vm, pos, x, y)
 #+END_SRC
 
-Sets the register at position =pos= to be 2d vector =(x, y)=.
+Sets the uniform at position =pos= to be 2d vector =(x, y)=.
 
 #+NAME: lua_entries
 #+BEGIN_SRC c
-{"regset_vec2", regset_vec2_lua},
+{"uniset_vec2", uniset_vec2_lua},
 #+END_SRC
 
 #+NAME: lua_funcs
 #+BEGIN_SRC c
-static int regset_vec2_lua(lua_State *L)
+static int uniset_vec2_lua(lua_State *L)
 {
     sdfvm_threadpool *vmthrp;
     float x, y;
@@ -434,28 +434,28 @@ static int regset_vec2_lua(lua_State *L)
         luaL_error(L, "position out of range: %d", pos);
     }
 
-    vmthrp->registers[pos].type = SDFVM_VEC2;
-    vmthrp->registers[pos].data.v2 = svec2(x, y);
+    vmthrp->uniforms[pos].type = SDFVM_VEC2;
+    vmthrp->uniforms[pos].data.v2 = svec2(x, y);
     return 0;
 }
 #+END_SRC
-** regset_vec3
+** uniset_vec3
 Usage:
 
 #+BEGIN_SRC lua
-regset_vec3(vm, pos, x, y, z)
+uniset_vec3(vm, pos, x, y, z)
 #+END_SRC
 
-Sets the register at position =pos= to be 3d vector =(x, y, z)=.
+Sets the uniform at position =pos= to be 3d vector =(x, y, z)=.
 
 #+NAME: lua_entries
 #+BEGIN_SRC c
-{"regset_vec3", regset_vec3_lua},
+{"uniset_vec3", uniset_vec3_lua},
 #+END_SRC
 
 #+NAME: lua_funcs
 #+BEGIN_SRC c
-static int regset_vec3_lua(lua_State *L)
+static int uniset_vec3_lua(lua_State *L)
 {
     sdfvm_threadpool *vmthrp;
     float x, y, z;
@@ -471,8 +471,8 @@ static int regset_vec3_lua(lua_State *L)
         luaL_error(L, "position out of range: %d", pos);
     }
 
-    vmthrp->registers[pos].type = SDFVM_VEC3;
-    vmthrp->registers[pos].data.v3 = svec3(x, y, z);
+    vmthrp->uniforms[pos].type = SDFVM_VEC3;
+    vmthrp->uniforms[pos].data.v3 = svec3(x, y, z);
     return 0;
 }
 #+END_SRC
