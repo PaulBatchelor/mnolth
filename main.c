@@ -15,6 +15,7 @@ int mno_lil_main_noloader(int argc, char *argv[]);
 int mno_scm_main_noloader(int argc, char *argv[]);
 int xmtowav_main(int argc, char** argv);
 int msgpack_dump_main(int argc, char *argv[]);
+int xmt_main(int argc, char *argv[]);
 
 #ifdef BUILD_MNORT
 int mno_rtserver(int argc, char *argv[]);
@@ -46,6 +47,7 @@ struct mnotil_cmd cmds[] = {
     {"help", helper},
     {"xmtowav", xmtowav_main},
     {"msgpack-dump", msgpack_dump_main},
+    {"xmt", xmt_main},
 };
 
 

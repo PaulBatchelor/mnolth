@@ -287,6 +287,7 @@ require("lib/sdf2d/config")
 require("lib/libxm/config")
 require("lib/cmp/config")
 require("util/msgpack-dump/config")
+require("lib/xmt/config")
 
 if config.mnodes then
     require("mnodes/config")
