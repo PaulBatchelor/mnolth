@@ -27,18 +27,19 @@ struct sdfvm {
     struct vec2 p;
     struct vec3 color;
     int stackpos;
-    sdfvm_stacklet *registers;
-    int nregisters;
+    sdfvm_stacklet *uniforms;
+    int nuniforms;
 };
 
 enum {
     SDF_OP_NONE,
+    SDF_OP_SWAP,
     SDF_OP_POINT,
     SDF_OP_COLOR,
     SDF_OP_SCALAR,
     SDF_OP_VEC2,
     SDF_OP_VEC3,
-    SDF_OP_REGISTER,
+    SDF_OP_UNIFORM,
     SDF_OP_CIRCLE,
     SDF_OP_POLY4,
     SDF_OP_ROUNDNESS,
@@ -53,6 +54,7 @@ enum {
     SDF_OP_ONION,
     SDF_OP_UNION,
     SDF_OP_UNION_SMOOTH,
+    SDF_OP_SUBTRACT,
     SDF_OP_END
 };
 #endif
@@ -70,14 +72,15 @@ struct vec3 sdfvm_color_get(sdfvm *vm);
 int sdfvm_pop_scalar(sdfvm *vm, float *s);
 int sdfvm_pop_vec2(sdfvm *vm, struct vec2 *v);
 int sdfvm_pop_vec3(sdfvm *vm, struct vec3 *v);
+int sdfvm_swap(sdfvm *vm);
 
-void sdfvm_registers(sdfvm *vm, sdfvm_stacklet *reg, int nreg);
+void sdfvm_uniforms(sdfvm *vm, sdfvm_stacklet *reg, int nreg);
 int sdfvm_regset(sdfvm *vm, int pos, sdfvm_stacklet reg);
 int sdfvm_regset_scalar(sdfvm *vm, int pos, float s);
 int sdfvm_regset_vec2(sdfvm *vm, int pos, struct vec2 v);
 int sdfvm_regset_vec3(sdfvm *vm, int pos, struct vec3 v);
 int sdfvm_regget(sdfvm *vm, int pos, sdfvm_stacklet *out);
-int sdfvm_register(sdfvm *vm);
+int sdfvm_uniform(sdfvm *vm);
 
 int sdfvm_circle(sdfvm *vm);
 int sdfvm_poly4(sdfvm *vm);
