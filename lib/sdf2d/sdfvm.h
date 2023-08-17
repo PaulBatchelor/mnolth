@@ -6,6 +6,7 @@ typedef struct sdfvm_stacklet sdfvm_stacklet;
 
 #ifdef SDF2D_SDFVM_PRIV
 #define SDFVM_STACKSIZE 16
+#define SDFVM_NREGISTERS 16
 enum {
     SDFVM_NONE,
     SDFVM_SCALAR,
@@ -29,6 +30,7 @@ struct sdfvm {
     int stackpos;
     sdfvm_stacklet *uniforms;
     int nuniforms;
+    sdfvm_stacklet registers[SDFVM_NREGISTERS];
 };
 
 enum {
@@ -40,6 +42,8 @@ enum {
     SDF_OP_VEC2,
     SDF_OP_VEC3,
     SDF_OP_UNIFORM,
+    SDF_OP_REGSET,
+    SDF_OP_REGGET,
     SDF_OP_CIRCLE,
     SDF_OP_POLY4,
     SDF_OP_ROUNDNESS,
@@ -75,11 +79,15 @@ int sdfvm_pop_vec3(sdfvm *vm, struct vec3 *v);
 int sdfvm_swap(sdfvm *vm);
 
 void sdfvm_uniforms(sdfvm *vm, sdfvm_stacklet *reg, int nreg);
-int sdfvm_regset(sdfvm *vm, int pos, sdfvm_stacklet reg);
-int sdfvm_regset_scalar(sdfvm *vm, int pos, float s);
-int sdfvm_regset_vec2(sdfvm *vm, int pos, struct vec2 v);
-int sdfvm_regset_vec3(sdfvm *vm, int pos, struct vec3 v);
-int sdfvm_regget(sdfvm *vm, int pos, sdfvm_stacklet *out);
+int sdfvm_uniset(sdfvm *vm, int pos, sdfvm_stacklet reg);
+int sdfvm_uniset_scalar(sdfvm *vm, int pos, float s);
+int sdfvm_uniset_vec2(sdfvm *vm, int pos, struct vec2 v);
+int sdfvm_uniset_vec3(sdfvm *vm, int pos, struct vec3 v);
+int sdfvm_uniget(sdfvm *vm, int pos, sdfvm_stacklet *out);
+int sdfvm_register_set(sdfvm *vm, int pos, sdfvm_stacklet val);
+int sdfvm_register_get(sdfvm *vm, int pos, sdfvm_stacklet *out);
+int sdfvm_regset(sdfvm *vm);
+int sdfvm_regget(sdfvm *vm);
 int sdfvm_uniform(sdfvm *vm);
 
 int sdfvm_circle(sdfvm *vm);
