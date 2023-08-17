@@ -10,6 +10,16 @@ size_t sdfvm_sizeof(void)
     return sizeof(sdfvm);
 }
 
+static void zero_out_stacklet(sdfvm_stacklet *s)
+{
+    s->type = SDFVM_NONE;
+
+    /* zeroing out union with brute-force */
+    s->data.s = 0;
+    s->data.v2 = svec2_zero();
+    s->data.v3 = svec3_zero();
+}
+
 void sdfvm_init(sdfvm *vm)
 {
     int i;
@@ -19,12 +29,13 @@ void sdfvm_init(sdfvm *vm)
     for (i = 0; i < SDFVM_STACKSIZE; i++) {
         sdfvm_stacklet *s;
         s = &vm->stack[i];
-        s->type = SDFVM_NONE;
+        zero_out_stacklet(s);
+    }
 
-        /* zeroing out union with brute-force */
-        s->data.s = 0;
-        s->data.v2 = svec2_zero();
-        s->data.v3 = svec3_zero();
+    for (i = 0; i < SDFVM_NREGISTERS; i++) {
+        sdfvm_stacklet *s;
+        s = &vm->registers[i];
+        zero_out_stacklet(s);
     }
 
     vm->p = svec2_zero();
@@ -485,6 +496,16 @@ int sdfvm_execute(sdfvm *vm,
                 rc = sdfvm_uniform(vm);
                 if (rc) return rc;
                 break;
+            case SDF_OP_REGGET:
+                n++;
+                rc = sdfvm_regget(vm);
+                if (rc) return rc;
+                break;
+            case SDF_OP_REGSET:
+                n++;
+                rc = sdfvm_regset(vm);
+                if (rc) return rc;
+                break;
             case SDF_OP_COLOR:
                 n++;
                 rc = sdfvm_push_vec3(vm, sdfvm_color_get(vm));
@@ -690,6 +711,60 @@ int sdfvm_uniform(sdfvm *vm)
     return 0;
 }
 
+int sdfvm_register_get(sdfvm *vm, int pos, sdfvm_stacklet *out)
+{
+    if (pos < 0 || pos >= SDFVM_NREGISTERS) return 1;
+    *out = vm->registers[pos];
+    return 0;
+}
+
+int sdfvm_regget(sdfvm *vm)
+{
+    float fpos;
+    int pos;
+    sdfvm_stacklet *stk;
+    int rc;
+
+    pos = fpos = 0;
+    rc = sdfvm_pop_scalar(vm, &fpos);
+    if (rc) return rc;
+    pos = (int)fpos;
+
+    rc = get_stacklet(vm, &stk);
+    if (rc) return rc;
+    rc = sdfvm_register_get(vm, pos, stk);
+    if (rc) return rc;
+
+    return 0;
+}
+
+int sdfvm_register_set(sdfvm *vm, int pos, sdfvm_stacklet val)
+{
+    if (pos < 0 || pos >= SDFVM_NREGISTERS) return 1;
+    vm->registers[pos] = val;
+    return 0;
+}
+
+int sdfvm_regset(sdfvm *vm)
+{
+    float fpos;
+    int pos;
+    sdfvm_stacklet *stk;
+    int rc;
+
+    pos = fpos = 0;
+    rc = sdfvm_pop_scalar(vm, &fpos);
+    if (rc) return rc;
+    pos = (int)fpos;
+    if (vm->stackpos <= 0) return 1;
+    stk = &vm->stack[vm->stackpos - 1];
+    vm->stackpos--;
+
+    rc = sdfvm_register_set(vm, pos, *stk);
+    if (rc) return rc;
+
+    return 0;
+}
 void sdfvm_print_lookup_table(FILE *fp)
 {
     if (fp == NULL) fp = stdout;
@@ -717,6 +792,8 @@ void sdfvm_print_lookup_table(FILE *fp)
     fprintf(fp, "    \"union_smooth\": %d,\n", SDF_OP_UNION_SMOOTH);
     fprintf(fp, "    \"subtract\": %d,\n", SDF_OP_SUBTRACT);
     fprintf(fp, "    \"swap\": %d,\n", SDF_OP_SWAP);
+    fprintf(fp, "    \"regget\": %d,\n", SDF_OP_REGGET);
+    fprintf(fp, "    \"regset\": %d,\n", SDF_OP_REGSET);
     fprintf(fp, "    \"end\": %d\n", SDF_OP_END);
     fprintf(fp, "}\n");
 }
