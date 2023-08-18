@@ -144,14 +144,24 @@ static int buffer_append(lua_State *L)
 
         while (lua_next(L, 2)) {
             unsigned char byte;
+            int rc;
             byte = (unsigned char)lua_tointeger(L, -1) & 0xFF;
-            mno_buffer_appendbyte(buf, byte);
+            rc = mno_buffer_appendbyte(buf, byte);
+
+            if (rc == 0) {
+                luaL_error(L, "Buffer capacity of %d exceeded", buf->cap);
+            }
+
             lua_pop(L, 1);
         }
     } else {
         unsigned char byte;
+        int rc;
         byte = (unsigned char)lua_tointeger(L, 2) & 0xFF;
-        mno_buffer_appendbyte(buf, byte);
+        rc = mno_buffer_appendbyte(buf, byte);
+        if (rc == 0) {
+            luaL_error(L, "Buffer capacity of %d exceeded", buf->cap);
+        }
     }
 
     return 0;
@@ -230,14 +240,22 @@ static int buffer_append_float(lua_State *L)
 
         while (lua_next(L, 2)) {
             float f;
+            int rc;
             f = lua_tonumber(L, -1);
-            mno_buffer_appendfloat(buf, f);
+            rc = mno_buffer_appendfloat(buf, f);
+            if (rc == 0) {
+                luaL_error(L, "Buffer capacity of %d exceeded", buf->cap);
+            }
             lua_pop(L, 1);
         }
     } else {
         float f;
+        int rc;
         f = lua_tonumber(L, 2);
-        mno_buffer_appendfloat(buf, f);
+        rc = mno_buffer_appendfloat(buf, f);
+        if (rc == 0) {
+            luaL_error(L, "Buffer capacity of %d exceeded", buf->cap);
+        }
     }
 
     return 0;
