@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 #include "mathc/mathc.h"
 
 float sdf_sign(float x)
@@ -401,9 +402,16 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     float d;
     float g;
     float co;
+    float out;
     struct vec2 r;
 
+    if (p.x == 0 && p.y == 0) {
+        /* hack to prevent dot, hopefully */
+        return 1.0;
+    }
+
     p = svec2_abs(p);
+
 
     if (p.x > p.y) {
         p = svec2(p.y, p.x);
@@ -411,9 +419,19 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     l = ab.y*ab.y - ab.x*ab.x;
-    m = ab.x*p.x / l;
+    if (l != 0) {
+        m = ab.x*p.x / l;
+    } else {
+        m = 0;
+        printf("l is zero\n");
+    }
     m2 = m*m;
-    n = ab.y*p.y / l;
+
+    if (l != 0) {
+        n = ab.y*p.y / l;
+    } else {
+        n = 0;
+    }
     n2 = n*n;
     c = (m2 + n2 - 1.0) / 3.0;
     c3 = c*c*c;
@@ -452,7 +470,12 @@ float sdf_ellipse(struct vec2 p, struct vec2 ab)
     }
 
     r = svec2_multiply(ab, svec2(co, sqrt(1.0-co*co)));
-    return svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
+    out = svec2_length(svec2_subtract(r, p)) * sdf_sign(p.y - r.y);
+
+    if (isnan(out)) {
+        printf("out is nan\n");
+    }
+    return out;
 }
 
 float sdf_moon(struct vec2 p, float d, float ra, float rb)
