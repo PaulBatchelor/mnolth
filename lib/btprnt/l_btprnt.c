@@ -794,6 +794,32 @@ static lil_value_t l_bppng(lil_t lil,
     return NULL;
 }
 
+static lil_value_t l_bpinvert(lil_t lil,
+                              size_t argc,
+                              lil_value_t *argv)
+{
+    btprnt_region *reg;
+    int rc;
+    sk_core *core;
+    int xoff, yoff, w, h;
+
+    SKLIL_ARITY_CHECK(lil, "bpinvert", argc, 5);
+    core = lil_get_data(lil);
+
+    rc = getreg(lil, core, &reg);
+
+    if (rc) return NULL;
+
+    xoff = lil_to_integer(argv[1]);
+    yoff = lil_to_integer(argv[2]);
+    w = lil_to_integer(argv[3]);
+    h = lil_to_integer(argv[4]);
+
+    btprnt_invert(reg, xoff, yoff, w, h);
+
+    return NULL;
+}
+
 void lil_load_btprnt(lil_t lil)
 {
     lil_register(lil, "bpnew", l_bpnew);
@@ -816,6 +842,7 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bproundrect", l_bproundrect);
     lil_register(lil, "bpverify", l_bpverify);
     lil_register(lil, "bppng", l_bppng);
+    lil_register(lil, "bpinvert", l_bpinvert);
 
     /* TODO */
     lil_register(lil, "bpfnt_cherry", l_btphi);
@@ -824,7 +851,6 @@ void lil_load_btprnt(lil_t lil)
     lil_register(lil, "bpvline", l_btphi);
     lil_register(lil, "bpcenterbox", l_btphi);
     lil_register(lil, "bpborder", l_btphi);
-    lil_register(lil, "bpinvert", l_btphi);
     lil_register(lil, "bpscrtxt", l_btphi);
 }
 
