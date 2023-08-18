@@ -77,6 +77,8 @@ struct sdfvm_threadpool {
     struct sdfvm_thread threads[BPSDF_MAXTHREADS];
     sdfvm_stacklet uniforms[BPSDF_NREGISTERS];
     int err;
+    int errpos;
+    int lastop;
     void *userdata;
 };
 
@@ -107,6 +109,8 @@ void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp)
         th->id = i;
     }
     vmthrp->err = 0;
+    vmthrp->errpos = 0;
+    vmthrp->lastop = -1;
 }
 #+END_SRC
 ** LIL function
@@ -255,7 +259,16 @@ static void *draw_thread(void *data)
             sdfvm_point_set(vm, p);
             rc = sdfvm_execute(vm, args->program, args->sz);
             if (rc) {
-                pool->err = 1;
+                pool->err = rc;
+                pool->errpos = vm->pos;
+                pool->lastop = vm->lastop;
+                break;
+            }
+
+            if (vm->stackpos > 1) {
+                printf("error: stackpos should be 1, it is %d\n",
+                    vm->stackpos);
+                pool->err = 3;
                 break;
             }
 
@@ -323,11 +336,11 @@ static lil_value_t l_bpsdf(lil_t lil,
 
     program = mno_buffer_data(buf);
     sz = mno_buffer_length(buf);
-
     rc = btprnt_sdf(reg, vmthrp, program, sz);
 
     if (rc) {
-        printf("bpsdf error\n");
+        printf("bpsdf error code %d, pos %d, lastop %d\n",
+            rc, vmthrp->errpos, vmthrp->lastop);
     }
 
     return NULL;
