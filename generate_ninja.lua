@@ -9,6 +9,8 @@ for _,a in pairs(arg) do
         config.monome = true
     elseif (a == "x264") then
         config.x264 = true
+    elseif (a == "clang") then
+        config.clang = true
     elseif (a == "all") then
         config.monome = true
         config.mnodes = true
@@ -299,5 +301,10 @@ end
 
 -- mac hacks
 table.insert(cflags, "-I/opt/homebrew/include")
+
+if config.clang == true then
+    -- required to keep checksum tests the same
+    add_cflags { "-ffp-contract=off" }
+end
 
 generate_ninja()
