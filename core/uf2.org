@@ -98,12 +98,14 @@ int uf2_load(struct uf2_font *fnt, const char *filename)
 int btprnt_uf2_draw_textline(btprnt_region *r,
                              struct uf2_font *fnt,
                              int xoff, int yoff,
-                             const char *line);
+                             const char *line,
+                             int scale);
 int btprnt_uf2_draw_bytes(btprnt_region *r,
                           struct uf2_font *fnt,
                           int xoff, int yoff,
                           const unsigned char *buf,
-                          size_t len);
+                          size_t len,
+                          int scale);
 #+END_SRC
 ** Textline
 #+NAME: funcs
@@ -111,13 +113,14 @@ int btprnt_uf2_draw_bytes(btprnt_region *r,
 int btprnt_uf2_draw_textline(btprnt_region *r,
                              struct uf2_font *fnt,
                              int xoff, int yoff,
-                             const char *line)
+                             const char *line,
+                             int scale)
 {
     return btprnt_uf2_draw_bytes(r,
                                  fnt,
                                  xoff, yoff,
                                  (const unsigned char *)line,
-                                 strlen(line));
+                                 strlen(line), scale);
 }
 #+END_SRC
 ** Buffer
@@ -128,20 +131,24 @@ int btprnt_uf2_draw_bytes(btprnt_region *r,
                           struct uf2_font *fnt,
                           int xoff, int yoff,
                           const unsigned char *buf,
-                          size_t len)
+                          size_t len,
+                          int scale)
 {
     size_t i;
 
     for (i = 0; i < len; i++) {
         struct uf2_glyph *g;
         uint8_t c;
+        int blkoff;
+
+        blkoff = 8*scale;
         c = buf[i];
         g = &fnt->glyphs[c];
-        write_block(r, &g->tl, xoff + 0, yoff);
-        write_block(r, &g->bl, xoff + 0, yoff + 8);
-        write_block(r, &g->tr, xoff + 8, yoff);
-        write_block(r, &g->br, xoff + 8, yoff + 8);
-        xoff += fnt->widths[c];
+        write_block(r, &g->tl, xoff + 0, yoff, scale);
+        write_block(r, &g->bl, xoff + 0, yoff + blkoff, scale);
+        write_block(r, &g->tr, xoff + blkoff, yoff, scale);
+        write_block(r, &g->br, xoff + blkoff, yoff + blkoff, scale);
+        xoff += fnt->widths[c]*scale;
     }
 
     return xoff;
@@ -153,7 +160,7 @@ Fonts in UF2 are split up into 4 8x8 pixel blocks.
 #+BEGIN_SRC c
 static void write_block(btprnt_region *r,
                         struct uf2_block *blk,
-                        int xoff, int yoff)
+                        int xoff, int yoff, int scale)
 {
     int x, y;
     uint8_t *dat;
@@ -166,7 +173,16 @@ static void write_block(btprnt_region *r,
             qpos = y;
             row = dat[qpos];
             if (row & (1 << x)) {
-                btprnt_region_draw(r, (7 - x) + xoff, y + yoff, 1);
+                int ys, xs;
+
+                for (ys = 0; ys < scale; ys++) {
+                    for (xs = 0; xs < scale; xs++) {
+                        btprnt_region_draw(r,
+                            (7 - x)*scale + xs + xoff,
+                            y*scale + ys + yoff,
+                            1);
+                    }
+                }
             }
 
             /* only draw for on bits */
@@ -281,6 +297,7 @@ static lil_value_t l_uf2txtln(lil_t lil,
     const char *str;
     btprnt_region *reg;
     struct uf2_font *fnt;
+    int scale;
 
     SKLIL_ARITY_CHECK(lil, "uf2txtln", argc, 5);
     core = lil_get_data(lil);
@@ -295,7 +312,13 @@ static lil_value_t l_uf2txtln(lil_t lil,
     y = lil_to_integer(argv[3]);
     str = lil_to_string(argv[4]);
 
-    btprnt_uf2_draw_textline(reg, fnt, x, y, str);
+    if (argc >= 6) {
+        scale = lil_to_integer(argv[5]);
+    } else {
+        scale = 1;
+    }
+
+    btprnt_uf2_draw_textline(reg, fnt, x, y, str, scale);
 
     if (rc) return NULL;
 
@@ -327,6 +350,7 @@ static lil_value_t l_uf2bytes(lil_t lil,
     struct uf2_font *fnt;
     mno_buffer *buf;
     void *ud;
+    int scale;
 
     SKLIL_ARITY_CHECK(lil, "uf2bytes", argc, 5);
     core = lil_get_data(lil);
@@ -346,8 +370,13 @@ static lil_value_t l_uf2bytes(lil_t lil,
 
     x = lil_to_integer(argv[3]);
     y = lil_to_integer(argv[4]);
+    if (argc >= 6) {
+        scale = lil_to_integer(argv[5]);
+    } else {
+        scale = 1;
+    }
 
-    btprnt_uf2_draw_bytes(reg, fnt, x, y, buf->buf, buf->len);
+    btprnt_uf2_draw_bytes(reg, fnt, x, y, buf->buf, buf->len, scale);
 
     if (rc) return NULL;
 
