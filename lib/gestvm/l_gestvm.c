@@ -63,6 +63,34 @@ static void compute(gf_node *node)
     }
 }
 
+static void compute_ext(gf_node *node)
+{
+    int n;
+    int blksize;
+    gestvm *gvm;
+    gf_cable *cabcnd;
+    gf_cable *cabext;
+    gf_cable *cabout;
+
+    blksize = gf_node_blksize(node);
+    gvm = gf_node_get_data(node);
+
+    gf_node_get_cable(node, 0, &cabcnd);
+    gf_node_get_cable(node, 1, &cabext);
+    gf_node_get_cable(node, 2, &cabout);
+
+    for (n = 0; n < blksize; n++) {
+        SKFLT cnd, ext, out;
+
+        cnd = gf_cable_get(cabcnd, n);
+        ext = gf_cable_get(cabext, n);
+
+        gestvm_extscale(gvm, ext);
+        out = gestvm_tick(gvm, cnd);
+        gf_cable_set(cabout, n, out);
+    }
+}
+
 static void destroy(gf_node *node)
 {
     gf_patch *patch;
@@ -75,15 +103,22 @@ static void destroy(gf_node *node)
     gf_memory_free(patch, &ud);
 }
 
-int sk_node_gestvm(sk_core *core, unsigned int ptr)
+static int node_gestvm(sk_core *core,
+                       unsigned int ptr,
+                       int use_ext)
 {
     int rc;
     void *ud;
     gf_patch *patch;
     gestvm_uxn *gu;
     gf_node *node;
-    sk_param cnd;
+    sk_param cnd, ext;
     gestvm *gvm;
+
+    if (use_ext) {
+        rc = sk_param_get(core, &ext);
+        SK_ERROR_CHECK(rc);
+    }
 
     rc = sk_param_get(core, &cnd);
     SK_ERROR_CHECK(rc);
@@ -105,19 +140,42 @@ int sk_node_gestvm(sk_core *core, unsigned int ptr)
     rc = gf_patch_new_node(patch, &node);
     SK_GF_ERROR_CHECK(rc);
 
-    rc = gf_node_cables_alloc(node, 2);
-    SK_GF_ERROR_CHECK(rc);
-    gf_node_set_block(node, 1);
+    if (use_ext) {
+        rc = gf_node_cables_alloc(node, 3);
+        SK_GF_ERROR_CHECK(rc);
+        gf_node_set_block(node, 2);
+    } else {
+        rc = gf_node_cables_alloc(node, 2);
+        SK_GF_ERROR_CHECK(rc);
+        gf_node_set_block(node, 1);
+    }
 
     gf_node_set_data(node, gvm);
-    gf_node_set_compute(node, compute);
+
+    if (use_ext) {
+        gf_node_set_compute(node, compute_ext);
+    } else {
+        gf_node_set_compute(node, compute);
+    }
+
     gf_node_set_destroy(node, destroy);
 
-    sk_param_set(core, node, &cnd, 0);
-    sk_param_out(core, node, 1);
+    if (use_ext) {
+        sk_param_set(core, node, &cnd, 0);
+        sk_param_set(core, node, &ext, 1);
+        sk_param_out(core, node, 2);
+    } else {
+        sk_param_set(core, node, &cnd, 0);
+        sk_param_out(core, node, 1);
+    }
 
     gestvm_uxn_set(gu, gvm);
     return 0;
+}
+
+int sk_node_gestvm(sk_core *core, unsigned int ptr)
+{
+    return node_gestvm(core, ptr, 0);
 }
 
 static lil_value_t l_gestvmnode(lil_t lil,
@@ -130,14 +188,21 @@ static lil_value_t l_gestvmnode(lil_t lil,
 
     core = lil_get_data(lil);
 
-    SKLIL_ARITY_CHECK(lil, "gestvmnode", argc, 2);
+    SKLIL_ARITY_CHECK(lil, "gestvmnode", argc, 3);
 
     ptr = lil_to_integer(argv[1]);
 
     rc = sklil_param(core, argv[2]);
     SKLIL_PARAM_CHECK(lil, rc, "gestvmnode");
 
-    rc = sk_node_gestvm(core, ptr);
+    if (argc > 3) {
+        rc = sklil_param(core, argv[3]);
+        SKLIL_PARAM_CHECK(lil, rc, "gestvmnode");
+        rc = node_gestvm(core, ptr, 1);
+    } else {
+        rc = sk_node_gestvm(core, ptr);
+    }
+
     SKLIL_ERROR_CHECK(lil, rc, "gestvmnode didn't work out.");
     return NULL;
 }
