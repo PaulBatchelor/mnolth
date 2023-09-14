@@ -60,15 +60,16 @@ uxn_eval(Uxn *u, Uint16 vec)
 	if(!vec || u->dev[0].dat[0xf])
 		return 0;
 	u->ram.ptr = vec;
-	if(u->wst.ptr > 0xf8) u->wst.ptr = 0xf8;
+	/* paul: is this causing trouble? */
+	/* if(u->wst->ptr > 0xf8) u->wst->ptr = 0xf8; */
 	while((instr = u->ram.dat[u->ram.ptr++])) {
 		/* Return Mode */
 		if(instr & MODE_RETURN) {
-			u->src = &u->rst;
-			u->dst = &u->wst;
+			u->src = u->rst;
+			u->dst = u->wst;
 		} else {
-			u->src = &u->wst;
-			u->dst = &u->rst;
+			u->src = u->wst;
+			u->dst = u->rst;
 		}
 		/* Keep Mode */
 		if(instr & MODE_KEEP) {
@@ -127,8 +128,8 @@ uxn_eval(Uxn *u, Uint16 vec)
 			case 0x1e: /* EOR */ a = pop(u->src), b = pop(u->src); push(u->src, b ^ a); break;
 			case 0x1f: /* SFT */ a = pop8(u->src), b = pop(u->src); push(u->src, b >> (a & 0x0f) << ((a & 0xf0) >> 4)); break;
 		}
-		if(u->wst.error) return uxn_halt(u, u->wst.error, "Working-stack", instr);
-		if(u->rst.error) return uxn_halt(u, u->rst.error, "Return-stack", instr);
+		if(u->wst->error) return uxn_halt(u, u->wst->error, "Working-stack", instr);
+		if(u->rst->error) return uxn_halt(u, u->rst->error, "Return-stack", instr);
 	}
 	return 1;
 }
@@ -142,6 +143,8 @@ uxn_boot(Uxn *u)
 	char *cptr = (char *)u;
 	for(i = 0; i < sizeof(*u); i++)
 		cptr[i] = 0x00;
+	u->wst = &u->iwst;
+	u->rst = &u->irst;
 	return 1;
 }
 

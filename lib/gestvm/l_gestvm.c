@@ -178,6 +178,11 @@ int sk_node_gestvm(sk_core *core, unsigned int ptr)
     return node_gestvm(core, ptr, 0);
 }
 
+int sk_node_gestvm_ext(sk_core *core, unsigned int ptr)
+{
+    return node_gestvm(core, ptr, 1);
+}
+
 static lil_value_t l_gestvmnode(lil_t lil,
                                 size_t argc,
                                 lil_value_t *argv)
@@ -198,7 +203,7 @@ static lil_value_t l_gestvmnode(lil_t lil,
     if (argc > 3) {
         rc = sklil_param(core, argv[3]);
         SKLIL_PARAM_CHECK(lil, rc, "gestvmnode");
-        rc = node_gestvm(core, ptr, 1);
+        rc = sk_node_gestvm_ext(core, ptr);
     } else {
         rc = sk_node_gestvm(core, ptr);
     }

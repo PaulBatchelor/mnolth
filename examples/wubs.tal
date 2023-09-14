@@ -1,0 +1,177 @@
+%NUM { #24 DEO }
+%DEN { #25 DEO }
+%NEXT { #26 DEO }
+%CURR { #2b DEO }
+%NOTE { #3c ADD NEXT }
+%BHVR { #27 DEO }
+%PARAM { #2c DEO #2d DEO }
+
+|0100
+
+@segments
+    &riff32
+        #80 CURR
+        #03 NUM #02 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &riff12
+        #80 CURR
+        #01 NUM #02 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &riff11
+        #80 CURR
+        #01 NUM #01 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &riff41
+        #80 CURR
+        #04 NUM #01 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &riff21
+        #80 CURR
+        #02 NUM #01 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &riff31
+        #80 CURR
+        #03 NUM #01 DEN
+        #0c BHVR #00 #00 PARAM
+        #80 NEXT
+    JMP2r
+
+    &rhy1
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff12 JSR2 BRK
+    JMP2r
+
+    &rhy2
+        ;segments/riff11 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff12 JSR2 BRK
+    JMP2r
+
+    &rhy3
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff32 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+    JMP2r
+
+    &rhy4
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff41 JSR2 BRK
+        ;segments/riff31 JSR2 BRK
+        ;segments/riff31 JSR2 BRK
+        ;segments/riff31 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff11 JSR2 BRK
+    JMP2r
+
+    &rhy5
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff21 JSR2 BRK
+        ;segments/riff12 JSR2 BRK
+    JMP2r
+
+@filter
+#80 NEXT BRK
+
+&loop
+
+;segments/rhy1 JSR2
+;segments/rhy1 JSR2
+;segments/rhy1 JSR2
+;segments/rhy2 JSR2
+
+;segments/rhy1 JSR2
+;segments/rhy1 JSR2
+;segments/rhy1 JSR2
+;segments/rhy2 JSR2
+
+;segments/rhy2 JSR2
+;segments/rhy3 JSR2
+;segments/rhy1 JSR2
+;segments/rhy4 JSR2
+
+;segments/rhy2 JSR2
+;segments/rhy3 JSR2
+;segments/rhy1 JSR2
+;segments/rhy5 JSR2
+
+;filter/loop JMP2
+
+@melriffs
+    &riff1
+        #00 #0c ADD NEXT BRK
+        #01 NUM #02 DEN #02 BHVR
+        #03 #0c ADD NEXT BRK
+        #08 NEXT BRK
+        #0a NEXT BRK
+
+        #00 #0c ADD NEXT BRK
+        #01 NUM #02 DEN #02 BHVR
+        #03 #0c ADD NEXT BRK
+        #08 NEXT BRK
+        #05 NEXT BRK
+        #0b BHVR #30 #00 PARAM
+    JMP2r
+
+    &riff2
+        #00 #0c ADD NEXT BRK
+        #00 BHVR #01 #02 DEN NUM
+        #07 #0c ADD NEXT BRK
+        #00 BHVR #01 #06 DEN NUM
+
+        #08 NEXT BRK
+        #00 BHVR #01 #04 DEN NUM
+        #05 NEXT BRK
+        #03 BHVR
+    JMP2r
+
+    &riff3
+        #00 #0c ADD NEXT BRK
+        #00 BHVR #01 #02 DEN NUM
+        #0c #0c ADD NEXT BRK
+        #00 BHVR #01 #06 DEN NUM
+
+        #08 NEXT BRK
+        #00 BHVR #01 #04 DEN NUM
+        #00 NEXT BRK
+        #0a BHVR #01 #02 DEN NUM
+        #0c #03 MUL NEXT BRK
+        #0a BHVR #01 #02 DEN NUM
+    JMP2r
+
+@mel
+;melriffs/riff1 JSR2
+;melriffs/riff1 JSR2
+;melriffs/riff2 JSR2
+;melriffs/riff3 JSR2
+;mel JMP2
