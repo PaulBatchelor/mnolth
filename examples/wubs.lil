@@ -78,7 +78,7 @@ peakeq zz zz zz zz
 dup
 vardelay zz 0 0.1 0.3
 dup
-bigverb zz zz 0.97 10000
+bigverb zz zz 0.93 10000
 drop
 dcblocker zz
 buthp zz 200
