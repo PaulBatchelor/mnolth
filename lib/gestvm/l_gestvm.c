@@ -282,7 +282,7 @@ static lil_value_t l_gestvmeval(lil_t lil,
 
     addr = lil_to_integer(argv[1]);
 
-    gestvm_eval(gu, addr);
+    gestvm_eval(gu, NULL, addr);
 
     return NULL;
 }
