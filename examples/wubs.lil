@@ -1,0 +1,99 @@
+ftlnew ftl
+
+grab ftl
+gensine [tabnew 4096] "10 1"
+ftladd zz zz
+gestvmnew gvm
+
+gestvmload [grab gvm] cur.rom
+
+phasor 2 0
+hold zz
+regset zz 0
+
+gestvmnode [grab gvm] [gestvmsym cur.rom mel] [regget 0]
+hold zz
+regset zz 1
+
+regget 1
+add zz [expr 22 + 12 - 0.3]
+mtof zz
+blsaw zz
+mul zz 0.5
+
+regget 1
+add zz [expr 22 + 12 + 0.21]
+mtof zz
+blsaw zz
+mul zz 0.5
+add zz zz
+
+gestvmnode [grab gvm] [gestvmsym cur.rom filter] [regget 0]
+gestvmtablist [gestvmlast [grab gvm]] [grab ftl]
+mul zz [param [expr 1 / 255]]
+limit zz 0 1
+hold zz
+regset zz 2
+
+regget 1
+add zz [expr 22 + 24 + 7.2]
+sine 7 0.1
+add zz zz
+mtof zz
+blsaw zz
+regget 2
+scale zz 0.1 0.8
+mul zz zz
+buthp zz 400
+add zz zz
+buthp zz 200
+mul zz [dblin -3]
+peakeq zz 500 500 0.2
+
+regget 1
+add zz 22
+mtof zz
+blsaw zz
+mul zz 1.5
+add zz zz
+
+mul zz [dblin -4]
+
+dup
+softclip zz 20
+regget 2
+scale zz 8000 200
+buthp zz zz
+mul zz 0.5
+add zz zz
+
+regget 2
+scale zz 150 2000
+butlp zz zz
+param [mtof 35]
+dup
+param 2
+peakeq zz zz zz zz
+
+dup
+vardelay zz 0 0.1 0.3
+dup
+bigverb zz zz 0.97 10000
+drop
+dcblocker zz
+buthp zz 200
+mul zz [dblin -20]
+add zz zz
+
+mul zz [dblin -3]
+
+limit zz -0.99 0.99
+
+unhold [regget 0]
+
+tgate [tick] 38
+smoother zz 0.01
+mul zz zz
+
+wavout zz wubs.wav
+computes 40

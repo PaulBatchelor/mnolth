@@ -23,6 +23,12 @@ a home anywhere else.
 #include "bitlang/bitlang.h"
 #include "btprnt/btprnt.h"
 
+#ifdef MNODES
+#include "ftlist/ftlist.h"
+#endif
+
+#include "gestvm/gestvm.h"
+
 <<lilfuncs>>
 
 void lil_load_misc(lil_t lil)
@@ -258,6 +264,50 @@ static lil_value_t l_blngex(lil_t lil,
         }
     }
 
+    return NULL;
+}
+#+END_SRC
+* gestvmtablist
+Used by GestVM if mnodes are enabled (ftlist is in there).
+
+This will set the table list instance of a gestvm node.
+
+#+NAME: lildefs
+#+BEGIN_SRC c
+#ifdef MNODES
+lil_register(lil, "gestvmtablist", l_gestvmtablist);
+#endif
+#+END_SRC
+
+#+NAME: lilfuncs
+#+BEGIN_SRC c
+static lil_value_t l_gestvmtablist(lil_t lil,
+                                   size_t argc,
+                                   lil_value_t *argv)
+{ 
+    sk_core *core;
+    void *ud;
+    int rc;
+    sp_ftlist *ftl;
+    gestvm *gvm;
+    sk_table **tablist;
+    int sz;
+
+    SKLIL_ARITY_CHECK(lil, "gestvmtablist", argc, 2);
+    core = lil_get_data(lil);
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get ftlist");
+    ftl = ud;
+
+    rc = sk_core_generic_pop(core, &ud);
+    SKLIL_ERROR_CHECK(lil, rc, "could not get gestvm");
+    gvm = ud;
+
+    tablist = sp_ftlist_list(ftl);
+    sz = sp_ftlist_size(ftl);
+
+    gestvm_tablist(gvm, tablist, sz);
     return NULL;
 }
 #+END_SRC

@@ -35,7 +35,8 @@ typedef struct Device {
 } Device;
 
 typedef struct Uxn {
-	Stack wst, rst, *src, *dst;
+	Stack *wst, *rst, *src, *dst;
+	Stack iwst, irst;
 	Memory ram;
 	Device dev[16];
 } Uxn;
