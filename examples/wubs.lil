@@ -5,13 +5,13 @@ gensine [tabnew 4096] "10 1"
 ftladd zz zz
 gestvmnew gvm
 
-gestvmload [grab gvm] cur.rom
+gestvmload [grab gvm] wubs.rom
 
 phasor 2 0
 hold zz
 regset zz 0
 
-gestvmnode [grab gvm] [gestvmsym cur.rom mel] [regget 0]
+gestvmnode [grab gvm] [gestvmsym wubs.rom mel] [regget 0]
 hold zz
 regset zz 1
 
@@ -28,7 +28,7 @@ blsaw zz
 mul zz 0.5
 add zz zz
 
-gestvmnode [grab gvm] [gestvmsym cur.rom filter] [regget 0]
+gestvmnode [grab gvm] [gestvmsym wubs.rom filter] [regget 0]
 gestvmtablist [gestvmlast [grab gvm]] [grab ftl]
 mul zz [param [expr 1 / 255]]
 limit zz 0 1
