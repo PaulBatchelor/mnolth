@@ -211,6 +211,9 @@ void gestlive_update(struct gestlive *glive)
         tmp = glive->read;
         glive->read = glive->write;
         glive->write = tmp;
+
+        /* re-init uxn VM instance */
+        gestvm_uxn_init(glive->uxn[glive->write]);
         glive->please_swap = 0;
     }
 }
@@ -260,6 +263,7 @@ int sk_node_gestlive_swapper(sk_core *core)
 
     node_data = &glive->node[glive->write];
     node_data->init = 1;
+
     patch = sk_core_patch(core);
     rc = gf_patch_new_node(patch, &node);
     SK_GF_ERROR_CHECK(rc);
