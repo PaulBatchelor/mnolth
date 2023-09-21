@@ -262,6 +262,19 @@ static int grid_now(lua_State *L)
     return 1;
 }
 
+static int grid_all(lua_State *L)
+{
+    int s;
+    monome_grid_data *md;
+
+    md = lua_touserdata(L, 1);
+    s = lua_tointeger(L, 2);
+
+    monome_led_all(md->monome, s);
+
+    return 0;
+}
+
 static const luaL_Reg grid_lib[] = {
     {"open", grid_open},
     {"close", grid_close},
@@ -271,6 +284,7 @@ static const luaL_Reg grid_lib[] = {
     {"update_zero", grid_update_zero},
     {"level_map", grid_level_map},
     {"now", grid_now},
+    {"all", grid_all},
     {NULL, NULL}
 };
 
