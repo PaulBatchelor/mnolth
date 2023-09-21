@@ -66,7 +66,10 @@ static void eval(lua_State *L, const char *str)
     }
 }
 
-int mno_rtserver(int argc, char *argv[])
+int mno_rtserver_loader(int argc,
+                        char *argv[],
+                        void (*loadfun)(lua_State*),
+                        void (*cleanfun)(lua_State*))
 {
     struct addrinfo hints;
     struct addrinfo *result, *rp;
@@ -97,7 +100,8 @@ int mno_rtserver(int argc, char *argv[])
 
     L = luaL_newstate();
     luaL_openlibs(L);
-    mno_lua_load(L);
+    /* mno_lua_load(L); */
+    loadfun(L);
     setup_lua_eval(L);
 
     lua_getglobal(L, "__lil");
@@ -182,8 +186,17 @@ int mno_rtserver(int argc, char *argv[])
         }
     }
 
-    mno_lua_clean(L);
+    /* mno_lua_clean(L); */
+    cleanfun(L);
     lua_close(L);
     free(buf);
     return 0;
+}
+
+int mno_rtserver(int argc, char *argv[])
+{
+    return mno_rtserver_loader(argc,
+                               argv,
+                               mno_lua_load,
+                               mno_lua_clean);
 }
