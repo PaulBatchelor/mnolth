@@ -152,7 +152,7 @@ int sdfvm_swap(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_circle(sdfvm *vm) 
+int sdfvm_circle(sdfvm *vm)
 {
     int rc;
     struct vec2 p;
@@ -238,7 +238,7 @@ static float feather(float d, float amt)
     return alpha;
 }
 
-int sdfvm_feather(sdfvm *vm) 
+int sdfvm_feather(sdfvm *vm)
 {
     float d, amt, f;
     int rc;
@@ -254,7 +254,7 @@ int sdfvm_feather(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_lerp3(sdfvm *vm) 
+int sdfvm_lerp3(sdfvm *vm)
 {
     float alpha;
     struct vec3 v[2];
@@ -277,7 +277,7 @@ int sdfvm_lerp3(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_mul(sdfvm *vm) 
+int sdfvm_mul(sdfvm *vm)
 {
     float x, y;
     int rc;
@@ -293,7 +293,7 @@ int sdfvm_mul(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_mul2(sdfvm *vm) 
+int sdfvm_mul2(sdfvm *vm)
 {
     struct vec2 x, y, out;
     int rc;
@@ -310,7 +310,7 @@ int sdfvm_mul2(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_add2(sdfvm *vm) 
+int sdfvm_add2(sdfvm *vm)
 {
     struct vec2 x, y, out;
     int rc;
@@ -327,7 +327,7 @@ int sdfvm_add2(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_add(sdfvm *vm) 
+int sdfvm_add(sdfvm *vm)
 {
     float x, y;
     int rc;
@@ -343,7 +343,7 @@ int sdfvm_add(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_lerp(sdfvm *vm) 
+int sdfvm_lerp(sdfvm *vm)
 {
     float x, y, a, out;
     int rc;

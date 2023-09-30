@@ -80,6 +80,7 @@ struct sdfvm_threadpool {
     int errpos;
     int lastop;
     void *userdata;
+    struct vec2 bias;
 };
 
 struct bpsdf_args {
@@ -108,6 +109,7 @@ void sdfvm_threadpool_init(sdfvm_threadpool *vmthrp)
         th->pool = vmthrp;
         th->id = i;
     }
+    vmthrp->bias = svec2(0, 0);
     vmthrp->err = 0;
     vmthrp->errpos = 0;
     vmthrp->lastop = -1;
@@ -254,6 +256,8 @@ static void *draw_thread(void *data)
             sdfvm_normalize(vm);
             sdfvm_pop_vec2(vm, &p);
             p.y = p.y*-1;
+
+            p = svec2_add(p, pool->bias);
 
             c = 1.0;
             sdfvm_point_set(vm, p);
@@ -486,6 +490,29 @@ static int uniset_vec3_lua(lua_State *L)
 
     vmthrp->uniforms[pos].type = SDFVM_VEC3;
     vmthrp->uniforms[pos].data.v3 = svec3(x, y, z);
+    return 0;
+}
+#+END_SRC
+** bias
+Applies a global bias to the renderer
+#+NAME: lua_entries
+#+BEGIN_SRC c
+{"bias", bias_lua},
+#+END_SRC
+
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int bias_lua(lua_State *L)
+{
+    sdfvm_threadpool *vmthrp;
+    float x, y;
+
+    vmthrp = lua_touserdata(L, 1);
+    x = lua_tonumber(L, 2);
+    y = lua_tonumber(L, 3);
+
+    vmthrp->bias = svec2(x, y);
+
     return 0;
 }
 #+END_SRC
