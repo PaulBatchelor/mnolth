@@ -44,6 +44,7 @@ void gestvm_memops_lua(lua_State *L)
 {
     lua_register(L, "gestvm_compile", gestvm_compile);
     lua_register(L, "gestvm_last_values", gestvm_last_values);
+    lua_register(L, "gestvm_last_conductor", last_conductor);
 }
 #+END_SRC
 
@@ -443,5 +444,25 @@ static int gestvm_last_values(lua_State *L)
     lua_pushnumber(L, y);
     lua_pushnumber(L, a);
     return 3;
+}
+#+END_SRC
+* Last Conductor
+(TODO: maybe move?)
+
+#+NAME: static_funcdefs
+#+BEGIN_SRC c
+static int last_conductor(lua_State *L);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+static int last_conductor(lua_State *L)
+{
+    gestvm *gvm;
+    SKFLT cnd;
+    gvm = lua_touserdata(L, 1);
+    cnd = gestvm_last_conductor(gvm);
+    lua_pushnumber(L, cnd);
+    return 1;
 }
 #+END_SRC
