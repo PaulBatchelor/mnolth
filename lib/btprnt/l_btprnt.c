@@ -893,8 +893,23 @@ static int lua_draw(lua_State *L)
     return 0;
 }
 
+static int lua_read(lua_State *L)
+{
+    btprnt_region *reg;
+    int x, y, s;
+    reg = lua_touserdata(L, 1);
+    x = lua_tointeger(L, 2);
+    y = lua_tointeger(L, 3);
+
+    s = btprnt_region_read(reg, x, y);
+
+    lua_pushinteger(L, s);
+    return 1;
+}
+
 static const luaL_Reg btprnt_lib[] = {
     {"draw", lua_draw},
+    {"read", lua_read},
     {NULL, NULL}
 };
 
