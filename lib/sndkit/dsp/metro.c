@@ -19,7 +19,13 @@ void sk_metro_freq(sk_metro *m, SKFLT freq)
 {
     m->freq = freq;
 }
-#line 144 "metro.org"
+#line 141 "metro.org"
+void sk_metro_reset(sk_metro *m)
+{
+    m->init = 1;
+    m->phs = 0;
+}
+#line 167 "metro.org"
 SKFLT sk_metro_tick(sk_metro *m)
 {
     SKFLT out;

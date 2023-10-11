@@ -251,7 +251,11 @@ static lil_value_t l_gmemsym(lil_t lil,
 
     addr = lookup(mem, sym);
 
-    SKLIL_ERROR_CHECK(lil, (addr == 0), "Problem finding symbol");
+    if (addr == 0) {
+        char errmsg[128];
+        sprintf(errmsg, "Problem finding symbol: %s", sym);
+        SKLIL_ERROR_CHECK(lil, 1, errmsg);
+    }
 
     return lil_alloc_integer(addr);
 }

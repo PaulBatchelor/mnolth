@@ -13,7 +13,9 @@ typedef struct sk_metro sk_metro;
 void sk_metro_init(sk_metro *m, int sr);
 #line 114 "metro.org"
 void sk_metro_freq(sk_metro *m, SKFLT freq);
-#line 129 "metro.org"
+#line 136 "metro.org"
+void sk_metro_reset(sk_metro *m);
+#line 152 "metro.org"
 SKFLT sk_metro_tick(sk_metro *m);
 #line 31 "metro.org"
 
