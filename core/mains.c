@@ -315,6 +315,29 @@ static int mnoreset(lua_State *L)
     return 0;
 }
 
+static int mnorealloc(lua_State *L)
+{
+    lil_t lil;
+    sk_core *core;
+    gf_patch *patch;
+    int blksize;
+    int nbuffers;
+    int stack_size;
+
+    nbuffers = lua_tointeger(L, 1);
+    stack_size = lua_tointeger(L, 2);
+
+    lua_getglobal(L, "__lil");
+    lil = lua_touserdata(L, -1);
+
+    core = lil_get_data(lil);
+
+    patch = sk_core_patch(core);
+    blksize = gf_patch_blksize(patch);
+    gf_patch_realloc(patch, nbuffers, stack_size, blksize);
+    return 0;
+}
+
 void gestvm_memops_lua(lua_State *L);
 int luaopen_lpeg(lua_State *L);
 int luaopen_lsqlite3(lua_State *L);
@@ -337,6 +360,7 @@ static void load_lua_funcs(lua_State *L, lil_t lil)
     lua_register(L, "lil", lvler);
     lua_register(L, "pop", lilpop);
     lua_register(L, "mnoreset", mnoreset);
+    lua_register(L, "mnorealloc", mnorealloc);
     gestvm_memops_lua(L);
     luaL_requiref(L, "lpeg", luaopen_lpeg, 1);
     luaL_requiref(L, "sqlite3", luaopen_lsqlite3, 1);
