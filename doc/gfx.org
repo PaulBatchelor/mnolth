@@ -28,6 +28,8 @@ gfxfill 1
 
 =bptr= transfers a btprnt instance to a gfxbuf canvas.
 
+args are x, y, width, height, offx, offy, and color index
+
 #+BEGIN_SRC lil
 bptr [grab bp] 0 0 128 128 0 0 0
 #+END_SRC
