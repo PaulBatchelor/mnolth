@@ -261,6 +261,34 @@ static int buffer_append_float(lua_State *L)
     return 0;
 }
 #+END_SRC
+** Dumping The Buffer (via Lua)
+Used for debugging purposes
+#+NAME: lua_funcs
+#+BEGIN_SRC c
+static int buffer_dump(lua_State *L)
+{
+    mno_buffer *buf;
+    const char *filename;
+    FILE *fp;
+
+    buf = lua_touserdata(L, 1);
+    filename = lua_tostring(L, 2);
+
+    fp = fopen(filename, "w");
+
+    if (fp == NULL) {
+        luaL_error(L,
+            "Problem opening file '%s' for writing",
+            filename);
+    }
+   
+    fwrite(buf->buf, 1, buf->len, fp);
+    fclose(fp);
+
+    return 0;
+}
+#+END_SRC
+
 ** Lua and LIL loaders Loader
 *** Lua Loader
 #+NAME: funcs
@@ -270,6 +298,7 @@ static const luaL_Reg buffer_lib[] = {
     {"append", buffer_append},
     {"append_float", buffer_append_float},
     {"clear", buffer_clear},
+    {"dump", buffer_dump},
     {NULL, NULL}
 };
 
