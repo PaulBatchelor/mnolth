@@ -169,6 +169,10 @@ int btprnt_sdf(btprnt_region *r,
                sdfvm_threadpool *vmthrp,
                uint8_t *program,
                size_t sz);
+int btprnt_sdf_nothreads(btprnt_region *r,
+               sdfvm_threadpool *vmthrp,
+               uint8_t *program,
+               size_t sz);
 #+END_SRC
 
 #+NAME: funcs
@@ -199,6 +203,35 @@ int btprnt_sdf(btprnt_region *r,
         pthread_join(th->thread, NULL);
     }
 
+    return vmthrp->err;
+}
+
+int btprnt_sdf_nothreads(btprnt_region *r,
+                         sdfvm_threadpool *vmthrp,
+                         uint8_t *program,
+                         size_t sz)
+{
+    struct bpsdf_args args;
+    int i;
+    args.program = program;
+    args.sz = sz;
+    args.bpreg = r;
+    vmthrp->userdata = &args;
+
+    vmthrp->err = 0;
+    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
+        struct sdfvm_thread *th;
+        th = &vmthrp->threads[i];
+        /* pthread_create(&th->thread, NULL, draw_thread, th); */
+        draw_thread(th);
+    }
+/*
+    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
+        struct sdfvm_thread *th;
+        th = &vmthrp->threads[i];
+        pthread_join(th->thread, NULL);
+    }
+*/
     return vmthrp->err;
 }
 #+END_SRC
@@ -343,7 +376,9 @@ static lil_value_t l_bpsdf(lil_t lil,
 
     program = mno_buffer_data(buf);
     sz = mno_buffer_length(buf);
-    rc = btprnt_sdf(reg, vmthrp, program, sz);
+    /* rc = btprnt_sdf(reg, vmthrp, program, sz); */
+    /* DEBUG */
+    rc = btprnt_sdf_nothreads(reg, vmthrp, program, sz);
 
     if (rc) {
         printf("bpsdf error code %d, pos %d, lastop %d\n",
