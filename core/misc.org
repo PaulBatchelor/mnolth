@@ -281,6 +281,7 @@ lil_register(lil, "gestvmtablist", l_gestvmtablist);
 
 #+NAME: lilfuncs
 #+BEGIN_SRC c
+#ifdef MNODES
 static lil_value_t l_gestvmtablist(lil_t lil,
                                    size_t argc,
                                    lil_value_t *argv)
@@ -310,4 +311,5 @@ static lil_value_t l_gestvmtablist(lil_t lil,
     gestvm_tablist(gvm, tablist, sz);
     return NULL;
 }
+#endif
 #+END_SRC
