@@ -222,16 +222,9 @@ int btprnt_sdf_nothreads(btprnt_region *r,
     for (i = 0; i < BPSDF_MAXTHREADS; i++) {
         struct sdfvm_thread *th;
         th = &vmthrp->threads[i];
-        /* pthread_create(&th->thread, NULL, draw_thread, th); */
         draw_thread(th);
+        if (vmthrp->err) return vmthrp->err;
     }
-/*
-    for (i = 0; i < BPSDF_MAXTHREADS; i++) {
-        struct sdfvm_thread *th;
-        th = &vmthrp->threads[i];
-        pthread_join(th->thread, NULL);
-    }
-*/
     return vmthrp->err;
 }
 #+END_SRC
@@ -376,9 +369,7 @@ static lil_value_t l_bpsdf(lil_t lil,
 
     program = mno_buffer_data(buf);
     sz = mno_buffer_length(buf);
-    /* rc = btprnt_sdf(reg, vmthrp, program, sz); */
-    /* DEBUG */
-    rc = btprnt_sdf_nothreads(reg, vmthrp, program, sz);
+    rc = btprnt_sdf(reg, vmthrp, program, sz);
 
     if (rc) {
         printf("bpsdf error code %d, pos %d, lastop %d\n",
