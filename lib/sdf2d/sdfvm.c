@@ -116,24 +116,24 @@ int sdfvm_pop_vec2(sdfvm *vm, struct vec2 *v)
 {
     sdfvm_stacklet *stk;
 
-    if (vm->stackpos <= 0) return 1;
+    if (vm->stackpos <= 0) return SDFVM_STACK_UNDERFLOW;
     stk = &vm->stack[vm->stackpos - 1];
 
-    if (stk->type != SDFVM_VEC2) return 2;
+    if (stk->type != SDFVM_VEC2) return SDFVM_WRONG_TYPE;
 
     *v = stk->data.v2;
     vm->stackpos--;
-    return 0;
+    return SDFVM_OK;
 }
 
 int sdfvm_pop_vec3(sdfvm *vm, struct vec3 *v)
 {
     sdfvm_stacklet *stk;
 
-    if (vm->stackpos <= 0) return 1;
+    if (vm->stackpos <= 0) return SDFVM_STACK_UNDERFLOW;
     stk = &vm->stack[vm->stackpos - 1];
 
-    if (stk->type != SDFVM_VEC3) return 2;
+    if (stk->type != SDFVM_VEC3) return SDFVM_WRONG_TYPE;
 
     *v = stk->data.v3;
     vm->stackpos--;
@@ -152,7 +152,7 @@ int sdfvm_swap(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_circle(sdfvm *vm)
+int sdfvm_circle(sdfvm *vm) 
 {
     int rc;
     struct vec2 p;
@@ -238,7 +238,7 @@ static float feather(float d, float amt)
     return alpha;
 }
 
-int sdfvm_feather(sdfvm *vm)
+int sdfvm_feather(sdfvm *vm) 
 {
     float d, amt, f;
     int rc;
@@ -254,7 +254,7 @@ int sdfvm_feather(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_lerp3(sdfvm *vm)
+int sdfvm_lerp3(sdfvm *vm) 
 {
     float alpha;
     struct vec3 v[2];
@@ -277,7 +277,7 @@ int sdfvm_lerp3(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_mul(sdfvm *vm)
+int sdfvm_mul(sdfvm *vm) 
 {
     float x, y;
     int rc;
@@ -293,7 +293,7 @@ int sdfvm_mul(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_mul2(sdfvm *vm)
+int sdfvm_mul2(sdfvm *vm) 
 {
     struct vec2 x, y, out;
     int rc;
@@ -327,7 +327,7 @@ int sdfvm_add2(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_add(sdfvm *vm)
+int sdfvm_add(sdfvm *vm) 
 {
     float x, y;
     int rc;
@@ -343,7 +343,7 @@ int sdfvm_add(sdfvm *vm)
     return 0;
 }
 
-int sdfvm_lerp(sdfvm *vm)
+int sdfvm_lerp(sdfvm *vm) 
 {
     float x, y, a, out;
     int rc;
@@ -635,7 +635,7 @@ static int get_float(const uint8_t *program,
                      float *out)
 {
     uint8_t tmp[4];
-    uint8_t pos;
+    size_t pos;
     float *f;
     int i;
 
@@ -883,4 +883,140 @@ void sdfvm_print_lookup_table(FILE *fp)
     fprintf(fp, "    \"stackpos\": %d,\n", SDF_OP_STACKPOS);
     fprintf(fp, "    \"end\": %d\n", SDF_OP_END);
     fprintf(fp, "}\n");
+}
+
+int sdfvm_dump(const uint8_t *program,
+               size_t sz)
+{
+    size_t n;
+    float f[3];
+
+    if (sz <= 0) return 2;
+
+    n = 0;
+    f[0] = f[1] = f[2] = 0;
+
+    while (n < sz) {
+        uint8_t c;
+
+        c = program[n];
+        switch(c) {
+            case SDF_OP_POINT:
+                n++;
+                printf("POINT\n");
+                break;
+            case SDF_OP_SWAP:
+                n++;
+                printf("SWAP\n");
+                break;
+            case SDF_OP_UNIFORM:
+                n++;
+                printf("UNIFORM\n");
+                break;
+            case SDF_OP_REGGET:
+                n++;
+                printf("REGGET\n");
+                break;
+            case SDF_OP_REGSET:
+                n++;
+                printf("REGSET\n");
+                break;
+            case SDF_OP_COLOR:
+                n++;
+                printf("COLOR\n");
+                break;
+            case SDF_OP_SCALAR:
+                n++;
+                printf("SCALAR\n");
+                n += 4;
+                break;
+            case SDF_OP_VEC2:
+                n++;
+                printf("VEC2\n");
+                n += 8;
+                break;
+            case SDF_OP_VEC3:
+                n++;
+                printf("VEC3\n");
+                n += 12;
+                break;
+            case SDF_OP_CIRCLE:
+                n++;
+                printf("CIRCLE\n");
+                break;
+            case SDF_OP_POLY4:
+                n++;
+                printf("POLY4\n");
+                break;
+            case SDF_OP_ROUNDNESS:
+                n++;
+                printf("ROUNDNESS\n");
+                break;
+            case SDF_OP_FEATHER:
+                n++;
+                printf("FEATHER\n");
+                break;
+            case SDF_OP_LERP3:
+                n++;
+                printf("LERP3\n");
+                break;
+            case SDF_OP_MUL:
+                n++;
+                printf("MUL\n");
+                break;
+            case SDF_OP_MUL2:
+                n++;
+                printf("MUL2\n");
+                break;
+            case SDF_OP_ADD:
+                n++;
+                printf("ADD\n");
+                break;
+            case SDF_OP_ADD2:
+                n++;
+                printf("ADD2\n");
+                break;
+            case SDF_OP_LERP:
+                n++;
+                printf("LERP\n");
+                break;
+            case SDF_OP_GTZ:
+                n++;
+                printf("GTZ\n");
+                break;
+            case SDF_OP_NORMALIZE:
+                n++;
+                printf("NORMALIZE\n");
+                break;
+            case SDF_OP_ONION:
+                n++;
+                printf("ONION\n");
+                break;
+            case SDF_OP_UNION:
+                n++;
+                printf("UNION\n");
+                break;
+            case SDF_OP_UNION_SMOOTH:
+                n++;
+                printf("UNION_SMOOTH\n");
+                break;
+            case SDF_OP_SUBTRACT:
+                n++;
+                printf("SUBTRACT\n");
+                break;
+            case SDF_OP_ELLIPSE:
+                n++;
+                printf("ELLIPSE\n");
+                break;
+            case SDF_OP_STACKPOS:
+                n++;
+                printf("STACKPOS\n");
+                break;
+            default:
+                printf("UNKNOWN");
+                return SDFVM_UNKNOWN;
+        }
+    }
+
+    return 0;
 }
