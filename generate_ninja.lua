@@ -11,11 +11,14 @@ for _,a in pairs(arg) do
         config.x264 = true
     elseif (a == "clang") then
         config.clang = true
+    elseif (a == "light") then
+        config.light = true
     elseif (a == "all") then
         config.monome = true
         config.mnodes = true
         config.mnort = true
         config.x264 = true
+        config.light = true
     end
 end
 
@@ -297,6 +300,10 @@ end
 
 if config.monome then
     require("monome/config")
+end
+
+if config.light then
+    require("light/config")
 end
 
 -- mac hacks
