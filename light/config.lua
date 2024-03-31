@@ -4,4 +4,6 @@ add_cflags {
 
 add_objects {
     "light/light",
+    "light/n_light",
+    "light/l_light",
 }

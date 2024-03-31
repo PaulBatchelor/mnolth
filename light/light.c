@@ -51,11 +51,13 @@ int mno_light_init(mno_light *ml, const char *portname)
         ONOCR | OFILL | OPOST);
 
 
+#if 0
     if (tcsetattr(fd, TCSANOW, &toptions) < 0) {
         close(ml->fd);
         fprintf(stderr, "mnolight: Couldn't set term attributes\b");
         return 3;
     }
+#endif
 
     ml->fd = fd;
     return 0;
@@ -73,7 +75,6 @@ void mno_light_set(mno_light *ml, float amt)
     /* clamp range to be 0-1 */
     if (amt < 0) amt = 0;
     else if (amt > 1) amt = 1;
-
 
     val = floor(amt * 0xFF);
     msg[0] = val;

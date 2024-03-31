@@ -29,8 +29,13 @@ void sklil_load_mnodes(lil_t lil);
 #endif
 
 #ifdef BUILD_MNORT
-    void lil_load_hotswap(lil_t lil);
+void lil_load_hotswap(lil_t lil);
 #endif
+
+#ifdef MNOLIGHT
+void sklil_load_light(lil_t lil);
+#endif
+
 void mno_load(lil_t lil)
 {
     sklil_loader_withextra(lil);
@@ -60,6 +65,11 @@ void mno_load(lil_t lil)
     lil_load_hotswap(lil);
     lil_load_rt(lil);
 #endif
+
+#ifdef MNOLIGHT
+    sklil_load_light(lil);
+#endif
+
 }
 
 void mno_clean(lil_t lil)
