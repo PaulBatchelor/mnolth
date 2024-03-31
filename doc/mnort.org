@@ -46,13 +46,18 @@ func playtog {} {
 -- </@>
 #+END_SRC
 
-Server can be started with =mnort start=.
+Server can be started with:
+
+#+BEGIN_SRC sh
+mnolth server
+#+END_SRC
+
 
 Save the codeblock to something like =init.lua=, then
 run:
 
-#+BEING_SRC sh
-mnort client < init.lua
+#+BEGIN_SRC sh
+mnolth client < init.lua
 #+END_SRC
 
 Make it play some sound:
