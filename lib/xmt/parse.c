@@ -82,12 +82,14 @@ typedef struct {
 
 typedef struct {
     FILE *fp;
+    size_t pos;
 } xm_iodat;
 
 static size_t writer(xm_iodat *w,
                      const void *data,
                      size_t sz)
 {
+    w->pos += sz;
     return fwrite(data, 1, sz, w->fp);
 }
 
@@ -95,6 +97,7 @@ static size_t reader(xm_iodat *r,
                      void *data,
                      size_t sz)
 {
+    r->pos += sz;
     return fread(data, 1, sz, r->fp);
 }
 
@@ -888,7 +891,7 @@ void load_v2(xm_module *xm, cmp_ctx_t *cmp)
                     int k;
                     arr = tmp->data;
                     for (k = 0; k < arr->length; k++) {
-                        read_u16(arr->val[k], &instruments[i].vol[k]);
+                        read_u16(arr->val[k], &instruments[i].pan[k]);
                     }
                 }
 
@@ -1319,6 +1322,7 @@ int xmt_main(int argc, char *argv[])
 
         fp = fopen(ofname, "wb");
         w.fp = fp;
+        w.pos = 0;
         xm_module_write(xm, &w);
         fclose(fp);
         xm_module_free(&xm);
@@ -1334,6 +1338,7 @@ int xmt_main(int argc, char *argv[])
         fp = fopen(ifname, "rb");
 
         r.fp = fp;
+        r.pos = 0;
         xm = xm_module_read(&r);
         fclose(fp);
         msgsz = 0;
