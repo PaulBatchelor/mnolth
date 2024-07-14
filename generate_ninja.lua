@@ -145,6 +145,12 @@ if config.x264 == true then
     add_cflags{"-DMNOLTH_X264"}
 end
 
+config.voxbox = true
+
+if config.voxbox then
+    table.insert(libs, "-L ../voxbox/target/release/examples/ -lvoxdsp")
+end
+
 add_cflags({"-Ilib", "-Icore"})
 
 if config.mnort then
