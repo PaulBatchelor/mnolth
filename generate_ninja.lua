@@ -101,6 +101,24 @@ function add_tangled_object(obj, header)
     add_object(obj)
 end
 
+function add_tangled_c99object(obj, header)
+    if header == nil then header = true end
+
+    tangled_c = obj .. ".c"
+    tangled_files = tangled_c
+
+    if header == true then
+        tangled_files = {tangled_c, obj .. ".h"}
+    end
+
+    table.insert(build,
+        mkbuild(tangled_files, "worgle", obj .. ".org", nil, "worglite"))
+
+    table.insert(tangled, tangled_c)
+
+    add_c99object(obj)
+end
+
 function add_tangled_objects(obj)
     for _,v in pairs(obj) do
         if (type(v) == "string") then
@@ -299,6 +317,7 @@ require("lib/libxm/config")
 require("lib/cmp/config")
 require("util/msgpack-dump/config")
 require("lib/xmt/config")
+require("util/cfloop/config")
 
 if config.mnodes then
     require("mnodes/config")

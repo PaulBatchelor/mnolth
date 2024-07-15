@@ -1,0 +1,176 @@
+#+TITLE: Crossfade Loop
+A simple crossfade loop generator commandline interface.
+It's all bundled up in a single tangled file called
+"cfloop.c":
+
+#+NAME: cfloop.c
+#+BEGIN_SRC c :tangle util/cfloop/cfloop.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "sndkit/nodes/dr_wav.h"
+
+<<cfloop_top>>
+<<main>>
+#+END_SRC
+* CLI Usage
+#+BEGIN_SRC sh
+cfloop in.wav out.wav loop_amt
+#+END_SRC
+
+=in.wav= is the input filename.
+
+=out.wav= is the output filename.
+
+=loop_amt= is the loop length (percentage, value
+between 0 and 1).
+
+Command line arguments are parsed with the function
+=run_cfloop=:
+
+* CLI function
+The CLI can be instantiated with =run_cfloop=. It expects
+arguments from =main=.
+#+NAME: main
+#+BEGIN_SRC c
+int run_cfloop(int argc, char *argv[])
+{
+    if(argc < 4) {
+        printf("%s: in.wav out.wav cf\n", argv[0]);
+        return 1;
+    }
+
+    return do_cfloop(argv[1], argv[2], atof(argv[3]));
+}
+#+END_SRC
+* Algorithm
+The recipe for a basic crossfade loop is pretty simple:
+Apply a linear fade in N seconds long at the
+beginning of the sample. Fade out the last N seconds.
+Take those last N seconds and mix it into the beginning
+of the file. Boom. Crossfade loop.
+
+In my version of this crossfade algorith, the loop time
+is relative to the sample. More often than not, it makes
+more musical sense to think it relative terms than in
+precise seconds. When the crossfade loop time is 100% of
+the file, it means that the fade in/out times add up to
+the total duration of the file, making the fade time
+half the file. A 50% loop time would therefore be quarter
+the file duration for the fade times.
+
+#+NAME: cfloop_top
+#+BEGIN_SRC c
+#define BUFSIZE 1024
+
+int do_cfloop(const char *in, const char *out, float cf)
+{
+    float buf[BUFSIZE];
+    float endbuf[BUFSIZE];
+    sk_drwav infile;
+    sk_drwav ioutfile;
+    sk_drwav *outfile;
+    sk_drwav_data_format format;
+    int rc;
+    int count;
+    unsigned long dur;
+    unsigned long fade;
+    unsigned long pos;
+    unsigned long n;
+    unsigned long endpos;
+
+    rc = sk_drwav_init_file(&infile, in, NULL);
+    outfile = &ioutfile;
+
+    if (!rc) {
+        fprintf(stderr, "Error opening %s\n", in);
+        return 1;
+    }
+
+    format.container = sk_drwav_container_riff;
+    format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
+    /* format.format = DR_WAVE_FORMAT_PCM; */
+    format.channels = 1;
+    format.sampleRate = infile.sampleRate;
+    format.bitsPerSample = 32;
+    sk_drwav_init_file_write(outfile, out, &format, NULL);
+
+    dur = infile.totalPCMFrameCount; fade = floor(dur * cf * 0.5);
+    dur -= fade;
+    endpos = dur;
+
+    pos = 0;
+
+    while (1) {
+        count = sk_drwav_read_pcm_frames(&infile, BUFSIZE, buf);
+
+        if (pos < fade) {
+            <<read_end>>
+        }
+
+        for (n = 0; n < count; n++) {
+            if (pos < fade) {
+                <<scale_and_sum>>
+            }
+            pos++;
+        }
+
+        if (pos >= dur) {
+            count -= (pos - dur);
+            sk_drwav_write_pcm_frames(outfile, count, buf);
+            break;
+        } else {
+            sk_drwav_write_pcm_frames(outfile, count, buf);
+        }
+    }
+
+    sk_drwav_uninit(&infile);
+    return 0;
+}
+#+END_SRC
+* Crossfading
+Up next are the slightly non-trivial bits of this program.
+Overall read position is kept track of. While this
+position is in the fade region, the file is read from
+the beginning and simultaneously. This requires an
+extra buffer, and a way to jump back and forth between
+positions in the files.
+
+If it happens that the read position is still in the
+fade region, the file will seek to the outfile end position
+plus the read position as an offset, and fill up a buffer
+that is COUNT samples long.
+
+#+NAME: read_end
+#+BEGIN_SRC c
+sk_drwav_seek_to_pcm_frame(&infile, endpos + pos);
+count = sk_drwav_read_pcm_frames(&infile, BUFSIZE, endbuf);
+<<snap_it_back>>
+#+END_SRC
+
+This buffer will then be scaled and summed into the output
+buffer.
+
+Scaling is done using a normalized alpha value, which is
+the current sample position, divided by the fade time.
+The end block gets multiplied by alpha. Beginning block
+is one minus alpha.
+
+#+NAME: scale_and_sum
+#+BEGIN_SRC c
+float beg, end;
+float a;
+beg = buf[n];
+end = endbuf[n];
+a = (float)pos / fade;
+buf[n] = (1 - a) * end + a * beg;
+#+END_SRC
+
+With the end read done, the file can jump back to the
+previous position and go COUNT samples further, in order
+to get ready for the next read.
+
+#+NAME: snap_it_back
+#+BEGIN_SRC c
+sk_drwav_seek_to_pcm_frame(&infile, pos + count);
+#+END_SRC
