@@ -125,6 +125,7 @@ int do_cfloop(const char *in, const char *out, float cf)
     }
 
     sk_drwav_uninit(&infile);
+    sk_drwav_uninit(outfile);
     return 0;
 }
 #+END_SRC
