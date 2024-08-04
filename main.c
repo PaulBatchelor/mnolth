@@ -17,6 +17,7 @@ int xmtowav_main(int argc, char** argv);
 int msgpack_dump_main(int argc, char *argv[]);
 int xmt_main(int argc, char *argv[]);
 int run_cfloop(int argc, char *argv[]);
+int ft2play_main(int argc, char *argv[]);
 
 #ifdef BUILD_MNORT
 int mno_rtserver(int argc, char *argv[]);
@@ -50,6 +51,7 @@ struct mnotil_cmd cmds[] = {
     {"msgpack-dump", msgpack_dump_main},
     {"xmt", xmt_main},
     {"cfloop", run_cfloop},
+    {"ft2play", ft2play_main},
 };
 
 
