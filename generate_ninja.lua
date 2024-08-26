@@ -13,6 +13,8 @@ for _,a in pairs(arg) do
         config.clang = true
     elseif (a == "light") then
         config.light = true
+    elseif (a == "voxbox") then
+        config.voxbox = true
     elseif (a == "all") then
         config.monome = true
         config.mnodes = true
@@ -163,10 +165,9 @@ if config.x264 == true then
     add_cflags{"-DMNOLTH_X264"}
 end
 
-config.voxbox = true
-
-if config.voxbox then
+if config.voxbox == true then
     table.insert(libs, "-L ../voxbox/target/release/examples/ -lvoxdsp")
+    add_cflags{"-DMNOLTH_VOXBOX"}
 end
 
 add_cflags({"-Ilib", "-Icore"})
