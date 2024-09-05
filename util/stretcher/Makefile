@@ -9,7 +9,9 @@ kiss_fftr.o
 default: stretcher
 
 LIBS+=-lsndfile
-CFLAGS+=-Wall -O3
+CFLAGS+=-Wall -O3 #-DNO_LIBSNDFILE
+
+LIBS+=-L../../ -lmnolth
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
