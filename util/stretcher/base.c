@@ -99,14 +99,17 @@ int sp_process(sp_data *sp, void *ud, void (*callback)(sp_data *, void *))
 
 #endif
 
-int sp_process_raw(sp_data *sp, void *ud, void (*callback)(sp_data *, void *))
+int sp_process_raw(sp_data *sp, void *ud, void (*callback)(sp_data *, void *), FILE *fp)
 {
+    /* TOD0: create buffered output. This is measurably slower. */
     int chan;
+    if (fp == NULL) fp = stdout;
+
     if(sp->len == 0) {
         while(1) {
             callback(sp, ud);
             for (chan = 0; chan < sp->nchan; chan++) {
-                fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, stdout);
+                fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, fp);
             }
             sp->len--;
         }
@@ -114,7 +117,7 @@ int sp_process_raw(sp_data *sp, void *ud, void (*callback)(sp_data *, void *))
         while(sp->len > 0) {
             callback(sp, ud);
             for (chan = 0; chan < sp->nchan; chan++) {
-                fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, stdout);
+                fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, fp);
             }
             sp->len--;
             sp->pos++;

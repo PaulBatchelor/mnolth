@@ -129,6 +129,8 @@ int sp_gen_file(sp_data *sp, sp_ftbl *ft, const char *filename)
     return SP_OK;
 }
 
+/* TODO: replace with loadwav from sndkit */
+
 int sp_ftbl_loadfile(sp_data *sp, sp_ftbl **ft, const char *filename)
 {
     *ft = malloc(sizeof(sp_ftbl));

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sndfile.h>
 #include "base.h"
 #include "ftbl.h"
 #include "paulstretch.h"
+#include "../../lib/sndkit/nodes/dr_wav.h"
 
 static void process(sp_data *sp, void *ud)
 {
@@ -20,15 +20,19 @@ static int get_info(const char *fname,
                     int *sr,
                     unsigned long *len)
 {
-    SF_INFO info;
-    SNDFILE *snd;
+    sk_drwav wav;
+    int rc;
 
-    snd = sf_open(fname, SFM_READ, &info);
-    if (snd == NULL) return 0;
+    rc = sk_drwav_init_file(&wav, fname, NULL);
 
-    *sr = info.samplerate;
-    *len = info.frames;
-    sf_close(snd);
+    *sr = wav.sampleRate;
+    *len = wav.totalPCMFrameCount;
+
+    if (!rc) {
+        return 0;
+    }
+
+    sk_drwav_uninit(&wav);
     return 1;
 }
 
@@ -43,6 +47,7 @@ int main(int argc, char *argv[])
     const char *fin;
     const char *fout;
     int rc;
+    FILE *fp;
 
     if(argc < 5) {
         fprintf(stderr,
@@ -68,6 +73,13 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
+    fp = fopen(fout, "w");
+
+    if (fp == NULL) {
+       fprintf(stderr, "Could not open %s\n", fout);
+       return 1;
+    }
+
     printf("window = %g\n", atof(argv[1]));
     window = atof(argv[1]);
     printf("stretch = %g\n", atof(argv[2]));
@@ -84,7 +96,7 @@ int main(int argc, char *argv[])
 
     ps->wrap = 0;
 
-    sp_process(sp, ps, process);
+    sp_process_raw(sp, ps, process, fp);
 
     cleanup:
 
