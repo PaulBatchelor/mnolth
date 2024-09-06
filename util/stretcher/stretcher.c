@@ -63,6 +63,38 @@ static int get_info(const char *fname,
     return 1;
 }
 
+static void write_wav(sp_data *sp,
+        sk_drwav *outfile,
+        sp_paulstretch *ps)
+{
+    float *buf;
+    uint32_t nsamps;
+    buf = calloc(1, sizeof(float) * 2048);
+
+    nsamps = sp->len;
+
+    while (nsamps > 0) {
+        int bufsize;
+        int i;
+        bufsize = 2048;
+
+        if (nsamps < bufsize) {
+            bufsize = nsamps;
+        }
+
+        for (i = 0; i < bufsize; i++) {
+            SPFLOAT out;
+            sp_paulstretch_compute(sp, ps, NULL, &out);
+            buf[i] = out;
+        }
+
+        sk_drwav_write_pcm_frames(outfile, bufsize, buf);
+        nsamps -= bufsize;
+    }
+
+    free(buf);
+}
+
 int main(int argc, char *argv[])
 {
     sp_data *sp;
@@ -74,7 +106,9 @@ int main(int argc, char *argv[])
     const char *fin;
     const char *fout;
     int rc;
-    FILE *fp;
+    sk_drwav outfile;
+    sk_drwav_data_format format;
+    //FILE *fp;
 
     if(argc < 5) {
         fprintf(stderr,
@@ -85,8 +119,6 @@ int main(int argc, char *argv[])
     }
 
     sp_create(&sp);
-
-    printf("samplerate = %d\n", atoi(argv[1]));
 
     sp_paulstretch_create(&ps);
 
@@ -100,12 +132,19 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    fp = fopen(fout, "w");
+    // fp = fopen(fout, "w");
 
-    if (fp == NULL) {
-       fprintf(stderr, "Could not open %s\n", fout);
-       return 1;
-    }
+    // if (fp == NULL) {
+    //    fprintf(stderr, "Could not open %s\n", fout);
+    //    return 1;
+    // }
+
+    format.container = sk_drwav_container_riff;
+    format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
+    format.channels = 1;
+    format.sampleRate = sp->sr;
+    format.bitsPerSample = 32;
+    sk_drwav_init_file_write(&outfile, fout, &format, NULL);
 
     printf("window = %g\n", atof(argv[1]));
     window = atof(argv[1]);
@@ -124,12 +163,22 @@ int main(int argc, char *argv[])
 
     ps->wrap = 0;
 
-    sp_process_raw(sp, ps, process, fp);
+    write_wav(sp, &outfile, ps);
+    //sp_process_raw(sp, ps, process, fp);
+    //while(sp->len > 0) {
+    //    callback(sp, ud);
+    //    for (chan = 0; chan < sp->nchan; chan++) {
+    //        fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, fp);
+    //    }
+    //    sp->len--;
+    //    sp->pos++;
+    //}
 
     cleanup:
 
     sp_ftbl_destroy(&ft);
     sp_paulstretch_destroy(&ps);
     sp_destroy(&sp);
+    sk_drwav_uninit(&outfile);
     return 0;
 }
