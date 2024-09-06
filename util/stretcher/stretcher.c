@@ -33,15 +33,6 @@ int sp_ftbl_loadfile_v2(sp_data *sp,
     return SP_OK;
 }
 
-static void process(sp_data *sp, void *ud)
-{
-    SPFLOAT out;
-    sp_paulstretch *ps;
-    ps = ud;
-    sp_paulstretch_compute(sp, ps, NULL, &out);
-    sp_out(sp, 0, out);
-}
-
 /* a little kluge to get file info */
 static int get_info(const char *fname,
                     int *sr,
@@ -108,7 +99,6 @@ int main(int argc, char *argv[])
     int rc;
     sk_drwav outfile;
     sk_drwav_data_format format;
-    //FILE *fp;
 
     if(argc < 5) {
         fprintf(stderr,
@@ -132,13 +122,6 @@ int main(int argc, char *argv[])
         goto cleanup;
     }
 
-    // fp = fopen(fout, "w");
-
-    // if (fp == NULL) {
-    //    fprintf(stderr, "Could not open %s\n", fout);
-    //    return 1;
-    // }
-
     format.container = sk_drwav_container_riff;
     format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
     format.channels = 1;
@@ -153,7 +136,6 @@ int main(int argc, char *argv[])
     sp->len *= stretch;
     printf("total dur = %gs\n", (SPFLOAT)sp->len / sp->sr);
     printf("input = %s\n", fin);
-    //sp_ftbl_loadfile(sp, &ft, fin);
     sp_ftbl_loadfile_v2(sp, &ft, fin);
     printf("output = %s\n", fout);
 
@@ -164,15 +146,6 @@ int main(int argc, char *argv[])
     ps->wrap = 0;
 
     write_wav(sp, &outfile, ps);
-    //sp_process_raw(sp, ps, process, fp);
-    //while(sp->len > 0) {
-    //    callback(sp, ud);
-    //    for (chan = 0; chan < sp->nchan; chan++) {
-    //        fwrite(&sp->out[chan], sizeof(SPFLOAT), 1, fp);
-    //    }
-    //    sp->len--;
-    //    sp->pos++;
-    //}
 
     cleanup:
 
