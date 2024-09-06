@@ -5,6 +5,33 @@
 #include "ftbl.h"
 #include "paulstretch.h"
 #include "../../lib/sndkit/nodes/dr_wav.h"
+#include "../../lib/sndkit/graforge/graforge.h"
+#include "../../lib/sndkit/core.h"
+
+int sp_ftbl_loadfile_v2(sp_data *sp,
+        sp_ftbl **ft,
+        const char *filename)
+{
+    sk_drwav wav;
+    *ft = malloc(sizeof(sp_ftbl));
+    sp_ftbl *ftp = *ft;
+
+    if (!sk_drwav_init_file(&wav, filename, NULL)) {
+        fprintf(stderr, "Error opening file '%s'\n", filename);
+        return 1;
+    }
+
+    size_t size = wav.totalPCMFrameCount;
+
+    ftp->tbl = malloc(sizeof(SPFLOAT) * size);
+
+    sp_ftbl_init(sp, ftp, size);
+
+    sk_drwav_read_pcm_frames_f32(&wav, size, ftp->tbl);
+    sk_drwav_uninit(&wav);
+
+    return SP_OK;
+}
 
 static void process(sp_data *sp, void *ud)
 {
@@ -87,7 +114,8 @@ int main(int argc, char *argv[])
     sp->len *= stretch;
     printf("total dur = %gs\n", (SPFLOAT)sp->len / sp->sr);
     printf("input = %s\n", fin);
-    sp_ftbl_loadfile(sp, &ft, fin);
+    //sp_ftbl_loadfile(sp, &ft, fin);
+    sp_ftbl_loadfile_v2(sp, &ft, fin);
     printf("output = %s\n", fout);
 
     strncpy(sp->filename, fout, 60);
