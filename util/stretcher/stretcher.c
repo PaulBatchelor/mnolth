@@ -86,7 +86,7 @@ static void write_wav(sp_data *sp,
     free(buf);
 }
 
-int main(int argc, char *argv[])
+int stretcher_main(int argc, char *argv[])
 {
     sp_data *sp;
     sp_ftbl *ft;
@@ -155,3 +155,10 @@ int main(int argc, char *argv[])
     sk_drwav_uninit(&outfile);
     return 0;
 }
+
+#ifdef STRETCHER_MAIN
+int main(int argc, char *argv[])
+{
+    return stretcher_main(argc, argv);
+}
+#endif
