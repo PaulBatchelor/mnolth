@@ -320,6 +320,7 @@ require("util/msgpack-dump/config")
 require("lib/xmt/config")
 require("util/cfloop/config")
 require("util/ft2play/config")
+require("util/stretcher/config")
 
 if config.mnodes then
     require("mnodes/config")
