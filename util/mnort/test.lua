@@ -97,7 +97,7 @@ func playtog {} {
 -- <@>
 lil([[
 rtin [grab rt] 0
-buthp zz 200
+buthp zz 100
 
 dup
 vardelay zz 0.8 0.3 2.0
@@ -113,9 +113,8 @@ dup
 bigverb zz zz 0.99 10000
 drop
 dcblocker zz
-mul zz 0.7
-dup
-wavout zz dump.wav
+# mul zz 0.7
+# dup
 out
 ]])
 -- </@>
