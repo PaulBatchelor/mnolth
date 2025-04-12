@@ -77,5 +77,45 @@ out
 lil("stop")
 -- </@>
 
--- extra line needed here to make codeblock above work
--- weird vim quirks I guess?
+-- testing realtime input
+-- <@>
+lil([[
+hsnew hs
+rtnew [grab hs] rt
+
+func out {} {
+    hsout [grab hs]
+    hsswp [grab hs]
+}
+
+func playtog {} {
+    hstog [grab hs]
+}
+]])
+-- </@>
+
+-- <@>
+lil([[
+rtin [grab rt] 0
+buthp zz 200
+
+dup
+vardelay zz 0.8 0.3 2.0
+mul zz [dblin -10]
+
+dup
+vardelay zz 0.8 1.6 2.0
+mul zz [dblin -10]
+
+add zz zz
+add zz zz
+dup
+bigverb zz zz 0.99 10000
+drop
+dcblocker zz
+mul zz 0.7
+dup
+wavout zz dump.wav
+out
+]])
+-- </@>

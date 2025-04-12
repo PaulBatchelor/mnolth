@@ -103,6 +103,7 @@ struct mno_hotswap {
     int cfcnt;
     int pcfstate;
     int pcfcnt;
+    int framepos;
 };
 #+END_SRC
 
@@ -142,6 +143,7 @@ void mno_hotswap_init(mno_hotswap *hs, gf_patch *patch)
     hs->cfcnt = 0;
     hs->pcfcnt = hs->cfcnt;
     hs->pcfstate = hs->cfstate;
+    hs->framepos = 0;
 }
 #+END_SRC
 
@@ -456,8 +458,10 @@ void mno_hotswap_render(mno_hotswap *hs, int nframes, GFFLT **out)
         for (n = 0; n < nframes; n++) {
             GFFLT tmp;
 
-            tmp = 0;
+            hs->framepos = n;
 
+            tmp = 0;
+        
             if (hs->count == 0) {
                 mno_hotswap_compute(hs);
             }
@@ -548,5 +552,18 @@ void mno_hotswap_cfsize(mno_hotswap *hs, int sz);
 void mno_hotswap_cfsize(mno_hotswap *hs, int sz)
 {
     hs->cfsz = sz;
+}
+#+END_SRC
+* Hotswap frame position
+#+NAME: funcdefs
+#+BEGIN_SRC c
+int mno_hotswap_framepos(mno_hotswap *hs);
+#+END_SRC
+
+#+NAME: funcs
+#+BEGIN_SRC c
+int mno_hotswap_framepos(mno_hotswap *hs)
+{
+    return hs->framepos;
 }
 #+END_SRC

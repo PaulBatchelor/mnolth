@@ -56,3 +56,45 @@ When I eval the last line in the test.lua file, it selects
 the text but doesn't enter it. I did rework the the vimscript
 file to not return the output. The hack is to just add more
 line breaks at the end of the file. Weird.
+---
+Vim mischief managed. I didn't quite have the vim command right.
+
+@10:34 attempting to add some input ports
+Based on how I have things set up, I think the plan
+will be to add some input ports to the jack server,
+then have a LIL function called "rtin" or something
+---
+Boilerplate "rtin" LIL function created. Input ports seem
+to show up on JACK.
+
+@10:57 Adding an rtin node
+I think I did this very same thing before in monolith,
+double checking. I can't quite remember the incantation
+to use to read from the input ports.
+---
+Great. We did this before in a node called "monin".
+---
+The name of the game is copying buffers from jack ports
+into graforge cables. The blocks are going to be different
+sizes, so that's the challenging bit.
+---
+I think this works with a couple of safe assumptions:
+The buffer size in JACK is larger than the block size
+in a graforge cable. The block size of a graforge cable
+will evenly divide into the jack buffer.
+---
+Actually, I think we need to know the buffer size of jack.
+That is information inside of the hotswapping utility.
+
+@11:55 initial testing
+most things seem to be tentatively in place.
+---
+works! but I need to clean up buffers apparently.
+---
+we're back, now we need to get the uke hooked up with the
+new interface. I think I have enough raw material lying
+around for hooking it up. More cables are coming in
+the mail later.
+
+@12:44 we got the uke working with reverb and delay
+sounds lovely. recorded a small demo to share with the world
