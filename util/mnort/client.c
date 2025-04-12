@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 /* client.c */
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -107,4 +108,5 @@ int mno_rtclient(int argc, char *argv[])
     free(buf);
 
     exit(EXIT_SUCCESS);
+    return 0;
 }

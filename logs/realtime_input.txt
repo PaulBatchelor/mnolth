@@ -1,0 +1,58 @@
+@2025-04-12 Starting this up again
+I'm dusting off this projet a bit to add a new feature:
+realtime input processing. In theory, this shouldn't be
+terribly difficult. I've done this thing before, and it
+involves adding input ports to JACK, and then
+creating nodes that can read from these inputs.
+
+@09:30 Pre-work: troubleshooting weird compiler errors
+It appears that GCC is having trouble finding `addrinfo`
+and the networking functions. My guess is there's some
+compatibility flag there.
+---
+My current plan is to create smaller self-contained
+versions of the files in question (client.c in mnort),
+and go from there.
+---
+Ah, okay okay. it's server.c that is the culprit, not
+client. I think I have ANSI C flags there when it should
+be c99 flags.
+---
+Actually, c99 and c89 both fail.
+---
+The fix is to put this at the top of the file:
+===
+#define _POSIX_C_SOURCE 200112L
+===
+
+@09:49 things build now, let's make sure realtime still works
+I had a live coding vim script I made a while back.
+Let's see what works and what doesn't.
+---
+I actually need jack2 for jack_lsp, so install this and rebuilding
+mnolth
+---
+I don't think the mnolth server is actually starting
+---
+My goodness, I don't have gdb installed. My sweet summer child.
+---
+Something weird is freezing.
+
+@10:06 doing a full rebuild, we'll see if that fixes things
+
+@10:15 After a full rebuild, still hanging
+
+@10:18 we're not actually hanging, just forgot to flush
+we are in the main run loop. Now, let's see if things
+work in the live coding editor
+
+@10:21 client errors are back. I forgot to uncomment the code
+Okay we are so back
+---
+And it all works still great
+
+@10:32 weird vim quirks: needed extra lines
+When I eval the last line in the test.lua file, it selects
+the text but doesn't enter it. I did rework the the vimscript
+file to not return the output. The hack is to just add more
+line breaks at the end of the file. Weird.
